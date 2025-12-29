@@ -147,7 +147,7 @@ inputCodigo.addEventListener("keydown", (event) => {
 btnBuscar.addEventListener("click", async () => {
     const codigo = inputCodigo.value.trim();
     if (!codigo) {
-        alert('Digite um código para buscar');
+        showToast('warning', 'Código obrigatório', 'Digite um código para buscar o produto.');
         return;
     }
 
@@ -188,15 +188,17 @@ btnBuscar.addEventListener("click", async () => {
 
             atualizarOverlayTexto("✅ Produto encontrado!");
             await new Promise(res => setTimeout(res, 1000));
+            showToast('success', 'Produto encontrado!', 'Os dados do produto foram preenchidos automaticamente.');
         } else {
             atualizarOverlayTexto("❌ Produto não encontrado");
-            alert('Produto não encontrado. Preencha manualmente.');
             await new Promise(res => setTimeout(res, 1500));
+            showToast('error', 'Produto não cadastrado', 'Produto não cadastrado no banco de dados. Preencha manualmente.');
         }
     } catch (e) {
         console.error(e);
         atualizarOverlayTexto("⚠️ Erro ao buscar dados");
         await new Promise(res => setTimeout(res, 1500));
+        showToast('error', 'Erro na busca', 'Ocorreu um erro ao buscar o produto. Tente novamente.');
     } finally {
         esconderOverlay();
     }
@@ -373,26 +375,32 @@ productForm.addEventListener('submit', (e) => {
     const g36Val = parseCurrency(document.getElementById('garantia36').value);
 
     if (!codigo || !descricao) {
-        alert('Preencha código e descrição!');
+        showToast('warning', 'Campos obrigatórios', 'Preencha código e descrição!');
         return;
     }
 
     if (!metodo || !juros) {
-        alert('Selecione parcelamento e taxa de juros!');
+        showToast('warning', 'Campos obrigatórios', 'Selecione parcelamento e taxa de juros!');
         return;
     }
 
     if (avista <= 0) {
-        alert('Informe o valor à vista!');
+        showToast('warning', 'Valor inválido', 'Informe o valor à vista!');
         return;
     }
 
     if (parcela <= 0) {
-        alert('Informe o valor da parcela!');
+        showToast('warning', 'Valor inválido', 'Informe o valor da parcela!');
         return;
     }
 
     const features = [feature1, feature2, feature3].filter(f => f !== '');
+    
+    // VALIDAÇÃO OBRIGATÓRIA DE CARACTERÍSTICAS
+    if (features.length === 0) {
+        showSearchToast(descricao);
+        return;
+    }
 
     const product = {
         id: Date.now(),
@@ -414,6 +422,8 @@ productForm.addEventListener('submit', (e) => {
 
     products.push(product);
     renderProducts();
+    
+    showToast('success', 'Produto adicionado!', `${descricao} foi adicionado com sucesso.`);
 
     // Resetar formulário
     productForm.reset();
@@ -548,8 +558,13 @@ function generatePosterHTML(product, isPreview = false) {
             
             <div class="poster-footer-table">
                 <div class="poster-table-left">
-                    <div class="poster-table-main-text">= ${brl(valorTotal)} no ${tipoParcelamento}</div>
-                    <div class="poster-table-sub-text">${jurosTexto[product.juros]}</div>
+                    <div class="poster-price-line">
+                        <div class="poster-table-main-text">= ${brl(valorTotal)}</div>
+                        <div class="poster-payment-info">
+                            <div class="poster-payment-type">no ${tipoParcelamento}</div>
+                            <div class="poster-payment-rate">${jurosTexto[product.juros]}</div>
+                        </div>
+                    </div>
                     ${product.motivo ? `<div class="poster-table-sub-text" style="margin-top: 8px; font-weight: 700;">${product.motivo}</div>` : ''}
                 </div>
                 <div class="poster-table-right">
@@ -593,7 +608,7 @@ window.deleteProduct = function(id) {
 };
 
 window.showPreview = function(id) {
-    const product = products.find(p => p.id !== id);
+    const product = products.find(p => p.id === id);
     if (!product) return;
     showToast('info', 'Visualização', 'Clique em "Gerar PDF" para visualizar o cartaz completo.');
 };
@@ -603,7 +618,7 @@ window.showPreview = function(id) {
 // ==================================================
 document.getElementById('btn-gerar-pdf').addEventListener('click', async () => {
     if (products.length === 0) {
-        alert('Adicione pelo menos um produto!');
+        showToast('warning', 'Nenhum produto', 'Adicione pelo menos um produto para gerar o PDF!');
         return;
     }
 
@@ -630,17 +645,28 @@ document.getElementById('btn-gerar-pdf').addEventListener('click', async () => {
             document.body.removeChild(clone);
         }
 
-        // Gerar blob e abrir em nova janela
+        // Gerar blob e abrir em nova janela com título personalizado
         const pdfBlob = pdf.output('blob');
         const pdfUrl = URL.createObjectURL(pdfBlob);
-        window.open(pdfUrl, '_blank');
-
-        atualizarOverlayTexto("✅ PDF gerado com sucesso!");
-        setTimeout(esconderOverlay, 1500);
+        
+        // Criar título com códigos dos produtos
+        const codigos = products.map(p => p.codigo).join(', ');
+        const titulo = `Cartaz(es) gerado(s) - Cód. ${codigos}`;
+        
+        // Abrir em nova aba com título personalizado
+        const newWindow = window.open(pdfUrl, '_blank');
+        if (newWindow && !newWindow.closed) {
+            newWindow.document.title = titulo;
+            showToast('success', 'PDF gerado!', `Cartaz(es) do(s) produto(s) ${codigos} gerado(s) com sucesso!`);
+        } else {
+            // Popup foi bloqueado
+            showToast('warning', 'Popups bloqueados', 'Por favor, ative os popups no seu navegador para visualizar o PDF.');
+        }
+        esconderOverlay();
 
     } catch (error) {
         console.error('Erro ao gerar PDF:', error);
-        alert('Erro ao gerar PDF. Tente novamente.');
+        showToast('error', 'Erro ao gerar PDF', 'Ocorreu um erro ao gerar o PDF. Tente novamente.');
         esconderOverlay();
     }
 });
@@ -816,6 +842,48 @@ function showUndoToast(title, message, onUndo, duration = 6000) {
             }
         }, duration);
     }
+    
+    return toast;
+}
+
+function showSearchToast(descricao) {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = 'toast warning';
+    
+    toast.innerHTML = `
+        <div class="toast-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <div class="toast-content">
+            <div class="toast-title">Características obrigatórias</div>
+            <div class="toast-message">Adicione pelo menos uma característica para o produto <strong>${descricao}</strong>. Deseja buscar na internet mais informações do produto?</div>
+            <div class="toast-actions">
+                <button class="toast-action-btn primary" data-action="search"><i class="fa-solid fa-globe"></i> Buscar aqui</button>
+                <button class="toast-action-btn secondary" data-action="dismiss">Dispensar</button>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Handlers para os botões
+    toast.querySelector('[data-action="search"]').addEventListener('click', () => {
+        const searchQuery = `${descricao} características`;
+        const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
+        const newWindow = window.open(searchUrl, '_blank');
+        
+        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+            // Popup foi bloqueado
+            showToast('warning', 'Popups bloqueados', 'Por favor, ative os popups no seu navegador para abrir a busca do Google.');
+        }
+        
+        toast.classList.add('removing');
+        setTimeout(() => toast.remove(), 300);
+    });
+    
+    toast.querySelector('[data-action="dismiss"]').addEventListener('click', () => {
+        toast.classList.add('removing');
+        setTimeout(() => toast.remove(), 300);
+    });
     
     return toast;
 }
