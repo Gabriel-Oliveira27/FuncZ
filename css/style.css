@@ -271,6 +271,7 @@ body {
 
 .form-group input[type="text"],
 .form-group input[type="tel"],
+.form-group input[type="date"],
 .form-group select {
     width: 100%;
     padding: 12px 16px;
@@ -282,10 +283,30 @@ body {
 
 .form-group input[type="text"]:focus,
 .form-group input[type="tel"]:focus,
+.form-group input[type="date"]:focus,
 .form-group select:focus {
     outline: none;
     border-color: var(--primary);
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Campo de data estilizado */
+.form-group input[type="date"] {
+    position: relative;
+    font-family: inherit;
+    color: var(--gray-700);
+    background: white;
+    cursor: pointer;
+}
+
+.form-group input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.form-group input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
 }
 
 .help-text {
@@ -873,6 +894,7 @@ input:checked + .slider:before {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    min-height: 60px;
 }
 
 .poster-table-left {
@@ -884,6 +906,13 @@ input:checked + .slider:before {
     align-items: flex-end;
 }
 
+/* Linha do preço à prazo: preço grande + info ao lado */
+.poster-price-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
 .poster-table-main-text {
     font-family: 'Lato', Arial, sans-serif;
     font-size: 20pt;
@@ -891,6 +920,32 @@ input:checked + .slider:before {
     color: #000;
     line-height: 1.2;
     white-space: nowrap;
+}
+
+/* Info ao lado do preço (tipo de parcelamento + juros) */
+.poster-payment-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    margin-top: 3px;
+}
+
+.poster-payment-type {
+    font-family: 'Lato', Arial, sans-serif;
+    font-size: 10pt;
+    font-weight: 400;
+    color: #000;
+    line-height: 1.1;
+    white-space: nowrap;
+}
+
+.poster-payment-rate {
+    font-family: 'Lato', Arial, sans-serif;
+    font-size: 7pt;
+    font-weight: 400;
+    color: #000;
+    line-height: 1.1;
+    margin-top: 2px;
 }
 
 .poster-table-sub-text {
