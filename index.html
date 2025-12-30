@@ -1,347 +1,146 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de Cartazes - Sistema Interno</title>
-    <link rel="icon" type="image/png" href="image/zenirlogo.png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Sistema</title>
+  <link rel="stylesheet" href="css/login-styles.css">
 </head>
 <body>
-    <!-- Loading Overlay -->
-    <div id="overlay">
-        <div class="overlay-box">
-            <div class="spinner"></div>
-            <p id="overlay-texto">Iniciando busca...</p>
+
+  <div class="login-wrapper">
+    <div class="login-container">
+      <!-- Logo -->
+      <div class="logo-wrapper">
+        <img src="image/bigbanner.png" alt="Logo" class="logo">
+      </div>
+
+      <h2 class="login-title">Bem-vindo</h2>
+      <p class="login-subtitle">Faça login para continuar</p>
+
+      <!-- Alerta de Erro Moderno -->
+      <div id="errorAlert" class="error-alert">
+        <div class="error-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
         </div>
-    </div>
-
-    <div class="container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-<div class="sidebar-header">
-                <div class="logo">
-                    <img src="image/logo.png" width="60" alt="" srcset="">
-                    <div>
-                        <h2>Gerador de Cartazes</h2>
-                        <p>Sistema Gabriel</p>
-                    </div>
-                </div>
-            </div>
-
-            <nav class="sidebar-nav">
-                <button class="nav-item active" data-view="gerar">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
-                    </svg>
-                    <span>Gerar cartaz</span>
-                </button>
-
-                <button class="nav-item" data-view="produtos">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
-                    </svg>
-                    <span>Produtos adicionados/Previews</span>
-                </button>
-
-                <button class="nav-item" data-view="calculadora">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7zm6 7a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1zm-3 3a1 1 0 100 2h.01a1 1 0 100-2H10zm-4 1a1 1 0 011-1h.01a1 1 0 110 2H7a1 1 0 01-1-1zm1-4a1 1 0 100 2h.01a1 1 0 100-2H7zm2 1a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1zm4-4a1 1 0 100 2h.01a1 1 0 100-2H13zM9 9a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1zM7 8a1 1 0 000 2h.01a1 1 0 000-2H7z" clip-rule="evenodd"/>
-                    </svg>
-                    <span>Calculadora de fator</span>
-                </button>
-            </nav>
-
-             <div class="sidebar-footer">
-                <p>v2.1.0 • Sistema cartazes</p>
-                <p>© 2025–2026 Gabriel Oliveira.</p>
-                <p>Todos os direitos reservados.</p>
-            </div>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Header Global -->
-            <div class="global-header">
-                <div class="header-info">
-                    <h1>Sistema de Cartazes</h1>
-                    <p id="header-subtitle">Bem-vindo ao sistema</p>
-                </div>
-            </div>
-
-            <!-- View: Gerar Cartaz -->
-            <div id="view-gerar" class="view active">
-                <div class="card">
-                    <form id="product-form">
-                        <!-- Linha: Código, Descrição, Sub descrição -->
-                        <div class="form-row-3cols">
-                            <div class="form-group">
-                                <label for="codigo">Código *</label>
-                                <div class="input-with-icon">
-                                    <input type="text" id="codigo" required placeholder="110049" maxlength="11">
-                                    <button type="button" id="btn-buscar" class="icon-button" title="Buscar">
-                                        <i class="fa-solid fa-magnifying-glass"></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="descricao">Descrição *</label>
-                                <input type="text" id="descricao" required placeholder="Ex: TV TOSHIBA 75POL. 4K QLED2" maxlength="35">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="subdescricao">Sub descrição</label>
-                                <input type="text" id="subdescricao" placeholder="Ex: 75C450NS GOOGLE">
-                            </div>
-                        </div>
-
-                        <!-- Características (metade do tamanho) -->
-                        <div class="form-group">
-                            <label>Características (separadas por " | ")</label>
-                            <div class="features-input-compact">
-                                <input type="text" id="feature-1" placeholder="Ex: QLED">
-                                <span class="separator">|</span>
-                                <input type="text" id="feature-2" placeholder="Google TV">
-                                <span class="separator">|</span>
-                                <input type="text" id="feature-3" placeholder="Bluetooth">
-                            </div>
-                        </div>
-
-                        <!-- Linha: Parcelamento, Valor à vista, Taxa de juros, Valor da parcela -->
-                        <div class="form-row-4cols">
-                            <div class="form-group">
-                                <label for="metodo">Parcelamento *</label>
-                                <select id="metodo" required>
-                                    <option value="">Selecione...</option>
-                                    <option value="1x">1x</option>
-                                    <option value="3x">3x</option>
-                                    <option value="5x">5x</option>
-                                    <option value="10x">10x</option>
-                                    <option value="12x">12x</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="avista">Valor à vista *</label>
-                                <div class="input-currency">
-                                    <span>R$</span>
-                                    <input type="text" id="avista" required placeholder="0,00">
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="juros">Taxa de juros *</label>
-                                <select id="juros" required>
-                                    <option value="">Selecione...</option>
-                                    <option value="carne">Carnê</option>
-                                    <option value="cartao">Cartão</option>
-                                    <option value="virado">Preço virado</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="parcela">Valor da parcela</label>
-                                <div class="input-currency">
-                                    <span>R$</span>
-                                    <input type="text" id="parcela" placeholder="0,00">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Campos Extras (Motivo, Validade, Autorização) -->
-                        <div id="extra-campos" style="display: none;">
-                            <div class="form-group" id="campo-motivo" style="display: none;">
-                                <label for="motivo">Motivo</label>
-                                <input type="text" id="motivo" placeholder="Ex: BLACK FRIDAY 2024">
-                            </div>
-
-                            <div class="form-group" id="campo-validade" style="display: none;">
-                                <label for="validade">Validade da oferta</label>
-                                <input type="date" id="validade">
-                            </div>
-
-                            <div class="form-group" id="campo-autorizacao" style="display: none;">
-                                <label for="autorizacao">Autorização</label>
-                                <input type="text" id="autorizacao" placeholder="Ex: REJANE/ALLAN KARDEC">
-                            </div>
-                        </div>
-
-                        <!-- Garantia -->
-                        <div class="form-group">
-                            <div class="warranty-toggle">
-                                <div>
-                                    <label for="garantia">Garantia estendida</label>
-                                    <p class="help-text">Ativar opções de garantia</p>
-                                </div>
-                                <label class="switch">
-                                    <input type="checkbox" id="garantia">
-                                    <span class="slider"></span>
-                                </label>
-                            </div>
-
-                            <div id="warranty-options" class="warranty-options" style="display: none;">
-                                <div class="warranty-input-group">
-                                    <label for="garantia12">+12 meses</label>
-                                    <input type="text" id="garantia12" placeholder="199,90">
-                                </div>
-                                <div class="warranty-input-group">
-                                    <label for="garantia24">+24 meses</label>
-                                    <input type="text" id="garantia24" placeholder="299,90" disabled>
-                                </div>
-                                <div class="warranty-input-group">
-                                    <label for="garantia36">+36 meses</label>
-                                    <input type="text" id="garantia36" placeholder="399,90" disabled>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Submit -->
-                        <button type="submit" class="btn-primary">
-                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
-                            </svg>
-                            Adicionar produto
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- View: Produtos e Previews -->
-            <div id="view-produtos" class="view">
-                <div class="products-header">
-                    <div>
-                        <h2>Produtos Adicionados</h2>
-                        <p id="products-count">0 produto(s) adicionado(s)</p>
-                    </div>
-                    <button id="btn-gerar-pdf" class="btn-primary" style="display: none;">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                        </svg>
-                        Gerar PDF de todos os cartazes
-                    </button>
-                </div>
-
-                <div id="products-list" class="products-list">
-                    <div class="empty-state">
-                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
-                        </svg>
-                        <h3>Nenhum produto adicionado</h3>
-                        <p>Adicione produtos usando o formulário para começar</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- View: Calculadora de Fator -->
-            <div id="view-calculadora" class="view">
-                <div class="card">
-                    <h2 style="margin-bottom: 24px;">Calculadora de Fator</h2>
-                    <p style="margin-bottom: 24px; color: var(--gray-600);">
-                        Insira o valor à vista e selecione o tipo de taxa para calcular todas as parcelas automaticamente.
-                    </p>
-                    <form id="calculator-form">
-                        <div class="form-row" style="grid-template-columns: 1fr 200px 200px;">
-                            <div class="form-group">
-                                <label for="calc-valor">Valor à vista *</label>
-                                <div class="input-currency">
-                                    <span>R$</span>
-                                    <input type="text" id="calc-valor" required placeholder="0,00">
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="calc-tipo">Tipo de taxa *</label>
-                                <select id="calc-tipo" required>
-                                    <option value="">Selecione...</option>
-                                    <option value="carne">Carnê</option>
-                                    <option value="cartao">Cartão</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group" style="display: flex; align-items: flex-end;">
-                                <button type="submit" class="btn-primary" style="width: 100%;">Calcular Tabela</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- Preview Container (hidden) -->
-    <div id="previews" style="display: none;"></div>
-
-    <!-- Toast Container -->
-    <div id="toast-container" class="toast-container"></div>
-
-    <!-- Confirmation Dialog -->
-    <div id="confirm-overlay" class="confirm-overlay">
-        <div class="confirm-dialog">
-            <div class="confirm-header">
-                <div id="confirm-icon" class="confirm-icon danger">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                </div>
-                <div class="confirm-header-text">
-                    <h3 id="confirm-title">Confirmar ação</h3>
-                    <p id="confirm-subtitle">Esta ação não pode ser desfeita</p>
-                </div>
-            </div>
-            <div class="confirm-body">
-                <p id="confirm-message" class="confirm-message">Tem certeza que deseja continuar?</p>
-            </div>
-            <div class="confirm-footer">
-                <button id="confirm-cancel-btn" class="confirm-btn confirm-btn-cancel">Cancelar</button>
-                <button id="confirm-confirm-btn" class="confirm-btn confirm-btn-confirm">Confirmar</button>
-            </div>
+        <div class="error-content">
+          <div class="error-title">Atenção</div>
+          <div class="error-message" id="errorMessage"></div>
         </div>
-    </div>
+      </div>
 
-    <!-- Modal de Tabela de Fatores -->
-    <div id="modal-fator" class="modal-overlay">
-        <div class="modal-fator-content">
-            <div class="modal-header">
-                <h2>Tabela de Parcelamento</h2>
-                <button class="modal-close" onclick="fecharModalFator()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="tabela-info">
-                    <div class="info-item">
-                        <span>Valor à vista:</span>
-                        <strong id="tabela-valor-vista">R$ 0,00</strong>
-                    </div>
-                    <div class="info-item">
-                        <span>Tipo de taxa:</span>
-                        <strong id="tabela-tipo-taxa">-</strong>
-                    </div>
-                </div>
-                <table class="tabela-fatores">
-                    <thead>
-                        <tr>
-                            <th>Parcelas</th>
-                            <th>Fator</th>
-                            <th>Valor da Parcela</th>
-                            <th>Total à Prazo</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabela-fatores-body">
-                        <!-- Gerado dinamicamente -->
-                    </tbody>
-                </table>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="fecharModalFator()">Fechar</button>
-                <button class="btn-primary" onclick="imprimirTabela()">
-                    <i class="fa-solid fa-print"></i> Imprimir Tabela
-                </button>
-            </div>
+      <!-- Formulário de login -->
+      <form id="loginForm" class="login-form">
+        <div class="input-group">
+          <label for="loginUser">Usuário</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <input id="loginUser" type="text" placeholder="Digite seu usuário" autocomplete="username" required />
+          </div>
         </div>
-    </div>
 
-    <script src="js/script.js"></script>
+        <div class="input-group">
+          <label for="loginPass">Senha</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <input id="loginPass" type="password" placeholder="Digite sua senha" autocomplete="current-password" required />
+          </div>
+        </div>
+
+        <button type="submit" id="loginBtn" class="btn-login">
+          <span class="btn-text">Entrar</span>
+          <div class="btn-loader"></div>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal de CEP Moderno -->
+  <div id="modalCEP" class="modal-overlay">
+    <div class="modal-container cep-modal">
+      <div class="modal-header">
+        <div class="modal-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+        </div>
+        <h3>Validação de Localização</h3>
+        <p>Precisamos confirmar sua localização para continuar</p>
+      </div>
+      <div class="modal-body">
+        <div class="input-group">
+          <label for="cepInput">Digite seu CEP</label>
+          <div class="input-wrapper cep-wrapper">
+            <input type="text" id="cepInput" placeholder="00000-000" maxlength="9" />
+            <button type="button" id="cepConfirm" class="btn-cep-confirm">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <p class="cep-hint">Informe um CEP válido para validarmos sua cidade</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Voucher (Visitante) -->
+  <div id="modalVoucher" class="modal-overlay">
+    <div class="modal-container voucher-modal">
+      <div class="voucher-icons">
+        <svg class="voucher-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path>
+          <path d="M13 5v2"></path>
+          <path d="M13 17v2"></path>
+          <path d="M13 11v2"></path>
+        </svg>
+        <svg class="voucher-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+          <path d="M2 12h20"></path>
+        </svg>
+      </div>
+      
+      <div class="progress-ring">
+        <svg class="progress-svg" viewBox="0 0 120 120">
+          <circle class="progress-bg" cx="60" cy="60" r="54"></circle>
+          <circle class="progress-bar" cx="60" cy="60" r="54"></circle>
+          <text class="progress-text" x="60" y="68">0%</text>
+        </svg>
+      </div>
+
+      <h3>Acesso de Visitante</h3>
+      <p>Validando seu voucher, aguarde...</p>
+      <p class="voucher-info">Após a liberação, você terá acesso temporário ao sistema.</p>
+    </div>
+  </div>
+
+  <!-- Overlay de Autenticação -->
+  <div id="overlayAuth" class="modal-overlay">
+    <div class="modal-container auth-modal">
+      <div class="modern-spinner"></div>
+      <h3>Autenticando...</h3>
+      <p>Aguarde enquanto validamos suas credenciais</p>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="js/session-guard.js"></script>
+  <script src="js/auth-login.js"></script>
+
 </body>
 </html>
