@@ -68,13 +68,13 @@ function logout(reason = "") {
 
   if (
     path.endsWith("/") ||
-    path.endsWith("/index.html")
+    path.endsWith("FuncZ/index.html")
   ) {
     return;
   }
 
   const repo = path.split("/")[1];
-  window.location.href = `/${repo}/index.html`;
+  window.location.href = `/FuncZ/index.html`;
 }
 
 /* ===== MONITORAMENTO CONTÍNUO ===== */
@@ -115,11 +115,12 @@ window.SessionGuard = {
 
 /* ===== AUTO-INICIALIZAÇÃO EM PÁGINAS PROTEGIDAS ===== */
 // Se não estiver na página de login, inicia monitoramento automático
-if (typeof window !== 'undefined' && !window.location.pathname.includes('index.html')) {
+if (typeof window !== 'undefined' && !window.location.pathname.includes('FuncZ/index.html')) {
   document.addEventListener('DOMContentLoaded', () => {
     if (checkSession()) {
       startSessionMonitor();
     }
   });
 }
+
 
