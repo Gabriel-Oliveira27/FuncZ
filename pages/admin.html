@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo</title>
+    <link rel="stylesheet" href="../css/stylesadmin.css">
+    <link rel="icon" type="image/png" href="../image/zenirlogo.png">
+</head>
+<body data-theme="light">
+    <!-- Header -->
+    <header class="header">
+        <a href="../pages/selectsetor.html">
+        <button style="border: 0;" style="cursor: pointer;">
+         <img src="../image/bigbanner.png" alt="Logo grande" width="180" style="cursor: pointer;">
+        </button>
+        </a>
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </header>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-item" id="themeToggle">
+            <svg class="sidebar-icon" id="themeIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+            <span id="themeText">Tema Claro</span>
+        </div>
+        <div class="sidebar-item" id="homeNav">
+            <svg class="sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+            </svg>
+            <span>Home</span>
+        </div>
+        <div class="sidebar-item" data-section="vendas">
+            <svg class="sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+            <span>Vendas</span>
+        </div>
+        <div class="sidebar-item" data-section="crediario">
+            <svg class="sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+            </svg>
+            <span>Crediário</span>
+        </div>
+        <div class="sidebar-item" data-section="faturamento">
+            <svg class="sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+            </svg>
+            <span>Faturamento</span>
+        </div>
+        <div class="sidebar-item" data-section="usuario">
+            <svg class="sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+            <span>Criar Usuário</span>
+        </div>
+        <div class="sidebar-item" data-section="voucher">
+            <svg class="sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
+            </svg>
+            <span>Gerar Voucher</span>
+        </div>
+        <div class="sidebar-item" data-section="produtos">
+            <svg class="sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+            </svg>
+            <span>Cadastrar Produtos</span>
+        </div>
+    </aside>
+
+    <!-- Modal Voucher -->
+    <div class="modal-overlay" id="modalVoucher">
+        <div class="modal">
+            <h2 class="modal-title">Voucher Gerado com Sucesso!</h2>
+            <div class="modal-content">
+                <p style="color: var(--text-secondary-light); margin-bottom: 1rem;">
+                    Utilize o código abaixo para acessar o setor selecionado:
+                </p>
+                <div class="voucher-display">
+                    <div class="voucher-code" id="voucherCode">ABC123XYZ</div>
+                </div>
+                <p style="color: var(--text-secondary-light); font-size: 0.875rem;">
+                    <strong>Setor:</strong> <span id="voucherSetor">-</span><br>
+                    <strong>Válido por:</strong> 5 minutos após o primeiro uso
+                </p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="copyVoucherBtn">Copiar para Área de Transferência</button>
+                <button class="btn btn-secondary" id="closeModalBtn">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Welcome Screen -->
+        <section class="content-section active" id="welcome">
+            <div class="welcome-screen">
+                <div class="welcome-svg-container">
+                    
+                    <img src="../image/zenirlogo.png" alt="Logo" class="floating-icon" width="75" height="75">
+                    
+                    
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="floating-icon" width="60" height="60" viewBox="0 0 24 24"><title xmlns="">tv-1-filled</title><path fill="currentColor" d="M0 3h24v15h-4.046l2.698 2.063l-1.215 1.589L16.66 18H7.336l-4.771 3.652l-1.216-1.588L4.044 18H0z"/></svg>
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="floating-icon" width="60" height="60" viewBox="0 0 24 24"><title xmlns="">sofa-bold</title><path fill="currentColor" d="M7 12v1h10v-1a3 3 0 0 1 2.993-3a4.6 4.6 0 0 0-.07-.78a4 4 0 0 0-3.143-3.143C16.394 5 15.93 5 15 5H9c-.93 0-1.394 0-1.78.077A4 4 0 0 0 4.077 8.22a4.6 4.6 0 0 0-.07.78A3 3 0 0 1 7 12"/><path fill="currentColor" d="M18.444 18H5.556a3.6 3.6 0 0 1-.806-.092V19a.75.75 0 0 1-1.5 0v-1.849A3.55 3.55 0 0 1 2 14.444V12a2 2 0 1 1 4 0v1.2a.8.8 0 0 0 .8.8h10.4a.8.8 0 0 0 .8-.8V12a2 2 0 1 1 4 0v2.444a3.55 3.55 0 0 1-1.25 2.707V19a.75.75 0 0 1-1.5 0v-1.092a3.6 3.6 0 0 1-.806.092"/></svg>
+                   
+                   <img src="../image/bigbanner.png" alt="Logo" class="floating-icon" width="200">
+
+                </div>
+                <div class="welcome-content">
+                    <h1 class="welcome-title">👋 Olá, <span class="welcome-name" id="userName">Usuário</span>!</h1>
+                    <p class="welcome-subtitle">Bem-vindo(a) ao Painel Administrativo</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Vendas -->
+        <section class="content-section" id="vendas">
+            <h2 class="section-title" style="text-align: center;" >Vendas</h2>
+            
+                <p style="color: var(--text-secondary-light); text-align: center;">Acesse aqui o sistema de cartazes:</p>
+                
+            <div style="text-align: center; margin-top: 1rem;">
+             <button class="btn btn-primary" id="cart-open">Sistema cartazes</button>
+            </div>
+        </section>
+
+        <!-- Crediário -->
+        <section class="content-section" id="crediario">
+            <h2 class="section-title" style="text-align: center;">Crediário</h2>
+            <div style="text-align: center;">
+                <p style="color: var(--text-secondary-light);">Módulo de crediário em desenvolvimento...</p>
+            </div>
+            <div style="text-align: center; margin-top: 1rem;">
+             <button class="btn btn-primary">Sistema do crediário</button>
+            </div>
+        </section>
+
+        <!-- Faturamento -->
+        <section class="content-section" id="faturamento">
+            <h2 class="section-title">Faturamento</h2>
+            <div class="form-card">
+                <p style="color: var(--text-secondary-light);">Módulo de faturamento em desenvolvimento...</p>
+            </div>
+        </section>
+
+        <!-- Criar Usuário -->
+        <section class="content-section" id="usuario">
+            <h2 class="section-title">Criar Usuário</h2>
+            <div class="form-card">
+                <form id="usuarioForm">
+                    <div class="form-row">
+                        <div class="form-group small">
+                            <label class="form-label" for="usuario">Usuário</label>
+                            <input type="text" id="usuario" class="form-input" required>
+                        </div>
+                        <div class="form-group small">
+                            <label class="form-label" for="senha">Senha</label>
+                            <input type="password" id="senha" class="form-input" required>
+                        </div>
+                        <div class="form-group medium">
+                            <label class="form-label" for="permissao">Permissão</label>
+                            <select id="permissao" class="form-select" required>
+                                <option value="">Selecione</option>
+                                <option value="suporte">Suporte</option>
+                                <option value="gerente">Gerente</option>
+                                <option value="crediario">Crediário</option>
+                                <option value="faturamento">Faturamento</option>
+                                <option value="vendedor">Vendedor</option>
+                            </select>
+                        </div>
+                        <div class="form-group extra-small">
+                            <label class="form-label" for="filial">Filial</label>
+                            <input type="text" id="filial" class="form-input" maxlength="2" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group large">
+                            <label class="form-label" for="nomeCompleto">Nome Completo</label>
+                            <input type="text" id="nomeCompleto" class="form-input" required>
+                        </div>
+                        <div class="form-group medium">
+                            <label class="form-label" for="cpf">CPF</label>
+                            <input type="text" id="cpf" class="form-input" placeholder="000.000.000-00" maxlength="14" required>
+                        </div>
+                        <div class="form-group small">
+                            <label class="form-label" for="cidade">Cidade</label>
+                            <input type="text" id="cidade" class="form-input" required>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Criar Usuário</button>
+                        <button type="button" class="btn btn-secondary" id="limparUsuario">Limpar Campos</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- Gerar Voucher -->
+        <section class="content-section" id="voucher">
+            <h2 class="section-title">Gerar Voucher</h2>
+            <div class="form-card">
+                <div class="alert-warning">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20" style="flex-shrink: 0;">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>Atenção: Vouchers utilizados se expiram depois de 5 minutos, mas garantem acesso ao setor destinado durante o mesmo período.</span>
+                </div>
+
+                <form id="voucherForm">
+                    <div class="form-group">
+                        <label class="form-label" for="setor">Setor</label>
+                        <select id="setor" class="form-select" required>
+                            <option value="">Selecione um setor</option>
+                            <option value="Crediário">Crediário</option>
+                            <option value="Faturamento">Faturamento</option>
+                            <option value="Vendas">Vendas</option>
+                        </select>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Gerar Voucher</button>
+                        <button type="button" class="btn btn-secondary" id="cancelarVoucher">Cancelar Ação</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- Cadastrar Produtos -->
+        <section class="content-section" id="produtos">
+            <h2 class="section-title">Cadastrar Produtos</h2>
+            <div class="form-card">
+                <form id="produtoForm">
+                    <div class="form-row">
+                        <div class="form-group small">
+                            <label class="form-label" for="codigoProduto">Código</label>
+                            <input type="text" id="codigoProduto" class="form-input" maxlength="6" required>
+                        </div>
+                        <div class="form-group large">
+                            <label class="form-label" for="descricaoProduto">Descrição (máx. 35 caracteres)</label>
+                            <input type="text" id="descricaoProduto" class="form-input" maxlength="35" required>
+                            <div class="char-counter">
+                                <span id="charCount">0</span>/35
+                            </div>
+                        </div>
+                        <div class="form-group medium">
+                            <label class="form-label" for="precoProduto">Preço à Vista (R$)</label>
+                            <input type="text" id="precoProduto" class="form-input" placeholder="R$ 0,00" required>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Cadastrar Produto</button>
+                        <button type="button" class="btn btn-secondary" id="limparProduto">Limpar Campos</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <script src="../js/session-guard.js"></script>
+    <script src="../js/scriptadmin.js"></script>    
+</body>
+</html>
