@@ -68,14 +68,15 @@ function logout(reason = "") {
 
   if (
     path.endsWith("/") ||
-    path.endsWith("FuncZ/index.html")
+    path.endsWith("/index.html")
   ) {
     return;
   }
 
-  const repo = path.split("/")[1];
-  window.location.href = `/FuncZ/index.html`;
+  const repo = path.split("/")[1] || "FuncZ";
+  window.location.href = `/${repo}/index.html`;
 }
+
 
 /* ===== MONITORAMENTO CONTÍNUO ===== */
 function startSessionMonitor(interval = 15000) {
@@ -122,5 +123,6 @@ if (typeof window !== 'undefined' && !window.location.pathname.includes('FuncZ/i
     }
   });
 }
+
 
 
