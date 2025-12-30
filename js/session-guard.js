@@ -63,13 +63,18 @@ function checkSession() {
 function logout(reason = "") {
   console.warn("Logout:", reason);
   localStorage.removeItem("authSession");
-  
-  // Se já está na página de login, não redireciona
-  if (window.location.pathname.includes('index.html') || window.location.pathname.endsWith('/login/')) {
+
+  const path = window.location.pathname;
+
+  if (
+    path.endsWith("/") ||
+    path.endsWith("/index.html")
+  ) {
     return;
   }
-  
-  window.location.href = "../index.html";
+
+  const repo = path.split("/")[1];
+  window.location.href = `/${repo}/index.html`;
 }
 
 /* ===== MONITORAMENTO CONTÍNUO ===== */
@@ -117,3 +122,4 @@ if (typeof window !== 'undefined' && !window.location.pathname.includes('index.h
     }
   });
 }
+
