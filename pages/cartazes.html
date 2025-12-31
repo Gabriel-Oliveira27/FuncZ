@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerador de Cartazes - Sistema Interno</title>
-    <link rel="icon" type="image/png" href="../image/zenirlogo.png">
+    <link rel="icon" type="image/png" href="/image/zenirlogo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/style.css">
@@ -54,12 +54,49 @@
                     </svg>
                     <span>Calculadora de fator</span>
                 </button>
+
+                <!-- Seção Expansível: Extras -->
+                <div class="nav-section">
+                    <button class="nav-section-toggle" id="toggle-extras">
+                        <i class="fa-solid fa-grid-2-plus"></i>
+                        <span>Campos Extras</span>
+                        <i class="fa-solid fa-chevron-down nav-section-arrow"></i>
+                    </button>
+                    <div class="nav-section-content" id="extras-content">
+                        <button class="nav-item sub-item" id="btn-campos-obrigatorios">
+                            <i class="fa-solid fa-asterisk"></i>
+                            <span>Campos obrigatórios</span>
+                        </button>
+                        <button class="nav-item sub-item" data-view="cama-box">
+                            <i class="fa-solid fa-bed"></i>
+                            <span>Cama box</span>
+                        </button>
+                        <button class="nav-item sub-item" data-view="mesa-cadeiras">
+                            <i class="fa-solid fa-chair"></i>
+                            <span>Mesa e cadeiras</span>
+                        </button>
+                        <button class="nav-item sub-item" data-view="cama-mesa-banho">
+                            <i class="fa-solid fa-layer-group"></i>
+                            <span>Cama, mesa e banho</span>
+                        </button>
+                        <button class="nav-item sub-item" id="btn-debug">
+                            <i class="fa-solid fa-bug"></i>
+                            <span>Debug</span>
+                        </button>
+                    </div>
+                </div>
             </nav>
 
             <div class="sidebar-footer">
-                <p>v2.1.0 • Sistema cartazes</p>
-                <p>© 2025–2026 Gabriel Oliveira.</p>
+                <button class="btn-home" id="btn-home">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Voltar ao início</span>
+                </button>
+                
+                <p>v2.1.3 • Sistema cartazes</p>
+                <p>© 2025–2026 Gabriel Oliveira</p>
                 <p>Todos os direitos reservados.</p>
+ 
             </div>
         </aside>
 
@@ -270,6 +307,325 @@
                     </form>
                 </div>
             </div>
+
+            <!-- View: Cama Box -->
+            <div id="view-cama-box" class="view">
+                <div class="card">
+                    <h2 style="margin-bottom: 16px;"><i class="fa-solid fa-bed"></i> Gerar Cartaz - Cama Box</h2>
+                    <p style="margin-bottom: 24px; color: var(--gray-600);">Insira os códigos da base e do colchão para criar o cartaz do combo.</p>
+                    
+                    <form id="cama-box-form">
+                        <!-- Códigos e tipo na mesma linha com botão buscar -->
+                        <div class="form-row" style="grid-template-columns: 150px 150px 180px auto; margin-bottom: 20px; align-items: end;">
+                            <div class="form-group">
+                                <label for="codigo-base">Código Base *</label>
+                                <input type="text" id="codigo-base" required placeholder="Ex: 110001" maxlength="11">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="codigo-colchao">Cód. Colchão *</label>
+                                <input type="text" id="codigo-colchao" required placeholder="Ex: 110002" maxlength="11">
+                            </div>
+
+                            <div class="form-group">
+                                <button type="button" id="btn-buscar-cama-box" class="btn-secondary" style="width: 100%; height: 46px;">
+                                    <i class="fa-solid fa-magnifying-glass"></i> Buscar
+                                </button>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Tipo *</label>
+                                <input type="text" value="CAMA BOX" disabled style="background: var(--gray-100);">
+                            </div>
+                        </div>
+
+                        <!-- Descrição e subdescricao (preenchidos automaticamente ou manual) -->
+                        <div class="form-row-3cols">
+                            <div class="form-group">
+                                <label for="descricao-cb">Descrição *</label>
+                                <input type="text" id="descricao-cb" required placeholder="Preenchido automaticamente">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="subdescricao-cb">Sub descrição</label>
+                                <input type="text" id="subdescricao-cb" placeholder="Marca/Modelo">
+                            </div>
+                        </div>
+
+                        <!-- Características -->
+                        <div class="form-group">
+                            <label>Características (separadas por " | ")</label>
+                            <div class="features-input-compact">
+                                <input type="text" id="feature-cb-1" placeholder="Ex: Queen">
+                                <span class="separator">|</span>
+                                <input type="text" id="feature-cb-2" placeholder="Base+Colchão">
+                                <span class="separator">|</span>
+                                <input type="text" id="feature-cb-3" placeholder="Ortopédico">
+                            </div>
+                        </div>
+
+                        <!-- Parcelamento -->
+                        <div class="form-row-4cols">
+                            <div class="form-group">
+                                <label for="metodo-cb">Parcelamento *</label>
+                                <select id="metodo-cb" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="1x">1x</option>
+                                    <option value="3x">3x</option>
+                                    <option value="5x">5x</option>
+                                    <option value="10x">10x</option>
+                                    <option value="12x">12x</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="avista-cb">Valor à vista *</label>
+                                <div class="input-currency">
+                                    <span>R$</span>
+                                    <input type="text" id="avista-cb" required placeholder="Soma automática">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="juros-cb">Taxa de juros *</label>
+                                <select id="juros-cb" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="carne">Carnê</option>
+                                    <option value="cartao">Cartão</option>
+                                    <option value="virado">Preço virado</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="parcela-cb">Valor da parcela</label>
+                                <div class="input-currency">
+                                    <span>R$</span>
+                                    <input type="text" id="parcela-cb" placeholder="0,00">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campos extras -->
+                        <div id="extra-campos-cb" style="display: none;"></div>
+
+                        <button type="submit" class="btn-primary">
+                            <i class="fa-solid fa-plus"></i> Adicionar Cama Box
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- View: Mesa e Cadeiras -->
+            <div id="view-mesa-cadeiras" class="view">
+                <div class="card">
+                    <h2 style="margin-bottom: 16px;"><i class="fa-solid fa-chair"></i> Gerar Cartaz - Mesa e Cadeiras</h2>
+                    <p style="margin-bottom: 24px; color: var(--gray-600);">Insira os códigos da mesa e da cadeira, selecione a quantidade.</p>
+                    
+                    <form id="mesa-cadeiras-form">
+                        <!-- Códigos, quantidade, botão buscar e tipo na mesma linha -->
+                        <div class="form-row" style="grid-template-columns: 140px 140px 100px 150px auto; margin-bottom: 20px; align-items: end;">
+                            <div class="form-group">
+                                <label for="codigo-mesa">Cód. Mesa *</label>
+                                <input type="text" id="codigo-mesa" required placeholder="Ex: 220001" maxlength="11">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="codigo-cadeira">Cód. Cadeira *</label>
+                                <input type="text" id="codigo-cadeira" required placeholder="Ex: 220002" maxlength="11">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="qtd-cadeiras">Qtd. *</label>
+                                <select id="qtd-cadeiras" required>
+                                    <option value="">Qtd.</option>
+                                    <option value="4">4</option>
+                                    <option value="6">6</option>
+                                    <option value="8">8</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <button type="button" id="btn-buscar-mesa-cadeiras" class="btn-secondary" style="width: 100%; height: 46px;">
+                                    <i class="fa-solid fa-magnifying-glass"></i> Buscar
+                                </button>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Tipo *</label>
+                                <input type="text" value="MESA + CADEIRAS" disabled style="background: var(--gray-100);">
+                            </div>
+                        </div>
+
+                        <!-- Descrição -->
+                        <div class="form-row-3cols">
+                            <div class="form-group">
+                                <label for="descricao-mc">Descrição *</label>
+                                <input type="text" id="descricao-mc" required placeholder="Preenchido automaticamente">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="subdescricao-mc">Sub descrição</label>
+                                <input type="text" id="subdescricao-mc" placeholder="Marca/Modelo">
+                            </div>
+                        </div>
+
+                        <!-- Características -->
+                        <div class="form-group">
+                            <label>Características (separadas por " | ")</label>
+                            <div class="features-input-compact">
+                                <input type="text" id="feature-mc-1" placeholder="Ex: Madeira Maciça">
+                                <span class="separator">|</span>
+                                <input type="text" id="feature-mc-2" placeholder="Cadeiras estofadas">
+                                <span class="separator">|</span>
+                                <input type="text" id="feature-mc-3" placeholder="Acabamento luxo">
+                            </div>
+                        </div>
+
+                        <!-- Parcelamento -->
+                        <div class="form-row-4cols">
+                            <div class="form-group">
+                                <label for="metodo-mc">Parcelamento *</label>
+                                <select id="metodo-mc" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="1x">1x</option>
+                                    <option value="3x">3x</option>
+                                    <option value="5x">5x</option>
+                                    <option value="10x">10x</option>
+                                    <option value="12x">12x</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="avista-mc">Valor à vista *</label>
+                                <div class="input-currency">
+                                    <span>R$</span>
+                                    <input type="text" id="avista-mc" required placeholder="Cálculo: mesa+(cad*qtd)">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="juros-mc">Taxa de juros *</label>
+                                <select id="juros-mc" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="carne">Carnê</option>
+                                    <option value="cartao">Cartão</option>
+                                    <option value="virado">Preço virado</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="parcela-mc">Valor da parcela</label>
+                                <div class="input-currency">
+                                    <span>R$</span>
+                                    <input type="text" id="parcela-mc" placeholder="0,00">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campos extras -->
+                        <div id="extra-campos-mc" style="display: none;"></div>
+
+                        <button type="submit" class="btn-primary">
+                            <i class="fa-solid fa-plus"></i> Adicionar Mesa e Cadeiras
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- View: Cama, Mesa e Banho -->
+            <div id="view-cama-mesa-banho" class="view">
+                <div class="card">
+                    <h2 style="margin-bottom: 16px;"><i class="fa-solid fa-layer-group"></i> Gerar Cartaz - Cama, Mesa e Banho</h2>
+                    <p style="margin-bottom: 24px; color: var(--gray-600);">Formulário padrão com campo de códigos expansível e foco em cores.</p>
+                    
+                    <form id="cama-mesa-banho-form">
+                        <!-- Campo de códigos expansível -->
+                        <div class="form-group">
+                            <label for="codigos-cmb">Códigos (separe por vírgula ou espaço)</label>
+                            <textarea id="codigos-cmb" rows="2" placeholder="Ex: 110001, 220002, 330003..." style="width: 100%; padding: 12px 16px; border: 1px solid var(--gray-300); border-radius: 8px; font-family: inherit; font-size: 14px; resize: vertical;"></textarea>
+                            <p class="help-text">O campo se expande conforme você digita mais códigos</p>
+                        </div>
+
+                        <!-- Descrição -->
+                        <div class="form-row-3cols">
+                            <div class="form-group">
+                                <label for="codigo-cmb">Código principal *</label>
+                                <input type="text" id="codigo-cmb" required placeholder="Ex: 110001" maxlength="11">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="descricao-cmb">Descrição *</label>
+                                <input type="text" id="descricao-cmb" required placeholder="Ex: COMBO COMPLETO" maxlength="35">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="subdescricao-cmb">Sub descrição</label>
+                                <input type="text" id="subdescricao-cmb" placeholder="Ex: Marca Premium">
+                            </div>
+                        </div>
+
+                        <!-- CORES em vez de Características -->
+                        <div class="form-group">
+                            <label>Cores (separadas por " | ")</label>
+                            <div class="features-input-compact">
+                                <input type="text" id="feature-cmb-1" placeholder="Ex: Branco">
+                                <span class="separator">|</span>
+                                <input type="text" id="feature-cmb-2" placeholder="Bege">
+                                <span class="separator">|</span>
+                                <input type="text" id="feature-cmb-3" placeholder="Cinza">
+                            </div>
+                        </div>
+
+                        <!-- Parcelamento -->
+                        <div class="form-row-4cols">
+                            <div class="form-group">
+                                <label for="metodo-cmb">Parcelamento *</label>
+                                <select id="metodo-cmb" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="1x">1x</option>
+                                    <option value="3x">3x</option>
+                                    <option value="5x">5x</option>
+                                    <option value="10x">10x</option>
+                                    <option value="12x">12x</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="avista-cmb">Valor à vista *</label>
+                                <div class="input-currency">
+                                    <span>R$</span>
+                                    <input type="text" id="avista-cmb" required placeholder="0,00">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="juros-cmb">Taxa de juros *</label>
+                                <select id="juros-cmb" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="carne">Carnê</option>
+                                    <option value="cartao">Cartão</option>
+                                    <option value="virado">Preço virado</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="parcela-cmb">Valor da parcela</label>
+                                <div class="input-currency">
+                                    <span>R$</span>
+                                    <input type="text" id="parcela-cmb" placeholder="0,00">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campos extras -->
+                        <div id="extra-campos-cmb" style="display: none;"></div>
+
+                        <button type="submit" class="btn-primary">
+                            <i class="fa-solid fa-plus"></i> Adicionar Combo
+                        </button>
+                    </form>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -343,6 +699,5 @@
     </div>
 
     <script src="../js/script.js"></script>
-    <script src="../js/session-guard.js"></script>
 </body>
 </html>
