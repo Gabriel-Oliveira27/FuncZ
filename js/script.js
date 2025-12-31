@@ -1,6 +1,8 @@
 // ==================================================
 // CONFIGURAÇÕES E VARIÁVEIS GLOBAIS
 // ==================================================
+console.log('Script carregado com sucesso!');
+
 const API_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLic4iE63JAJ0j4KpGWfRFINeiD4uyCsMjfF_uLkUNzhOsJMzO4uiiZpWV3xzDjbduZK8kU_wWw3ZSCs6cODW2gdFnIGb6pZ0Lz0cBqMpiV-SBOJroENJHqO1XML_YRs_41KFfQOKEehUQmf-Xg6Xhh-bKiYpPxxwQhQzEMP5g0DdJHN4sgG_Fc9cdvRRU4abxlz_PzeQ_5eJ7NtCfxWuP-ET0DEzUyiWhWITlXMZKJMfwmZQg5--gKmAEGpwSr0yXi3eycr23BCGltlXGIWtYZ3I0WkWg&lib=M38uuBDbjNiNXY1lAK2DF9n3ltsPa6Ver";
 
 // Tabela de fatores para cálculo de parcelas
@@ -15,6 +17,11 @@ const FATORES = {
     }
 };
 
+// Função para formatar número com separador de milhar
+function formatarMilhar(numero) {
+    return numero.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
 let products = [];
 
 // ==================================================
@@ -24,29 +31,41 @@ const navButtons = document.querySelectorAll('.nav-item');
 const views = {
     gerar: document.getElementById('view-gerar'),
     produtos: document.getElementById('view-produtos'),
-    calculadora: document.getElementById('view-calculadora')
+    calculadora: document.getElementById('view-calculadora'),
+    'cama-box': document.getElementById('view-cama-box'),
+    'mesa-cadeiras': document.getElementById('view-mesa-cadeiras'),
+    'cama-mesa-banho': document.getElementById('view-cama-mesa-banho')
 };
 
 navButtons.forEach(btn => {
     btn.addEventListener('click', () => {
-        const viewName = btn.dataset.view;
-        
+        const viewName = btn.getAttribute('data-view');
+        if (!viewName) return;
+
+        // Atualiza botões ativos
         navButtons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        
-        Object.values(views).forEach(v => v.classList.remove('active'));
-        views[viewName].classList.add('active');
-        
-        updateHeaderSubtitle(viewName);
+
+        // Atualiza views ativas
+        Object.values(views).forEach(v => v && v.classList.remove('active'));
+        if (views[viewName]) {
+            views[viewName].classList.add('active');
+        }
+
+        // Atualiza header
+        updateHeader(viewName);
     });
 });
 
-function updateHeaderSubtitle(viewName) {
+function updateHeader(viewName) {
     const subtitle = document.getElementById('header-subtitle');
     const subtitles = {
         gerar: 'Preencha os dados do produto para criar o cartaz',
         produtos: `${products.length} produto(s) adicionado(s)`,
-        calculadora: 'Calcule o valor das parcelas com base no fator de multiplicação'
+        calculadora: 'Calcule o valor das parcelas com base no fator de multiplicação',
+        'cama-box': 'Crie cartazes de combo: base + colchão',
+        'mesa-cadeiras': 'Crie cartazes de combo: mesa + cadeiras',
+        'cama-mesa-banho': 'Crie cartazes de combo completo com múltiplos itens'
     };
     subtitle.textContent = subtitles[viewName] || 'Bem-vindo ao sistema';
 }
@@ -109,6 +128,15 @@ function formatDate(dateStr) {
     return `${d}/${m}/${y}`;
 }
 
+function formatDateExtended(dateStr) {
+    if (!dateStr) return '';
+    const [y, m, d] = dateStr.split('-');
+    const meses = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 
+                   'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+    const mesNome = meses[parseInt(m) - 1];
+    return `Oferta válida até ${parseInt(d)} de ${mesNome} de ${y}`;
+}
+
 // Aplicar máscara de moeda nos inputs
 const currencyInputs = ['avista', 'calc-valor', 'garantia12', 'garantia24', 'garantia36'];
 currencyInputs.forEach(id => {
@@ -162,7 +190,7 @@ btnBuscar.addEventListener("click", async () => {
         let encontrado = false;
         let primeiroItem = null;
 
-        ["Gabriel", "Júlia", "Giovana"].forEach(nome => {
+        ['Gabriel', 'Júlia', 'Giovana'].forEach(nome => {
             if (dados[nome]) {
                 dados[nome].forEach(item => {
                     if (item.Código == codigo) {
@@ -295,57 +323,105 @@ jurosSelect.addEventListener('change', () => {
     }
 });
 
-// Cálculo automático de parcela APENAS para 12x
+// Cálculo automático de parcela com lógicas especiais por parcelamento
 function recalcularParcela() {
     const metodo = document.getElementById('metodo').value;
     const juros = document.getElementById('juros').value;
     const avistaInput = document.getElementById('avista');
     const parcelaInput = document.getElementById('parcela');
 
-    // Limpar readonly sempre para permitir edição manual
+    // Limpar readonly e remover tooltip
     parcelaInput.removeAttribute('readonly');
-
-    // Só calcula automaticamente se for 12x
-    if (metodo !== '12x') {
-        return; // Não calcula automaticamente para outros valores
-    }
-
-    if (!juros || juros === '') {
-        return;
-    }
-
-    const avista = parseCurrency(avistaInput.value);
-    if (avista === 0) {
-        return;
-    }
-
-    const numParcelas = 12;
-    let parcela = 0;
-
-    // Determinar tipo de taxa (carnê ou cartão)
-    const tipoTaxa = (juros === 'carne') ? 'carne' : 'cartao';
+    avistaInput.removeAttribute('readonly');
+    avistaInput.removeAttribute('disabled');
     
-    // Buscar fator na tabela
-    if (FATORES[tipoTaxa] && FATORES[tipoTaxa][numParcelas]) {
-        const fator = FATORES[tipoTaxa][numParcelas];
-        parcela = avista * fator;
-        
-        // Arredondar para R$ X,90
-        parcela = arredondar90(parcela);
+    // Remover tooltip se existir  
+    const formGroup = avistaInput.closest('.form-group');
+    const existingTooltip = formGroup ? formGroup.querySelector('.tooltip-text') : null;
+    if (existingTooltip) existingTooltip.remove();
+    if (formGroup) formGroup.classList.remove('input-with-tooltip');
+
+    if (!metodo || metodo === '') return;
+
+    // LÓGICA PARA 1x: Mostrar apenas R$, não calcular nada
+    if (metodo === '1x') {
+        parcelaInput.value = '';
+        return;
     }
 
-    parcelaInput.value = parcela ? formatCurrency(parcela.toFixed(2)) : '';
+    // LÓGICA PARA 3x, 5x, 10x: SEM JUROS
+    if (metodo === '3x' || metodo === '5x' || metodo === '10x') {
+        const parcela = parseCurrency(parcelaInput.value);
+        if (parcela > 0) {
+            const numParcelas = parseInt(metodo.replace('x', ''));
+            const valorAvista = parcela * numParcelas;
+            avistaInput.value = formatCurrency(valorAvista.toFixed(2));
+            
+            // Bloquear campo à vista e adicionar tooltip
+            avistaInput.setAttribute('readonly', 'true');
+            avistaInput.setAttribute('disabled', 'true');
+            
+            // Criar tooltip
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip-text';
+            
+            let tooltipMsg = `Como o parcelamento é "sem juros", não há necessidade de preencher o campo de à vista, o cálculo é feito automaticamente`;
+            if (metodo === '10x' && juros === 'cartao') {
+                tooltipMsg = `Parcelamento sem juros no cartão! O valor à vista é calculado automaticamente`;
+            }
+            
+            tooltip.textContent = tooltipMsg;
+            const formGroup = avistaInput.closest('.form-group');
+            if (formGroup) {
+                formGroup.classList.add('input-with-tooltip');
+                formGroup.appendChild(tooltip);
+            }
+        }
+        return;
+    }
+
+    // LÓGICA PARA 12x: Cálculo com fator
+    if (metodo === '12x') {
+        if (!juros || juros === '') return;
+
+        const avista = parseCurrency(avistaInput.value);
+        if (avista === 0) return;
+
+        const numParcelas = 12;
+        let parcela = 0;
+
+        const tipoTaxa = (juros === 'carne') ? 'carne' : 'cartao';
+        
+        if (FATORES[tipoTaxa] && FATORES[tipoTaxa][numParcelas]) {
+            const fator = FATORES[tipoTaxa][numParcelas];
+            parcela = avista * fator;
+            parcela = arredondar90(parcela);
+        }
+
+        parcelaInput.value = parcela ? formatCurrency(parcela.toFixed(2)) : '';
+    }
 }
 
 // Aplicar máscara também no campo parcela
 const parcelaInput = document.getElementById('parcela');
 parcelaInput.addEventListener('input', (e) => {
     e.target.value = formatCurrency(e.target.value);
+    // Recalcular à vista para parcelamentos sem juros
+    const metodo = document.getElementById('metodo').value;
+    if (metodo === '3x' || metodo === '5x' || metodo === '10x') {
+        recalcularParcela();
+    }
 });
 
 document.getElementById('metodo').addEventListener('change', recalcularParcela);
 document.getElementById('juros').addEventListener('change', recalcularParcela);
-document.getElementById('avista').addEventListener('input', recalcularParcela);
+document.getElementById('avista').addEventListener('input', () => {
+    // Só recalcula se o campo NÃO estiver bloqueado
+    const avistaInput = document.getElementById('avista');
+    if (!avistaInput.hasAttribute('disabled')) {
+        recalcularParcela();
+    }
+});
 
 // ==================================================
 // ADICIONAR PRODUTO
@@ -457,13 +533,13 @@ function renderProducts() {
         `;
         btnGerarPDF.style.display = 'none';
         productsCount.textContent = '0 produto(s) adicionado(s)';
-        updateHeaderSubtitle('produtos');
+        updateHeader('produtos');
         return;
     }
 
     productsCount.textContent = `${products.length} produto(s) adicionado(s)`;
     btnGerarPDF.style.display = 'inline-flex';
-    updateHeaderSubtitle('produtos');
+    updateHeader('produtos');
 
     productsList.innerHTML = products.map(product => {
         const featuresText = product.features.join(' | ');
@@ -533,8 +609,38 @@ function generatePosterHTML(product, isPreview = false) {
         virado: '2,92% a.m e 41,25% a.a'
     };
 
-    // Determinar texto de parcelamento (carnê/cartão)
-    const tipoParcelamento = product.juros === 'carne' ? 'carnê' : 'cartão';
+    // Determinar texto de parcelamento e taxa
+    let tipoParcelamento = product.juros === 'carne' ? 'carnê' : 'cartão';
+    let taxaTexto = jurosTexto[product.juros];
+    
+    // Lógica especial para parcelamentos sem juros
+    if (product.metodo === '3x' || product.metodo === '5x') {
+        taxaTexto = 'Sem juros';
+    } else if (product.metodo === '10x' && product.juros === 'cartao') {
+        taxaTexto = 'Sem juros no cartão!';
+    }
+
+    // Validade por extenso
+    const validadeExtensa = product.validade ? formatDateExtended(product.validade) : '';
+
+    // Calcular tamanho da fonte baseado no número de dígitos
+    const numDigitosParcela = String(parcelaInteiro).length;
+    let fontSizeParcela = '240pt'; // Padrão para 2 dígitos
+    if (numDigitosParcela === 3) {
+        fontSizeParcela = '210pt'; // Reduz um pouco para 3 dígitos
+    } else if (numDigitosParcela >= 4) {
+        fontSizeParcela = '180pt'; // Reduz bem mais para 4+ dígitos
+    }
+
+    // Para 1x, calcular tamanho da fonte do valor à vista
+    const avistaInteiro = Math.floor(product.avista);
+    const numDigitosAvista = String(avistaInteiro).length;
+    let fontSizeAvista = '240pt';
+    if (numDigitosAvista === 3) {
+        fontSizeAvista = '210pt';
+    } else if (numDigitosAvista >= 4) {
+        fontSizeAvista = '180pt';
+    }
 
     return `
         <div class="poster">
@@ -545,16 +651,30 @@ function generatePosterHTML(product, isPreview = false) {
                 <div class="poster-code">${product.codigo}</div>
             </div>
             
+            ${product.metodo !== '1x' ? `
             <div class="poster-price-section">
                 <div class="poster-left-section">
                     <div class="poster-installment">${product.metodo}</div>
                     <div class="poster-currency">R$</div>
                 </div>
                 <div class="poster-value-container">
-                    <div class="poster-value-integer">${parcelaInteiro}</div>
+                    <div class="poster-value-integer" style="font-size: ${fontSizeParcela};">${formatarMilhar(parcelaInteiro)}</div>
                     <div class="poster-value-decimal">,${String(parcelaCentavos).padStart(2, '0')}</div>
                 </div>
             </div>
+            ` : `
+            <div class="poster-price-section">
+                <div class="poster-left-section">
+                    <div class="poster-currency">R$</div>
+                </div>
+                <div class="poster-value-container">
+                    <div class="poster-value-integer" style="font-size: ${fontSizeAvista};">${formatarMilhar(avistaInteiro)}</div>
+                    <div class="poster-value-decimal">,${String(Math.round((product.avista - Math.floor(product.avista)) * 100)).padStart(2, '0')}</div>
+                </div>
+            </div>
+            `}
+            
+            ${validadeExtensa ? `<div class="poster-validity">${validadeExtensa}</div>` : ''}
             
             <div class="poster-footer-table">
                 <div class="poster-table-left">
@@ -562,14 +682,13 @@ function generatePosterHTML(product, isPreview = false) {
                         <div class="poster-table-main-text">= ${brl(valorTotal)}</div>
                         <div class="poster-payment-info">
                             <div class="poster-payment-type">no ${tipoParcelamento}</div>
-                            <div class="poster-payment-rate">${jurosTexto[product.juros]}</div>
+                            <div class="poster-payment-rate">${taxaTexto}</div>
                         </div>
                     </div>
                     ${product.motivo ? `<div class="poster-table-sub-text" style="margin-top: 8px; font-weight: 700;">${product.motivo}</div>` : ''}
                 </div>
                 <div class="poster-table-right">
                     <div class="poster-table-main-text">${brl(product.avista)} À VISTA</div>
-                    ${product.validade ? `<div class="poster-table-sub-text">Val: ${formatDate(product.validade)}</div>` : ''}
                     ${product.autorizacao ? `<div class="poster-table-sub-text" style="margin-top: 8px;">${product.autorizacao}</div>` : ''}
                 </div>
             </div>
@@ -681,12 +800,12 @@ document.getElementById('calculator-form').addEventListener('submit', (e) => {
     const tipo = document.getElementById('calc-tipo').value;
 
     if (valor <= 0) {
-        alert('Informe um valor válido!');
+        showToast('warning', 'Valor obrigatório', 'Informe um valor válido!');
         return;
     }
 
     if (!tipo) {
-        alert('Selecione o tipo de taxa!');
+        showToast('warning', 'Tipo obrigatório', 'Selecione o tipo de taxa!');
         return;
     }
 
@@ -760,8 +879,133 @@ document.addEventListener('keydown', (e) => {
 // ==================================================
 document.addEventListener('DOMContentLoaded', () => {
     renderProducts();
-    updateHeaderSubtitle('gerar');
+    updateHeader('gerar');
+    
+    // Botão Debug
+    const btnDebug = document.getElementById('btn-debug');
+    if (btnDebug) {
+        btnDebug.addEventListener('click', gerarCartazesDebug);
+    }
 });
+
+// ==================================================
+// FUNÇÃO DEBUG - GERA CARTAZES DE TESTE
+// ==================================================
+function gerarCartazesDebug() {
+    // ✅ VALIDAÇÃO DE PERMISSÃO - Apenas admin e suporte podem acessar
+    try {
+        const authSession = localStorage.getItem('authSession');
+        if (!authSession) {
+            showToast('error', 'Acesso Negado', 'Esta área é apenas disponível para o desenvolvedor');
+            return;
+        }
+        
+        const sessionData = JSON.parse(authSession);
+        const userPerm = sessionData.perm || '';
+        
+        // Permite apenas 'admin' e 'suporte'
+        if (userPerm !== 'admin' && userPerm !== 'suporte') {
+            showToast('error', 'Acesso Negado', 'Esta área é apenas disponível para o desenvolvedor');
+            return;
+        }
+    } catch (error) {
+        console.error('Erro ao validar permissão:', error);
+        showToast('error', 'Acesso Negado', 'Esta área é apenas disponível para o desenvolvedor');
+        return;
+    }
+    
+    // Produtos fantasia
+    const produtosFantasia = [
+        {
+            descricao: 'Sofá Retrátil 3 Lugares',
+            subdescricao: 'Tecido Suede Premium',
+            caracteristicas: 'Conforto | Design Moderno | Garantia 2 Anos',
+            codigo: 'SF-2024-001',
+            avista: 2499.90
+        },
+        {
+            descricao: 'Guarda-Roupa Casal 6 Portas',
+            subdescricao: 'Com Espelho e Gavetas',
+            caracteristicas: 'MDF | Acabamento Fosco | 3 Gavetas',
+            codigo: 'GR-2024-042',
+            avista: 1899.90
+        },
+        {
+            descricao: 'Conjunto de Jantar Elegance',
+            subdescricao: 'Mesa + 6 Cadeiras Estofadas',
+            caracteristicas: 'Madeira Maciça | Estilo Clássico | Alta Durabilidade',
+            codigo: 'CJ-2024-015',
+            avista: 3299.90
+        }
+    ];
+    
+    // Escolhe um produto aleatório
+    const produtoAleatorio = produtosFantasia[Math.floor(Math.random() * produtosFantasia.length)];
+    
+    // Mostra overlay de loading
+    const overlay = document.getElementById('overlay');
+    const overlayTexto = document.getElementById('overlay-texto');
+    overlay.classList.add('active');
+    overlayTexto.textContent = 'Gerando cartazes de debug...';
+    
+    // Simula preenchimento dos campos e geração
+    setTimeout(() => {
+        // Gera data de validade (15 dias a partir de hoje)
+        const dataValidade = new Date();
+        dataValidade.setDate(dataValidade.getDate() + 15);
+        const validadeFormatada = dataValidade.toISOString().split('T')[0];
+        
+        // Gera 2 produtos: um com carnê e outro com cartão
+        const modalidades = ['carne', 'cartao'];
+        
+        modalidades.forEach((modalidade, index) => {
+            const metodoExibicao = modalidade === 'carne' ? 'Carnê' : 'Cartão';
+            const numParcelas = 12;
+            const fator = FATORES[modalidade][numParcelas];
+            const valorParcela = produtoAleatorio.avista * fator;
+            
+            // ✅ GERA PRODUTO NO FORMATO COMPLETO (igual ao normal)
+            const produtoDebug = {
+                id: Date.now() + index, // ID único
+                codigo: produtoAleatorio.codigo,
+                descricao: produtoAleatorio.descricao,
+                subdescricao: produtoAleatorio.subdescricao,
+                caracteristicas: produtoAleatorio.caracteristicas,
+                features: produtoAleatorio.caracteristicas.split(' | '), // Array de características
+                avista: produtoAleatorio.avista,
+                modalidade: modalidade,
+                metodo: `${numParcelas}x`,
+                parcela: valorParcela,
+                taxa: modalidade === 'carne' ? '3.90% a.m.' : '2.50% a.m.',
+                tipoModalidade: metodoExibicao,
+                validade: validadeFormatada,
+                juros: modalidade, // Tipo de juros (carne/cartao)
+                motivo: '', // Campos extras vazios
+                autorizacao: '',
+                garantia12: '',
+                garantia24: '',
+                garantia36: ''
+            };
+            
+            products.push(produtoDebug);
+        });
+        
+        // Atualiza a interface
+        renderProducts();
+        
+        // Esconde overlay
+        overlay.classList.remove('active');
+        
+        // Mostra toast de sucesso
+        showToast('success', 'Debug Executado!', `2 cartazes de teste gerados com sucesso (Carnê e Cartão)`);
+        
+        // Muda para a view de produtos
+        const navProdutos = document.querySelector('[data-view="produtos"]');
+        if (navProdutos) {
+            navProdutos.click();
+        }
+    }, 1500);
+}
 
 // ==================================================
 // SISTEMA DE TOASTS
@@ -959,3 +1203,581 @@ function showConfirm(options) {
     cancelBtn.addEventListener('click', handleCancel);
     overlay.addEventListener('click', handleOutsideClick);
 }
+
+// ==================================================
+// SIDEBAR: TOGGLE EXTRAS E BOTÃO HOME
+// ==================================================
+const toggleExtras = document.getElementById('toggle-extras');
+const extrasContent = document.getElementById('extras-content');
+const btnHome = document.getElementById('btn-home');
+
+toggleExtras.addEventListener('click', () => {
+    toggleExtras.classList.toggle('active');
+    extrasContent.classList.toggle('active');
+});
+
+btnHome.addEventListener('click', () => {
+    const isHomeActive = navButtons[0].classList.contains('active');
+
+    if (isHomeActive) {
+        window.location.href = 'selectsetor.html';
+    } else {
+        navButtons[0].click();
+        showToast(
+            'info',
+            'Início',
+            'Você voltou para o formulário inicial'
+        );
+    }
+});
+
+// ==================================================
+// CAMPOS OBRIGATÓRIOS (Destaque por 5 segundos)
+// ==================================================
+const btnCamposObrigatorios = document.getElementById('btn-campos-obrigatorios');
+
+btnCamposObrigatorios.addEventListener('click', () => {
+    // Descobrir qual view está ativa
+    const activeView = document.querySelector('.view.active');
+    let requiredFields = [];
+    let formularioNome = '';
+    
+    if (activeView && activeView.id === 'view-gerar') {
+        // Formulário principal
+        requiredFields = ['codigo', 'descricao', 'metodo', 'juros', 'avista', 'feature-1', 'feature-2', 'feature-3'];
+        formularioNome = 'Formulário Principal';
+    } else if (activeView && activeView.id === 'view-cama-box') {
+        // Cama Box
+        requiredFields = ['codigo-base', 'codigo-colchao', 'descricao-cb', 'metodo-cb', 'juros-cb', 'avista-cb', 'feature-cb-1', 'feature-cb-2', 'feature-cb-3'];
+        formularioNome = 'Cama Box';
+    } else if (activeView && activeView.id === 'view-mesa-cadeiras') {
+        // Mesa e Cadeiras
+        requiredFields = ['codigo-mesa', 'codigo-cadeira', 'qtd-cadeiras', 'descricao-mc', 'metodo-mc', 'juros-mc', 'avista-mc', 'feature-mc-1', 'feature-mc-2', 'feature-mc-3'];
+        formularioNome = 'Mesa e Cadeiras';
+    } else if (activeView && activeView.id === 'view-cama-mesa-banho') {
+        // Cama, Mesa e Banho: apenas parcela, à vista, um código e uma descrição
+        requiredFields = ['codigo-cmb', 'descricao-cmb', 'metodo-cmb', 'parcela-cmb', 'avista-cmb'];
+        formularioNome = 'Cama, Mesa e Banho';
+    }
+    
+    if (requiredFields.length > 0) {
+        requiredFields.forEach(id => {
+            const field = document.getElementById(id);
+            if (field) {
+                field.classList.add('field-required-highlight');
+                setTimeout(() => {
+                    field.classList.remove('field-required-highlight');
+                }, 5000);
+            }
+        });
+        
+        showToast('info', `Campos obrigatórios: ${formularioNome}`, 'Os campos obrigatórios (incluindo características) foram destacados por 5 segundos.');
+    } else {
+        showToast('warning', 'Nenhum formulário ativo', 'Navegue até um formulário para ver os campos obrigatórios.');
+    }
+});
+
+// ==================================================
+// FORMULÁRIO: CAMA BOX
+// ==================================================
+const formCamaBox = document.getElementById('cama-box-form');
+let produtoBase = null;
+let produtoColchao = null;
+
+// Botões individuais removidos - agora usa botão unificado
+
+// Botão unificado de busca Cama Box
+document.getElementById('btn-buscar-cama-box').addEventListener('click', async () => {
+    const codigoBase = document.getElementById('codigo-base').value.trim();
+    const codigoColchao = document.getElementById('codigo-colchao').value.trim();
+    
+    if (!codigoBase || !codigoColchao) {
+        showToast('warning', 'Códigos obrigatórios', 'Preencha ambos os códigos (base e colchão) antes de buscar.');
+        return;
+    }
+    
+    mostrarOverlay();
+    atualizarOverlayTexto('🔍 Buscando base e colchão...');
+    
+    try {
+        const resposta = await fetch(API_URL);
+        const dados = await resposta.json();
+        
+        // Buscar base
+        let baseEncontrada = false;
+        ['Gabriel', 'Júlia', 'Giovana'].forEach(nome => {
+            if (dados[nome]) {
+                dados[nome].forEach(item => {
+                    if (item.Código == codigoBase) {
+                        baseEncontrada = true;
+                        produtoBase = item;
+                    }
+                });
+            }
+        });
+        
+        // Buscar colchão
+        let colchaoEncontrado = false;
+        ['Gabriel', 'Júlia', 'Giovana'].forEach(nome => {
+            if (dados[nome]) {
+                dados[nome].forEach(item => {
+                    if (item.Código == codigoColchao) {
+                        colchaoEncontrado = true;
+                        produtoColchao = item;
+                    }
+                });
+            }
+        });
+        
+        if (baseEncontrada && colchaoEncontrado) {
+            showToast('success', 'Produtos encontrados!', 'Base e colchão encontrados no banco de dados.');
+            atualizarCamaBoxDescricao();
+            atualizarCamaBoxValor();
+        } else if (!baseEncontrada && !colchaoEncontrado) {
+            showToast('error', 'Produtos não encontrados', 'Base e colchão não encontrados no banco de dados.');
+            produtoBase = null;
+            produtoColchao = null;
+        } else if (!baseEncontrada) {
+            showToast('warning', 'Base não encontrada', 'A base não foi encontrada no banco de dados.');
+            produtoBase = null;
+        } else {
+            showToast('warning', 'Colchão não encontrado', 'O colchão não foi encontrado no banco de dados.');
+            produtoColchao = null;
+        }
+    } catch (e) {
+        showToast('error', 'Erro', 'Erro ao buscar produtos.');
+        produtoBase = null;
+        produtoColchao = null;
+    } finally {
+        esconderOverlay();
+    }
+});
+
+function atualizarCamaBoxDescricao() {
+    if (produtoBase && produtoColchao) {
+        const desc1 = (produtoBase.Descrição || "").split(" - ")[0].trim();
+        const desc2 = (produtoColchao.Descrição || "").split(" - ")[0].trim();
+        document.getElementById('descricao-cb').value = `${desc1} + ${desc2}`;
+        
+        // Marca (subdescricao) - pega da base
+        const marca = (produtoBase.Descrição || "").split(" - ")[1] || "";
+        document.getElementById('subdescricao-cb').value = marca.trim();
+    } else if (produtoBase) {
+        const desc = (produtoBase.Descrição || "").split(" - ")[0].trim();
+        document.getElementById('descricao-cb').value = desc;
+    } else if (produtoColchao) {
+        const desc = (produtoColchao.Descrição || "").split(" - ")[0].trim();
+        document.getElementById('descricao-cb').value = desc;
+    }
+}
+
+function atualizarCamaBoxValor() {
+    if (produtoBase && produtoColchao) {
+        const valorBase = parseCurrency(produtoBase["Total à vista"]);
+        const valorColchao = parseCurrency(produtoColchao["Total à vista"]);
+        const total = valorBase + valorColchao;
+        document.getElementById('avista-cb').value = formatCurrency(total.toFixed(2));
+    } else if (produtoBase) {
+        const valor = parseCurrency(produtoBase["Total à vista"]);
+        document.getElementById('avista-cb').value = formatCurrency(valor.toFixed(2));
+        showToast('warning', 'Falta o colchão', 'Busque também o código do colchão para somar os valores.');
+    } else if (produtoColchao) {
+        const valor = parseCurrency(produtoColchao["Total à vista"]);
+        document.getElementById('avista-cb').value = formatCurrency(valor.toFixed(2));
+        showToast('warning', 'Falta a base', 'Busque também o código da base para somar os valores.');
+    }
+}
+
+// Aplicar máscaras de moeda
+document.getElementById('avista-cb').addEventListener('input', (e) => {
+    e.target.value = formatCurrency(e.target.value);
+    recalcularParcelaCamaBox(); // Cálculo automático
+});
+document.getElementById('parcela-cb').addEventListener('input', (e) => {
+    e.target.value = formatCurrency(e.target.value);
+});
+
+// Cálculo automático de parcela para Cama Box
+function recalcularParcelaCamaBox() {
+    const metodo = document.getElementById('metodo-cb').value;
+    const juros = document.getElementById('juros-cb').value;
+    const avistaInput = document.getElementById('avista-cb');
+    const parcelaInput = document.getElementById('parcela-cb');
+
+    parcelaInput.removeAttribute('readonly');
+
+    if (metodo !== '12x' || !juros || juros === '') return;
+
+    const avista = parseCurrency(avistaInput.value);
+    if (avista === 0) return;
+
+    const numParcelas = 12;
+    let parcela = 0;
+
+    const tipoTaxa = (juros === 'carne') ? 'carne' : 'cartao';
+    
+    if (FATORES[tipoTaxa] && FATORES[tipoTaxa][numParcelas]) {
+        const fator = FATORES[tipoTaxa][numParcelas];
+        parcela = avista * fator;
+        parcela = arredondar90(parcela);
+    }
+
+    parcelaInput.value = parcela ? formatCurrency(parcela.toFixed(2)) : '';
+}
+
+document.getElementById('metodo-cb').addEventListener('change', recalcularParcelaCamaBox);
+document.getElementById('juros-cb').addEventListener('change', recalcularParcelaCamaBox);
+
+// Submit Cama Box
+formCamaBox.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const codigoBase = document.getElementById('codigo-base').value.trim();
+    const codigoColchao = document.getElementById('codigo-colchao').value.trim();
+    const descricao = document.getElementById('descricao-cb').value.trim().toUpperCase();
+    const subdescricao = document.getElementById('subdescricao-cb').value.trim().toUpperCase();
+    const feature1 = document.getElementById('feature-cb-1').value.trim();
+    const feature2 = document.getElementById('feature-cb-2').value.trim();
+    const feature3 = document.getElementById('feature-cb-3').value.trim();
+    const metodo = document.getElementById('metodo-cb').value;
+    const juros = document.getElementById('juros-cb').value;
+    const avista = parseCurrency(document.getElementById('avista-cb').value);
+    const parcela = parseCurrency(document.getElementById('parcela-cb').value);
+    
+    const features = [feature1, feature2, feature3].filter(f => f !== '');
+    
+    if (!codigoBase || !codigoColchao) {
+        showToast('warning', 'Códigos obrigatórios', 'Preencha os códigos da base e do colchão!');
+        return;
+    }
+    
+    if (!descricao || !metodo || !juros || avista <= 0 || parcela <= 0) {
+        showToast('warning', 'Campos obrigatórios', 'Preencha todos os campos obrigatórios!');
+        return;
+    }
+    
+    if (features.length === 0) {
+        showSearchToast(descricao);
+        return;
+    }
+    
+    const product = {
+        id: Date.now(),
+        codigo: `${codigoBase}+${codigoColchao}`,
+        descricao,
+        subdescricao,
+        features,
+        metodo,
+        juros,
+        avista,
+        parcela,
+        motivo: '',
+        validade: '',
+        autorizacao: '',
+        garantia12: 0,
+        garantia24: 0,
+        garantia36: 0
+    };
+    
+    products.push(product);
+    renderProducts();
+    showToast('success', 'Cama Box adicionada!', 'Produto adicionado com sucesso.');
+    
+    formCamaBox.reset();
+    produtoBase = null;
+    produtoColchao = null;
+    
+    navButtons[1].click();
+});
+
+// ==================================================
+// FORMULÁRIO: MESA E CADEIRAS
+// ==================================================
+const formMesaCadeiras = document.getElementById('mesa-cadeiras-form');
+let produtoMesa = null;
+let produtoCadeira = null;
+
+// Botão unificado de busca Mesa e Cadeiras
+document.getElementById('btn-buscar-mesa-cadeiras').addEventListener('click', async () => {
+    const codigoMesa = document.getElementById('codigo-mesa').value.trim();
+    const codigoCadeira = document.getElementById('codigo-cadeira').value.trim();
+    
+    if (!codigoMesa || !codigoCadeira) {
+        showToast('warning', 'Códigos obrigatórios', 'Preencha ambos os códigos (mesa e cadeira) antes de buscar.');
+        return;
+    }
+    
+    mostrarOverlay();
+    atualizarOverlayTexto('🔍 Buscando mesa e cadeiras...');
+    
+    try {
+        const resposta = await fetch(API_URL);
+        const dados = await resposta.json();
+        
+        // Buscar mesa
+        let mesaEncontrada = false;
+        ['Gabriel', 'Júlia', 'Giovana'].forEach(nome => {
+            if (dados[nome]) {
+                dados[nome].forEach(item => {
+                    if (item.Código == codigoMesa) {
+                        mesaEncontrada = true;
+                        produtoMesa = item;
+                    }
+                });
+            }
+        });
+        
+        // Buscar cadeira
+        let cadeiraEncontrada = false;
+        ['Gabriel', 'Júlia', 'Giovana'].forEach(nome => {
+            if (dados[nome]) {
+                dados[nome].forEach(item => {
+                    if (item.Código == codigoCadeira) {
+                        cadeiraEncontrada = true;
+                        produtoCadeira = item;
+                    }
+                });
+            }
+        });
+        
+        if (mesaEncontrada && cadeiraEncontrada) {
+            showToast('success', 'Produtos encontrados!', 'Mesa e cadeiras encontradas no banco de dados.');
+            atualizarMesaCadeirasDescricao();
+            atualizarMesaCadeirasValor();
+        } else if (!mesaEncontrada && !cadeiraEncontrada) {
+            showToast('error', 'Produtos não encontrados', 'Mesa e cadeiras não encontradas no banco de dados.');
+            produtoMesa = null;
+            produtoCadeira = null;
+        } else if (!mesaEncontrada) {
+            showToast('warning', 'Mesa não encontrada', 'A mesa não foi encontrada no banco de dados.');
+            produtoMesa = null;
+        } else {
+            showToast('warning', 'Cadeira não encontrada', 'A cadeira não foi encontrada no banco de dados.');
+            produtoCadeira = null;
+        }
+    } catch (e) {
+        showToast('error', 'Erro', 'Erro ao buscar produtos.');
+        produtoMesa = null;
+        produtoCadeira = null;
+    } finally {
+        esconderOverlay();
+    }
+});
+
+// Atualizar quando mudar quantidade
+document.getElementById('qtd-cadeiras').addEventListener('change', () => {
+    atualizarMesaCadeirasValor();
+});
+
+function atualizarMesaCadeirasDescricao() {
+    if (produtoMesa && produtoCadeira) {
+        const descMesa = (produtoMesa.Descrição || "").split(" - ")[0].trim();
+        const descCadeira = (produtoCadeira.Descrição || "").split(" - ")[0].trim();
+        document.getElementById('descricao-mc').value = `${descMesa} + ${descCadeira}`;
+        
+        const marca = (produtoMesa.Descrição || "").split(" - ")[1] || "";
+        document.getElementById('subdescricao-mc').value = marca.trim();
+    }
+}
+
+function atualizarMesaCadeirasValor() {
+    const qtdSelect = document.getElementById('qtd-cadeiras');
+    const qtd = parseInt(qtdSelect.value) || 0;
+    
+    if (produtoMesa && produtoCadeira && qtd > 0) {
+        const valorMesa = parseCurrency(produtoMesa["Total à vista"]);
+        const valorCadeira = parseCurrency(produtoCadeira["Total à vista"]);
+        const total = valorMesa + (valorCadeira * qtd);
+        document.getElementById('avista-mc').value = formatCurrency(total.toFixed(2));
+    } else if (produtoMesa && !produtoCadeira) {
+        showToast('warning', 'Falta a cadeira', 'Busque também o código da cadeira.');
+    } else if (!produtoMesa && produtoCadeira) {
+        showToast('warning', 'Falta a mesa', 'Busque também o código da mesa.');
+    } else if (produtoMesa && produtoCadeira && qtd === 0) {
+        showToast('warning', 'Quantidade obrigatória', 'Selecione a quantidade de cadeiras.');
+    }
+}
+
+// Máscaras de moeda
+document.getElementById('avista-mc').addEventListener('input', (e) => {
+    e.target.value = formatCurrency(e.target.value);
+    recalcularParcelaMesaCadeiras(); // Cálculo automático
+});
+document.getElementById('parcela-mc').addEventListener('input', (e) => {
+    e.target.value = formatCurrency(e.target.value);
+});
+
+// Cálculo automático de parcela para Mesa e Cadeiras
+function recalcularParcelaMesaCadeiras() {
+    const metodo = document.getElementById('metodo-mc').value;
+    const juros = document.getElementById('juros-mc').value;
+    const avistaInput = document.getElementById('avista-mc');
+    const parcelaInput = document.getElementById('parcela-mc');
+
+    parcelaInput.removeAttribute('readonly');
+
+    if (metodo !== '12x' || !juros || juros === '') return;
+
+    const avista = parseCurrency(avistaInput.value);
+    if (avista === 0) return;
+
+    const numParcelas = 12;
+    let parcela = 0;
+
+    const tipoTaxa = (juros === 'carne') ? 'carne' : 'cartao';
+    
+    if (FATORES[tipoTaxa] && FATORES[tipoTaxa][numParcelas]) {
+        const fator = FATORES[tipoTaxa][numParcelas];
+        parcela = avista * fator;
+        parcela = arredondar90(parcela);
+    }
+
+    parcelaInput.value = parcela ? formatCurrency(parcela.toFixed(2)) : '';
+}
+
+document.getElementById('metodo-mc').addEventListener('change', recalcularParcelaMesaCadeiras);
+document.getElementById('juros-mc').addEventListener('change', recalcularParcelaMesaCadeiras);
+
+// Submit Mesa e Cadeiras
+formMesaCadeiras.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const codigoMesa = document.getElementById('codigo-mesa').value.trim();
+    const codigoCadeira = document.getElementById('codigo-cadeira').value.trim();
+    const qtd = parseInt(document.getElementById('qtd-cadeiras').value) || 0;
+    const descricao = document.getElementById('descricao-mc').value.trim().toUpperCase();
+    const subdescricao = document.getElementById('subdescricao-mc').value.trim().toUpperCase();
+    const feature1 = document.getElementById('feature-mc-1').value.trim();
+    const feature2 = document.getElementById('feature-mc-2').value.trim();
+    const feature3 = document.getElementById('feature-mc-3').value.trim();
+    const metodo = document.getElementById('metodo-mc').value;
+    const juros = document.getElementById('juros-mc').value;
+    const avista = parseCurrency(document.getElementById('avista-mc').value);
+    const parcela = parseCurrency(document.getElementById('parcela-mc').value);
+    
+    const features = [feature1, feature2, feature3].filter(f => f !== '');
+    features.push(`${qtd} cadeiras`); // Adiciona quantidade como característica
+    
+    if (!codigoMesa || !codigoCadeira || qtd === 0) {
+        showToast('warning', 'Campos obrigatórios', 'Preencha os códigos e a quantidade de cadeiras!');
+        return;
+    }
+    
+    if (!descricao || !metodo || !juros || avista <= 0 || parcela <= 0) {
+        showToast('warning', 'Campos obrigatórios', 'Preencha todos os campos obrigatórios!');
+        return;
+    }
+    
+    const product = {
+        id: Date.now(),
+        codigo: `${codigoMesa}+${codigoCadeira}`,
+        descricao,
+        subdescricao,
+        features,
+        metodo,
+        juros,
+        avista,
+        parcela,
+        motivo: '',
+        validade: '',
+        autorizacao: '',
+        garantia12: 0,
+        garantia24: 0,
+        garantia36: 0
+    };
+    
+    products.push(product);
+    renderProducts();
+    showToast('success', 'Mesa e cadeiras adicionadas!', 'Produto adicionado com sucesso.');
+    
+    formMesaCadeiras.reset();
+    produtoMesa = null;
+    produtoCadeira = null;
+    
+    navButtons[1].click();
+});
+
+// ==================================================
+// FORMULÁRIO: CAMA, MESA E BANHO
+// ==================================================
+const formCamaMesaBanho = document.getElementById('cama-mesa-banho-form');
+
+// Expansão automática do textarea
+const textareaCodigos = document.getElementById('codigos-cmb');
+textareaCodigos.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = (this.scrollHeight) + 'px';
+});
+
+// Máscaras de moeda
+document.getElementById('avista-cmb').addEventListener('input', (e) => {
+    e.target.value = formatCurrency(e.target.value);
+});
+document.getElementById('parcela-cmb').addEventListener('input', (e) => {
+    e.target.value = formatCurrency(e.target.value);
+});
+
+// Submit Cama, Mesa e Banho
+formCamaMesaBanho.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const codigo = document.getElementById('codigo-cmb').value.trim();
+    const descricao = document.getElementById('descricao-cmb').value.trim().toUpperCase();
+    const subdescricao = document.getElementById('subdescricao-cmb').value.trim().toUpperCase();
+    const feature1 = document.getElementById('feature-cmb-1').value.trim();
+    const feature2 = document.getElementById('feature-cmb-2').value.trim();
+    const feature3 = document.getElementById('feature-cmb-3').value.trim();
+    const metodo = document.getElementById('metodo-cmb').value;
+    const juros = document.getElementById('juros-cmb').value;
+    const avista = parseCurrency(document.getElementById('avista-cmb').value);
+    const parcela = parseCurrency(document.getElementById('parcela-cmb').value);
+    
+    const features = [feature1, feature2, feature3].filter(f => f !== '');
+    
+    if (!codigo || !descricao) {
+        showToast('warning', 'Campos obrigatórios', 'Preencha código e descrição!');
+        return;
+    }
+    
+    if (!metodo || !juros) {
+        showToast('warning', 'Campos obrigatórios', 'Selecione parcelamento e taxa de juros!');
+        return;
+    }
+    
+    if (avista <= 0 || parcela <= 0) {
+        showToast('warning', 'Valores obrigatórios', 'Informe os valores à vista e da parcela!');
+        return;
+    }
+    
+    if (features.length === 0) {
+        showSearchToast(descricao);
+        return;
+    }
+    
+    const product = {
+        id: Date.now(),
+        codigo,
+        descricao,
+        subdescricao,
+        features,
+        metodo,
+        juros,
+        avista,
+        parcela,
+        motivo: '',
+        validade: '',
+        autorizacao: '',
+        garantia12: 0,
+        garantia24: 0,
+        garantia36: 0
+    };
+    
+    products.push(product);
+    renderProducts();
+    showToast('success', 'Combo adicionado!', 'Produto adicionado com sucesso.');
+    
+    formCamaMesaBanho.reset();
+    textareaCodigos.style.height = 'auto';
+    
+    navButtons[1].click();
+});
