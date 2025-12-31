@@ -150,9 +150,109 @@ body {
     text-align: center;
 }
 
+.btn-home {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-home:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+}
+
 .sidebar-footer p {
     font-size: 12px;
     color: var(--gray-500);
+}
+
+/* Nav Section (Seção expansível) */
+.nav-section {
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.nav-section-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    margin-bottom: 4px;
+    border: none;
+    background: var(--gray-50);
+    border-radius: 8px;
+    color: var(--gray-700);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: left;
+}
+
+.nav-section-toggle:hover {
+    background: var(--gray-100);
+}
+
+.nav-section-toggle span {
+    flex: 1;
+}
+
+.nav-section-arrow {
+    transition: transform 0.3s ease;
+    color: var(--gray-500);
+}
+
+.nav-section-toggle.active .nav-section-arrow {
+    transform: rotate(180deg);
+}
+
+.nav-section-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.nav-section-content.active {
+    max-height: 300px;
+}
+
+.nav-item.sub-item {
+    padding-left: 24px;
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.nav-item.sub-item i {
+    font-size: 14px;
+}
+
+/* Destaque de campos obrigatórios */
+@keyframes highlightField {
+    0%, 100% {
+        box-shadow: 0 0 0 3px transparent;
+    }
+    50% {
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.4);
+    }
+}
+
+.field-required-highlight {
+    animation: highlightField 0.5s ease-in-out 10;
+    border-color: var(--danger) !important;
 }
 
 /* Main Content */
@@ -757,58 +857,58 @@ input:checked + .slider:before {
     page-break-after: always;
 }
 
-/* Nome/Subdesc/Características/Código: 4cm de cima, 3cm da esquerda */
+/* Nome/Subdesc/Características/Código: 4cm de cima, 15% mais à esquerda */
 .poster-header {
     position: absolute;
-    left: 3cm;
-    top: 4cm;
-    width: calc(100% - 6cm);
-    max-width: 15cm;
+    top: 5.5cm; /* ⬇️ AJUSTE DE ALTURA - Movido 1,5cm para baixo (era 4cm, agora 5.5cm) */
+    left: 2.55cm; /* Reduzido 15% de 3cm = 2.55cm */
+    right: 3cm;
 }
 
 .poster-title {
     font-family: 'Lato', Arial, sans-serif;
-    font-size: 32pt;
-    font-weight: 700;
+    font-size: 28pt;
+    font-weight: 900;
+    text-align: left;
     color: #000;
-    margin-bottom: 4px;
+    margin-bottom: 0.25cm;
     line-height: 1.1;
-    text-transform: uppercase;
-    word-wrap: break-word;
 }
 
 .poster-subtitle {
     font-family: 'Lato', Arial, sans-serif;
-    font-size: 21pt;
+    font-size: 18pt;
     font-weight: 400;
+    text-align: left;
     color: #000;
-    margin-bottom: 8px;
-    line-height: 1.2;
-    word-wrap: break-word;
+    margin-bottom: 0.25cm;
+    font-style: italic;
+    line-height: 1.1;
 }
 
 .poster-features {
     font-family: 'Lato', Arial, sans-serif;
-    font-size: 20pt;
-    font-weight: 700;
+    font-size: 16pt;
+    font-weight: 400;
+    text-align: left;
     color: #000;
-    margin-bottom: 4px;
+    margin-bottom: 0.25cm;
     line-height: 1.2;
-    word-wrap: break-word;
 }
 
 .poster-code {
     font-family: 'Lato', Arial, sans-serif;
-    font-size: 20pt;
-    font-weight: 400;
+    font-size: 14pt;
+    font-weight: 700;
+    text-align: left;
     color: #000;
-    word-wrap: break-word;
+    line-height: 1.1;
 }
 
-/* Layout do preço: 12x e R$ alinhados à esquerda (3cm) */
+/* Layout do preço: 12x e R$ alinhados 15% mais à esquerda */
 .poster-price-section {
     position: absolute;
-    left: 3cm;
+    left: 2.55cm; /* Reduzido 15% de 3cm = 2.55cm */
     top: 10cm;
     display: flex;
     align-items: flex-start;
@@ -845,40 +945,57 @@ input:checked + .slider:before {
 .poster-value-container {
     display: flex;
     align-items: flex-start;
-    gap: 5px;
+    gap: 0; /* Ajuste aqui - gap zerado para não empurrar o ,90 */
 }
 
-/* Parte inteira: grande e esticada (transform: scaleX para deixar "fina") */
+/* Parte inteira: grande e esticada (+20% = 240pt) */
 .poster-value-integer {
     font-family: 'Impact', 'Arial Black', sans-serif;
-    font-size: 200pt;
+    font-size: 240pt;
     font-weight: 700;
     color: #000;
     line-height: 0.8;
     letter-spacing: -4px;
-    transform: scaleX(0.85);
+    transform: scaleX(0.70) scaleY(1.15); /* Ajuste aqui - mais estreita (0.70) e mais alta (1.15) */
     transform-origin: left center;
 }
 
-/* Vírgula e centavos: 1/3 do tamanho da parte inteira (200pt / 3 ≈ 67pt), alinhados no topo */
+/* Vírgula e centavos: distância de 0.4cm (aproximadamente 15px) */
 .poster-value-decimal {
     font-family: 'Impact', 'Arial Black', sans-serif;
-    font-size: 67pt;
+    font-size: 80pt;
     font-weight: 700;
     color: #000;
     line-height: 0.8;
-    transform: scaleX(0.85);
+    transform: scaleX(0.85); /* Ajuste aqui - volta ao original, SEM scaleY */
     transform-origin: left center;
     margin-top: 0;
     padding-top: 0;
+    margin-left: -100px; /* Ajuste aqui - ainda mais próximo (aumentado de -80px para -100px) */
 }
 
-/* Tabela do rodapé com bordas (1cm abaixo da parcela) */
+/* Validade por extenso - girada 270° no canto direito */
+.poster-validity {
+    position: absolute;
+    right: 1.0cm; /* 20% mais à esquerda (de 0.8cm para 1.0cm) */
+    top: 4.7cm; /* ⬇️ AJUSTE DE ALTURA - Movido 1,5cm para baixo (era 3.2cm, agora 4.7cm) */
+    font-family: 'Lato', Arial, sans-serif;
+    font-size: 11pt;
+    font-weight: 700;
+    color: #000;
+    line-height: 1.2;
+    white-space: nowrap;
+    transform: rotate(270deg); /* Girado 270 graus (texto de cima para baixo) */
+    transform-origin: right center; /* Origem à direita */
+}
+
+/* Tabela do rodapé - centralizada na folha */
 .poster-footer-table {
     position: absolute;
     top: 18cm;
-    left: 3cm;
-    right: 3cm;
+    left: 50%; /* Centralizar */
+    transform: translateX(-50%); /* Centralizar */
+    width: calc(210mm - 6cm); /* Mantém as margens de 3cm de cada lado */
     display: grid;
     grid-template-columns: 1fr 1fr;
     border-left: none;
@@ -932,7 +1049,7 @@ input:checked + .slider:before {
 
 .poster-payment-type {
     font-family: 'Lato', Arial, sans-serif;
-    font-size: 10pt;
+    font-size: 13pt; /* Aumentado de 11pt para 13pt (+2pt) */
     font-weight: 400;
     color: #000;
     line-height: 1.1;
@@ -941,11 +1058,12 @@ input:checked + .slider:before {
 
 .poster-payment-rate {
     font-family: 'Lato', Arial, sans-serif;
-    font-size: 7pt;
+    font-size: 5.5pt; /* Diminuído de 7.5pt para 5.5pt (-2pt) */
     font-weight: 400;
     color: #000;
-    line-height: 1.1;
+    line-height: 1;
     margin-top: 2px;
+    white-space: nowrap; /* Garante que não quebre a linha */
 }
 
 .poster-table-sub-text {
@@ -1611,4 +1729,57 @@ input:checked + .slider:before {
 
 .features-reminder-btn.dismiss:hover {
     background: rgba(251, 191, 36, 0.2);
+}
+
+/* ==================================================
+   TOOLTIP PARA CAMPO BLOQUEADO
+   ================================================== */
+.input-with-tooltip {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.input-with-tooltip .tooltip-text {
+    visibility: hidden;
+    width: 280px;
+    background-color: rgba(0, 0, 0, 0.9);
+    color: #fff;
+    text-align: center;
+    border-radius: 8px;
+    padding: 12px 16px;
+    position: absolute;
+    z-index: 1000;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -140px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 13px;
+    line-height: 1.4;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.input-with-tooltip .tooltip-text::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -8px;
+    border-width: 8px;
+    border-style: solid;
+    border-color: rgba(0, 0, 0, 0.9) transparent transparent transparent;
+}
+
+.input-with-tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Input bloqueado (3x, 5x, 10x sem juros) */
+input[disabled],
+input[readonly] {
+    background-color: #f3f4f6 !important;
+    cursor: not-allowed;
+    opacity: 0.7;
 }
