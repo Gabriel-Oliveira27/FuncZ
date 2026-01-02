@@ -856,7 +856,7 @@ function applyAccessControlsFromAuth(auth) {
       const allowed2 = permissionsMap[pr] || [];
       if (!a) { showToast('Você não está logado.', 'error'); return; }
       if (!(pr === 'admin' || pr === 'suporte' || allowed2.includes('cartazista'))) { showToast('Acesso negado: você não tem permissão para a Área Cartazista.', 'error'); return; }
-      window.location.href = 'cartazista.html';
+      showToast('Ainda em desenvolvimento...', 'error', 4000);
     };
   }
   if (btnAdmin) {
@@ -1112,3 +1112,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     getStoredCoords
   };
 });
+
