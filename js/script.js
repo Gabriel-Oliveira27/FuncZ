@@ -24,6 +24,13 @@ function formatarMilhar(numero) {
 
 let products = [];
 
+// Variáveis globais para o modal de busca por texto
+let todosProdutos = [];
+let produtosFiltrados = [];
+let paginaAtual = 1;
+const itensPorPagina = 10;
+let modoAgrupamento = 'nenhum'; // 'nenhum', 'marca', 'codigo'
+
 // ==================================================
 // NAVEGAÇÃO
 // ==================================================
@@ -71,19 +78,108 @@ function updateHeader(viewName) {
 }
 
 // ==================================================
-// OVERLAY DE LOADING
+// OVERLAY DE LOADING (funções legadas - mantidas por compatibilidade)
 // ==================================================
 function mostrarOverlay() {
-    document.getElementById("overlay").classList.add("active");
+    // Usa a função moderna por padrão
+    mostrarOverlayBusca('Carregando', 'Aguarde um momento...');
 }
 
 function esconderOverlay() {
-    document.getElementById("overlay").classList.remove("active");
+    ocultarOverlay();
 }
 
+// ==================================================
+// FUNÇÕES DO OVERLAY MODERNO
+// ==================================================
 function atualizarOverlayTexto(msg) {
     const textoEl = document.getElementById("overlay-texto");
     if (textoEl) textoEl.textContent = msg;
+}
+
+// Mostrar overlay em estado de busca
+function mostrarOverlayBusca(texto = 'Buscando informações', subtexto = 'Aguarde um momento') {
+    const overlay = document.getElementById('overlay');
+    const textoEl = document.getElementById('overlay-texto');
+    const subtextoEl = document.getElementById('overlay-subtexto');
+    const iconEl = document.getElementById('overlay-icon');
+    
+    // Resetar classes
+    overlay.className = 'searching';
+    overlay.classList.add('active');
+    
+    // Atualizar textos
+    if (textoEl) textoEl.textContent = texto;
+    if (subtextoEl) {
+        subtextoEl.textContent = subtexto;
+        subtextoEl.style.display = 'block';
+    }
+    
+    // Ocultar ícone durante busca
+    if (iconEl) {
+        iconEl.classList.remove('show', 'success', 'error');
+        iconEl.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i>';
+    }
+}
+
+// Mostrar overlay de sucesso
+function mostrarOverlaySucesso(texto = 'Informações encontradas', subtexto = 'Carregando dados...') {
+    const overlay = document.getElementById('overlay');
+    const textoEl = document.getElementById('overlay-texto');
+    const subtextoEl = document.getElementById('overlay-subtexto');
+    const iconEl = document.getElementById('overlay-icon');
+    
+    // Mudar para estado de sucesso
+    overlay.className = 'success';
+    overlay.classList.add('active');
+    
+    // Atualizar textos
+    if (textoEl) textoEl.textContent = texto;
+    if (subtextoEl) {
+        subtextoEl.textContent = subtexto;
+        subtextoEl.style.display = 'block';
+    }
+    
+    // Mostrar ícone de sucesso
+    if (iconEl) {
+        iconEl.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+        iconEl.classList.add('show', 'success');
+        iconEl.classList.remove('error');
+    }
+}
+
+// Mostrar overlay de erro
+function mostrarOverlayErro(texto = 'Informações inexistentes', subtexto = 'Produto não encontrado') {
+    const overlay = document.getElementById('overlay');
+    const textoEl = document.getElementById('overlay-texto');
+    const subtextoEl = document.getElementById('overlay-subtexto');
+    const iconEl = document.getElementById('overlay-icon');
+    
+    // Mudar para estado de erro
+    overlay.className = 'error';
+    overlay.classList.add('active');
+    
+    // Atualizar textos
+    if (textoEl) textoEl.textContent = texto;
+    if (subtextoEl) {
+        subtextoEl.textContent = subtexto;
+        subtextoEl.style.display = 'block';
+    }
+    
+    // Mostrar ícone de erro
+    if (iconEl) {
+        iconEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+        iconEl.classList.add('show', 'error');
+        iconEl.classList.remove('success');
+    }
+}
+
+// Ocultar overlay
+function ocultarOverlay() {
+    const overlay = document.getElementById('overlay');
+    if (overlay) {
+        overlay.classList.remove('active', 'searching', 'success', 'error');
+    }
 }
 
 // ==================================================
@@ -174,13 +270,15 @@ inputCodigo.addEventListener("keydown", (event) => {
 
 btnBuscar.addEventListener("click", async () => {
     const codigo = inputCodigo.value.trim();
+    
+    // ✅ SE NÃO HOUVER CÓDIGO, ABRE O MODAL DE BUSCA POR TEXTO
     if (!codigo) {
-        showToast('warning', 'Código obrigatório', 'Digite um código para buscar o produto.');
+        abrirModalBuscaTexto();
         return;
     }
 
-    mostrarOverlay();
-    atualizarOverlayTexto("🔍 Buscando produto...");
+    // ✅ ETAPA 1: Buscando informações
+    mostrarOverlayBusca('Buscando informações', `Procurando produto código ${codigo}...`);
 
     try {
         const resposta = await fetch(API_URL);
@@ -202,6 +300,12 @@ btnBuscar.addEventListener("click", async () => {
         });
 
         if (encontrado && primeiroItem) {
+            // ✅ ETAPA 2: Informações encontradas
+            mostrarOverlaySucesso('Informações encontradas', 'Preenchendo campos automaticamente...');
+            
+            // Aguardar um pouco para mostrar o sucesso
+            await new Promise(res => setTimeout(res, 800));
+            
             const partes = (primeiroItem.Descrição || "").split(" - ");
             document.getElementById("descricao").value = (partes[0] || "").trim();
             // Marca vai para subdescricao automaticamente
@@ -214,21 +318,21 @@ btnBuscar.addEventListener("click", async () => {
                 document.getElementById("garantia12").value = formatCurrency(parseCurrency(primeiroItem["Tot. G.E 12"]).toFixed(2));
             }
 
-            atualizarOverlayTexto("✅ Produto encontrado!");
-            await new Promise(res => setTimeout(res, 1000));
-            showToast('success', 'Produto encontrado!', 'Os dados do produto foram preenchidos automaticamente.');
+            await new Promise(res => setTimeout(res, 600));
+            showToast('success', 'Produto encontrado', 'Dados preenchidos automaticamente.');
         } else {
-            atualizarOverlayTexto("❌ Produto não encontrado");
+            // ✅ ETAPA 3: Informações inexistentes
+            mostrarOverlayErro('Informações inexistentes', `Código ${codigo} não encontrado`);
             await new Promise(res => setTimeout(res, 1500));
-            showToast('error', 'Produto não cadastrado', 'Produto não cadastrado no banco de dados. Preencha manualmente.');
+            showToast('warning', 'Produto não encontrado', 'Código não cadastrado. Preencha manualmente.');
         }
     } catch (e) {
         console.error(e);
-        atualizarOverlayTexto("⚠️ Erro ao buscar dados");
+        mostrarOverlayErro('Erro na busca', 'Não foi possível acessar o banco de dados');
         await new Promise(res => setTimeout(res, 1500));
-        showToast('error', 'Erro na busca', 'Ocorreu um erro ao buscar o produto. Tente novamente.');
+        showToast('error', 'Erro na conexão', 'Verifique sua internet e tente novamente.');
     } finally {
-        esconderOverlay();
+        ocultarOverlay();
     }
 });
 
@@ -856,23 +960,504 @@ function imprimirTabela() {
 // Tornar funções globais
 window.fecharModalFator = fecharModalFator;
 window.imprimirTabela = imprimirTabela;
-
-// Fechar modal ao clicar fora
-document.getElementById('modal-fator').addEventListener('click', (e) => {
-    if (e.target.id === 'modal-fator') {
-        fecharModalFator();
-    }
-});
+window.fecharModalBuscaTexto = fecharModalBuscaTexto;
+window.adicionarProdutoDaBusca = adicionarProdutoDaBusca;
+window.alterarAgrupamento = alterarAgrupamento;
 
 // Fechar modal com ESC
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-        const modal = document.getElementById('modal-fator');
-        if (modal.classList.contains('active')) {
+        const modalFator = document.getElementById('modal-fator');
+        if (modalFator && modalFator.classList.contains('active')) {
             fecharModalFator();
+        }
+        
+        const modalBusca = document.getElementById('modal-busca-texto');
+        if (modalBusca && modalBusca.classList.contains('active')) {
+            fecharModalBuscaTexto();
         }
     }
 });
+
+// ==================================================
+// MODAL DE BUSCA POR TEXTO - FUNÇÕES AUXILIARES
+// ==================================================
+
+// Calcula similaridade entre duas strings (algoritmo de Levenshtein simplificado)
+function calcularSimilaridade(str1, str2) {
+    str1 = str1.toLowerCase();
+    str2 = str2.toLowerCase();
+    
+    if (str1 === str2) return 100;
+    if (str1.includes(str2) || str2.includes(str1)) return 85;
+    
+    const len1 = str1.length;
+    const len2 = str2.length;
+    const matrix = [];
+    
+    for (let i = 0; i <= len1; i++) {
+        matrix[i] = [i];
+    }
+    
+    for (let j = 0; j <= len2; j++) {
+        matrix[0][j] = j;
+    }
+    
+    for (let i = 1; i <= len1; i++) {
+        for (let j = 1; j <= len2; j++) {
+            const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
+            matrix[i][j] = Math.min(
+                matrix[i - 1][j] + 1,
+                matrix[i][j - 1] + 1,
+                matrix[i - 1][j - 1] + cost
+            );
+        }
+    }
+    
+    const maxLen = Math.max(len1, len2);
+    const similarity = ((maxLen - matrix[len1][len2]) / maxLen) * 100;
+    return similarity;
+}
+
+// Extrai a marca do nome do produto (heurística simples)
+function extrairMarca(descricao) {
+    // Lista de marcas conhecidas (adicione mais conforme necessário)
+    const marcasConhecidas = [
+        'SAMSUNG', 'LG', 'SONY', 'PHILIPS', 'PANASONIC', 'TCL', 'AOC',
+        'MULTILASER', 'POSITIVO', 'DELL', 'HP', 'LENOVO', 'ASUS',
+        'ELECTROLUX', 'BRASTEMP', 'CONSUL', 'MIDEA', 'PHILCO',
+        'MONDIAL', 'ARNO', 'BRITÂNIA', 'CADENCE', 'BLACK+DECKER',
+        'TOSHIBA', 'HITACHI', 'SHARP', 'JBL', 'HARMAN', 'BOSE'
+    ];
+    
+    const descUpper = descricao.toUpperCase();
+    
+    // Procura por marca conhecida
+    for (const marca of marcasConhecidas) {
+        if (descUpper.includes(marca)) {
+            return marca;
+        }
+    }
+    
+    // Se não encontrou, usa a primeira palavra como marca
+    const palavras = descricao.trim().split(/\s+/);
+    return palavras[0] || 'SEM MARCA';
+}
+
+// Agrupa código similar baseado em dígitos
+function obterPrefixoCodigo(codigo) {
+    const codigoStr = codigo.toString().trim();
+    const tamanho = codigoStr.length;
+    
+    if (tamanho >= 6) {
+        // 6+ dígitos: agrupa pelos primeiros 4
+        return codigoStr.substring(0, 4);
+    } else if (tamanho === 5) {
+        // 5 dígitos: agrupa pelos primeiros 2
+        return codigoStr.substring(0, 2);
+    } else {
+        // Menos de 5: usa o código completo
+        return codigoStr;
+    }
+}
+
+// Função de busca avançada (código, nome com fuzzy, marca)
+function buscarProdutos(termo) {
+    if (!termo || termo.trim() === '') {
+        return [...todosProdutos];
+    }
+    
+    termo = termo.toLowerCase().trim();
+    
+    return todosProdutos.filter(produto => {
+        // 1. Busca por código (parcial)
+        if (produto.codigo.toString().toLowerCase().includes(termo)) {
+            return true;
+        }
+        
+        // 2. Busca por descrição (exata ou parcial)
+        if (produto.descricao.toLowerCase().includes(termo)) {
+            return true;
+        }
+        
+        // 3. Busca por marca
+        const marca = extrairMarca(produto.descricao);
+        if (marca.toLowerCase().includes(termo)) {
+            return true;
+        }
+        
+        // 4. Busca fuzzy (70% de similaridade)
+        const similaridade = calcularSimilaridade(termo, produto.descricao);
+        if (similaridade >= 70) {
+            return true;
+        }
+        
+        return false;
+    });
+}
+
+// Função para alternar agrupamento
+function alterarAgrupamento(modo) {
+    console.log('🔄 Agrupamento solicitado:', modo);
+    
+    modoAgrupamento = modo;
+    
+    // Atualizar visual do menu
+    const menuItems = document.querySelectorAll('.menu-agrupamento-item');
+    menuItems.forEach(item => item.classList.remove('active'));
+    
+    // Fechar menu
+    const menu = document.getElementById('menu-agrupamento');
+    const btnAgrupar = document.getElementById('btn-agrupar');
+    
+    if (menu) menu.style.display = 'none';
+    if (btnAgrupar) btnAgrupar.classList.remove('active');
+    
+    // Resetar para página 1 e renderizar
+    paginaAtual = 1;
+    renderizarProdutos();
+    
+    // Toast de feedback
+    const labels = {
+        'nenhum': 'Sem agrupamento',
+        'marca': 'Agrupado por marca',
+        'codigo': 'Agrupado por código'
+    };
+    
+    showToast('info', 'Visualização alterada', labels[modo] || 'Modo atualizado');
+}
+
+// ==================================================
+// MODAL DE BUSCA POR TEXTO
+// ==================================================
+async function abrirModalBuscaTexto() {
+    const modal = document.getElementById('modal-busca-texto');
+    const loading = document.getElementById('busca-texto-loading');
+    const results = document.getElementById('busca-texto-results');
+    const empty = document.getElementById('busca-texto-empty');
+    const inputBusca = document.getElementById('busca-texto-input');
+    
+    // Resetar campo de busca
+    inputBusca.value = '';
+    
+    // Resetar modo de agrupamento
+    modoAgrupamento = 'nenhum';
+    
+    // Abrir modal
+    modal.classList.add('active');
+    
+    // ✅ Setup do botão de agrupamento (precisa executar após modal abrir)
+    setTimeout(() => {
+        const setupAgrupamento = () => {
+            const btnAgrupar = document.getElementById('btn-agrupar');
+            const menuAgrupamento = document.getElementById('menu-agrupamento');
+            
+            if (!btnAgrupar || !menuAgrupamento) return;
+            
+            btnAgrupar.onclick = function(e) {
+                e.stopPropagation();
+                const isActive = this.classList.contains('active');
+                
+                if (isActive) {
+                    menuAgrupamento.style.display = 'none';
+                    this.classList.remove('active');
+                } else {
+                    menuAgrupamento.style.display = 'block';
+                    this.classList.add('active');
+                }
+                
+                console.log('🔽 Menu agrupamento:', isActive ? 'fechado' : 'aberto');
+            };
+        };
+        setupAgrupamento();
+    }, 100);
+    
+    // ✅ SE JÁ CARREGOU OS PRODUTOS, NÃO PRECISA CARREGAR NOVAMENTE
+    if (todosProdutos.length > 0) {
+        produtosFiltrados = [...todosProdutos];
+        paginaAtual = 1;
+        renderizarProdutos();
+        loading.style.display = 'none';
+        results.style.display = 'block';
+        empty.style.display = 'none';
+        setTimeout(() => inputBusca.focus(), 100);
+        return;
+    }
+    
+    // ✅ PRIMEIRA VEZ: CARREGAR PRODUTOS DA API
+    loading.style.display = 'block';
+    results.style.display = 'none';
+    empty.style.display = 'none';
+    
+    try {
+        const resposta = await fetch(API_URL);
+        if (!resposta.ok) throw new Error("Erro ao acessar a API");
+        
+        const dados = await resposta.json();
+        todosProdutos = [];
+        
+        // Processar dados de todas as planilhas (Gabriel, Júlia, Giovana)
+        ['Gabriel', 'Júlia', 'Giovana'].forEach(nome => {
+            if (dados[nome]) {
+                dados[nome].forEach(item => {
+                    if (item.Código && item.Descrição) {
+                        todosProdutos.push({
+                            codigo: item.Código,
+                            descricao: item.Descrição,
+                            avista: item["Total à vista"] || "0,00",
+                            garantia12: item["Tot. G.E 12"] || ""
+                        });
+                    }
+                });
+            }
+        });
+        
+        // Mostrar todos os produtos inicialmente
+        produtosFiltrados = [...todosProdutos];
+        paginaAtual = 1;
+        renderizarProdutos();
+        
+        loading.style.display = 'none';
+        results.style.display = 'block';
+        
+        // Focar no input de busca
+        setTimeout(() => inputBusca.focus(), 100);
+        
+    } catch (error) {
+        console.error('Erro ao carregar produtos:', error);
+        loading.style.display = 'none';
+        empty.style.display = 'block';
+        showToast('error', 'Erro ao carregar', 'Não foi possível carregar os produtos da API.');
+    }
+}
+
+function fecharModalBuscaTexto() {
+    const modal = document.getElementById('modal-busca-texto');
+    modal.classList.remove('active');
+}
+
+function renderizarProdutos() {
+    const tbody = document.getElementById('busca-texto-tbody');
+    const paginationDiv = document.getElementById('busca-texto-pagination');
+    const results = document.getElementById('busca-texto-results');
+    const empty = document.getElementById('busca-texto-empty');
+    
+    console.log('🎨 Renderizando produtos. Total filtrado:', produtosFiltrados.length);
+    console.log('📋 Modo de agrupamento:', modoAgrupamento);
+    
+    // Se não houver produtos, mostrar mensagem vazia
+    if (produtosFiltrados.length === 0) {
+        console.log('⚠️ Nenhum produto encontrado');
+        results.style.display = 'none';
+        empty.style.display = 'block';
+        return;
+    }
+    
+    results.style.display = 'block';
+    empty.style.display = 'none';
+    
+    let produtosParaRenderizar = [...produtosFiltrados];
+    let htmlProdutos = '';
+    
+    // ====== APLICAR AGRUPAMENTO ======
+    if (modoAgrupamento === 'marca') {
+        // Agrupar por marca
+        const grupos = {};
+        produtosParaRenderizar.forEach(produto => {
+            const marca = extrairMarca(produto.descricao);
+            if (!grupos[marca]) grupos[marca] = [];
+            grupos[marca].push(produto);
+        });
+        
+        // Ordenar marcas alfabeticamente
+        const marcasOrdenadas = Object.keys(grupos).sort();
+        
+        // Renderizar com cabeçalhos de grupo
+        marcasOrdenadas.forEach(marca => {
+            htmlProdutos += `
+                <tr class="group-header-row">
+                    <td colspan="4" class="group-header">
+                        <i class="fa-solid fa-tag"></i> ${marca} (${grupos[marca].length} produtos)
+                    </td>
+                </tr>
+            `;
+            
+            grupos[marca].forEach(produto => {
+                htmlProdutos += `
+                    <tr>
+                        <td>${produto.codigo}</td>
+                        <td>${produto.descricao}</td>
+                        <td>R$ ${produto.avista}</td>
+                        <td>
+                            <button class="btn-add-product" onclick="adicionarProdutoDaBusca('${produto.codigo}')">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        });
+        
+        tbody.innerHTML = htmlProdutos;
+        paginationDiv.innerHTML = ''; // Sem paginação quando agrupado
+        
+    } else if (modoAgrupamento === 'codigo') {
+        // Agrupar por código similar
+        const grupos = {};
+        produtosParaRenderizar.forEach(produto => {
+            const prefixo = obterPrefixoCodigo(produto.codigo);
+            if (!grupos[prefixo]) grupos[prefixo] = [];
+            grupos[prefixo].push(produto);
+        });
+        
+        // Ordenar prefixos
+        const prefixosOrdenados = Object.keys(grupos).sort();
+        
+        // Renderizar com cabeçalhos de grupo
+        prefixosOrdenados.forEach(prefixo => {
+            htmlProdutos += `
+                <tr class="group-header-row">
+                    <td colspan="4" class="group-header">
+                        <i class="fa-solid fa-barcode"></i> Código ${prefixo}*** (${grupos[prefixo].length} produtos)
+                    </td>
+                </tr>
+            `;
+            
+            grupos[prefixo].forEach(produto => {
+                htmlProdutos += `
+                    <tr>
+                        <td>${produto.codigo}</td>
+                        <td>${produto.descricao}</td>
+                        <td>R$ ${produto.avista}</td>
+                        <td>
+                            <button class="btn-add-product" onclick="adicionarProdutoDaBusca('${produto.codigo}')">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        });
+        
+        tbody.innerHTML = htmlProdutos;
+        paginationDiv.innerHTML = ''; // Sem paginação quando agrupado
+        
+    } else {
+        // ====== SEM AGRUPAMENTO - COM PAGINAÇÃO ======
+        const totalPaginas = Math.ceil(produtosFiltrados.length / itensPorPagina);
+        const inicio = (paginaAtual - 1) * itensPorPagina;
+        const fim = inicio + itensPorPagina;
+        const produtosPagina = produtosFiltrados.slice(inicio, fim);
+        
+        console.log(`📄 Página ${paginaAtual} de ${totalPaginas} - Mostrando ${produtosPagina.length} produtos`);
+        
+        // Renderizar produtos
+        tbody.innerHTML = produtosPagina.map(produto => `
+            <tr>
+                <td>${produto.codigo}</td>
+                <td>${produto.descricao}</td>
+                <td>R$ ${produto.avista}</td>
+                <td>
+                    <button class="btn-add-product" onclick="adicionarProdutoDaBusca('${produto.codigo}')">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+        
+        // Renderizar paginação
+        paginationDiv.innerHTML = '';
+        
+        if (totalPaginas > 1) {
+            // Botão anterior
+            const btnPrev = document.createElement('button');
+            btnPrev.className = 'pagination-btn';
+            btnPrev.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+            btnPrev.disabled = paginaAtual === 1;
+            btnPrev.onclick = () => {
+                if (paginaAtual > 1) {
+                    paginaAtual--;
+                    renderizarProdutos();
+                }
+            };
+            paginationDiv.appendChild(btnPrev);
+            
+            // Páginas
+            for (let i = 1; i <= totalPaginas; i++) {
+                // Mostrar apenas algumas páginas próximas
+                if (
+                    i === 1 || 
+                    i === totalPaginas || 
+                    (i >= paginaAtual - 2 && i <= paginaAtual + 2)
+                ) {
+                    const btnPage = document.createElement('button');
+                    btnPage.className = 'pagination-btn' + (i === paginaAtual ? ' active' : '');
+                    btnPage.textContent = i;
+                    btnPage.onclick = () => {
+                        paginaAtual = i;
+                        renderizarProdutos();
+                    };
+                    paginationDiv.appendChild(btnPage);
+                } else if (i === paginaAtual - 3 || i === paginaAtual + 3) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.className = 'pagination-info';
+                    ellipsis.textContent = '...';
+                    paginationDiv.appendChild(ellipsis);
+                }
+            }
+            
+            // Botão próximo
+            const btnNext = document.createElement('button');
+            btnNext.className = 'pagination-btn';
+            btnNext.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+            btnNext.disabled = paginaAtual === totalPaginas;
+            btnNext.onclick = () => {
+                if (paginaAtual < totalPaginas) {
+                    paginaAtual++;
+                    renderizarProdutos();
+                }
+            };
+            paginationDiv.appendChild(btnNext);
+            
+            // Info de paginação
+            const info = document.createElement('span');
+            info.className = 'pagination-info';
+            info.textContent = `${inicio + 1}-${Math.min(fim, produtosFiltrados.length)} de ${produtosFiltrados.length}`;
+            paginationDiv.appendChild(info);
+        }
+    }
+}
+
+function adicionarProdutoDaBusca(codigo) {
+    // Buscar o produto nos dados já carregados
+    const produto = todosProdutos.find(p => p.codigo.toString() === codigo.toString());
+    
+    if (!produto) {
+        showToast('error', 'Produto não encontrado', 'Não foi possível carregar os dados do produto.');
+        return;
+    }
+    
+    // Fechar modal
+    fecharModalBuscaTexto();
+    
+    // Preencher campos diretamente com os dados já carregados
+    const partes = (produto.descricao || "").split(" - ");
+    document.getElementById("codigo").value = produto.codigo;
+    document.getElementById("descricao").value = (partes[0] || "").trim();
+    document.getElementById("subdescricao").value = (partes[1] || "").trim();
+    
+    // Preencher valor à vista
+    const avistaValor = parseCurrency(produto.avista);
+    document.getElementById("avista").value = formatCurrency(avistaValor.toFixed(2));
+    
+    // Preencher garantia se houver
+    if (produto.garantia12) {
+        document.getElementById("garantia12").value = formatCurrency(parseCurrency(produto.garantia12).toFixed(2));
+    }
+    
+    // Mostrar toast de sucesso
+    showToast('success', 'Produto carregado', `Código ${codigo} preenchido com sucesso!`);
+}
 
 // ==================================================
 // INICIALIZAÇÃO
@@ -885,6 +1470,89 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnDebug = document.getElementById('btn-debug');
     if (btnDebug) {
         btnDebug.addEventListener('click', gerarCartazesDebug);
+    }
+    
+    // ✅ Event listener para busca em tempo real no modal
+    const inputBusca = document.getElementById('busca-texto-input');
+    if (inputBusca) {
+        inputBusca.addEventListener('input', (e) => {
+            const termo = e.target.value.trim();
+            
+            console.log('🔍 Buscando por:', termo);
+            console.log('📦 Total de produtos:', todosProdutos.length);
+            
+            // Usar função de busca avançada
+            produtosFiltrados = buscarProdutos(termo);
+            
+            console.log('✅ Produtos filtrados:', produtosFiltrados.length);
+            
+            paginaAtual = 1;
+            modoAgrupamento = 'nenhum'; // Resetar agrupamento ao buscar
+            renderizarProdutos();
+        });
+    }
+    
+    // ✅ Toggle do menu de agrupamento
+    const setupAgrupamentoButton = () => {
+        const btnAgrupar = document.getElementById('btn-agrupar');
+        const menuAgrupamento = document.getElementById('menu-agrupamento');
+        
+        if (!btnAgrupar || !menuAgrupamento) return;
+        
+        // Remover listeners antigos (se existir)
+        btnAgrupar.onclick = null;
+        
+        // Adicionar novo listener
+        btnAgrupar.onclick = function(e) {
+            e.stopPropagation();
+            const isActive = this.classList.contains('active');
+            
+            if (isActive) {
+                menuAgrupamento.style.display = 'none';
+                this.classList.remove('active');
+            } else {
+                menuAgrupamento.style.display = 'block';
+                this.classList.add('active');
+            }
+            
+            console.log('🔽 Menu agrupamento:', isActive ? 'fechado' : 'aberto');
+        };
+        
+        // Fechar ao clicar fora
+        document.addEventListener('click', function(e) {
+            if (!menuAgrupamento || !btnAgrupar) return;
+            
+            const clickedInsideMenu = e.target.closest('#menu-agrupamento');
+            const clickedButton = e.target.closest('#btn-agrupar');
+            
+            if (!clickedInsideMenu && !clickedButton && menuAgrupamento.style.display === 'block') {
+                menuAgrupamento.style.display = 'none';
+                btnAgrupar.classList.remove('active');
+            }
+        });
+    };
+    
+    // Executar setup quando o modal abrir
+    setupAgrupamentoButton();
+    
+    // ✅ Fechar modal de busca ao clicar fora
+    const modalBusca = document.getElementById('modal-busca-texto');
+    if (modalBusca) {
+        modalBusca.addEventListener('click', (e) => {
+            if (e.target.id === 'modal-busca-texto') {
+                fecharModalBuscaTexto();
+            }
+        });
+    }
+    
+    // ✅ Fechar modal de fator ao clicar fora
+    const modalFator = document.getElementById('modal-fator');
+    if (modalFator) {
+        modalFator.addEventListener('click', (e) => {
+            if (e.target.id === 'modal-fator') {
+                fecharModalFator();
+            }
+        });
     }
 });
 
@@ -1010,11 +1678,12 @@ function gerarCartazesDebug() {
 // ==================================================
 // SISTEMA DE TOASTS
 // ==================================================
-function showToast(type = 'info', title, message, duration = 5000) {
+function showToast(type = 'info', title, message, duration = 4000) {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     
+    // Ícones diferentes por tipo
     const icons = {
         success: '<i class="fa-solid fa-circle-check"></i>',
         error: '<i class="fa-solid fa-circle-xmark"></i>',
@@ -1028,7 +1697,7 @@ function showToast(type = 'info', title, message, duration = 5000) {
             <div class="toast-title">${title}</div>
             ${message ? `<div class="toast-message">${message}</div>` : ''}
         </div>
-        <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
     `;
     
     container.appendChild(toast);
