@@ -180,8 +180,8 @@ const AVISOS_DATABASE = [
  * ==================================================
  */
 const AVISOS_CONFIG = {
-    // Configuração para index.html (Cartazes)
-    'index': {
+    // Configuração para cartazes.html
+    'cartazes': {
         title: 'Novidades do Sistema de Cartazes',
         subtitle: 'Acompanhe as últimas atualizações',
         icon: 'fa-lightbulb',
@@ -194,7 +194,7 @@ const AVISOS_CONFIG = {
     },
 
     // Configuração para login.html
-    'login': {
+    'index': {
         title: 'Atualizações do Sistema',
         subtitle: 'Fique por dentro das mudanças',
         icon: 'fa-lightbulb',
@@ -206,7 +206,7 @@ const AVISOS_CONFIG = {
     },
 
     // Configuração padrão (fallback)
-    'default': {
+    'selectsetor': {
         title: 'Novidades do Sistema',
         subtitle: 'Últimas atualizações',
         icon: 'fa-lightbulb',
