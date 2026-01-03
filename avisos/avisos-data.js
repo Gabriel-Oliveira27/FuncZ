@@ -46,7 +46,7 @@ const AVISOS_DATABASE = [
         title: 'Busca Avançada de Produtos',
         description: 'Sistema completo de busca por texto com múltiplos critérios e agrupamentos inteligentes.',
         type: 'new',
-        pages: ['cartaxes'],
+        pages: ['cartazes'],
         features: [
             'Busca por código parcial ou completo',
             'Busca por nome/descrição com similaridade fuzzy (70%)',
@@ -163,7 +163,7 @@ const AVISOS_DATABASE = [
         title: 'Atualização de Segurança',
         description: 'Melhorias gerais de segurança implementadas em todo o sistema.',
         type: 'warning',
-        pages: ['index', 'cartazes'], // Aparece em index E login
+        pages: ['index', 'cartazes'], 
         features: [
             'Validação reforçada de inputs',
             'Proteção contra XSS',
@@ -180,7 +180,7 @@ const AVISOS_DATABASE = [
  * ==================================================
  */
 const AVISOS_CONFIG = {
-    // Configuração para cartazes.html
+
     'cartazes': {
         title: 'Novidades do Sistema de Cartazes',
         subtitle: 'Acompanhe as últimas atualizações',
@@ -240,7 +240,7 @@ const AVISOS_ICONS = {
 function detectarPaginaAtual() {
     const path = window.location.pathname;
     const fileName = path.split('/').pop().replace('.html', '');
-    return fileName || 'index';
+    return fileName || 'cartazes';
 }
 
 // Retorna avisos filtrados por página
@@ -291,3 +291,4 @@ function foiLido(avisoId) {
     const lidos = JSON.parse(localStorage.getItem('avisos_lidos') || '[]');
     return lidos.includes(avisoId);
 }
+
