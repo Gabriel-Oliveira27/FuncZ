@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerador de Cartazes - Sistema Interno</title>
-    <link rel="icon" type="image/png" href="/image/zenirlogo.png">
+    <link rel="icon" type="image/png" href="../image/zenirlogo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../avisos/avisos.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
@@ -108,7 +107,7 @@
                     <span>Voltar ao início</span>
                 </button>
                 
-                <p>v3.0.0 • Sistema cartazes</p>
+                <p>v3.0.1 • Sistema cartazes</p>
                 <p>© 2025–2026 Gabriel Oliveira</p>
                 <p>Todos os direitos reservados.</p>
  
@@ -740,10 +739,54 @@
         </div>
     </div>
 
+    <!-- Modal de Tabela de Fatores -->
+    <div id="modal-fator" class="modal-overlay">
+        <div class="modal-fator-content">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-calculator"></i> Tabela de Fatores</h2>
+                <button class="modal-close" onclick="fecharModalFator()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="tabela-info">
+                    <div class="info-item">
+                        <span>Valor à Vista</span>
+                        <strong id="tabela-valor-vista">R$ 0,00</strong>
+                    </div>
+                    <div class="info-item">
+                        <span>Tipo de Taxa</span>
+                        <strong id="tabela-tipo-taxa">-</strong>
+                    </div>
+                </div>
+                
+                <table class="tabela-fatores">
+                    <thead>
+                        <tr>
+                            <th>Parcelas</th>
+                            <th>Fator</th>
+                            <th>Valor Total</th>
+                            <th>Valor da Parcela</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-fatores-body">
+                        <!-- Linhas serão inseridas via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="window.print()">
+                    <i class="fa-solid fa-print"></i> Imprimir
+                </button>
+                <button class="btn-primary" onclick="fecharModalFator()">
+                    <i class="fa-solid fa-check"></i> Fechar
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script src="../js/session-guard.js"></script>
     <script src="../js/script.js"></script>
     <script src="../avisos/avisos-data.js"></script>
     <script src="../avisos/avisos.js"></script>
+
 </body>
 </html>
