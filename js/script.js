@@ -917,13 +917,23 @@ document.getElementById('calculator-form').addEventListener('submit', (e) => {
 });
 
 function gerarTabelaFatores(valorVista, tipo) {
+    // Obter elementos do modal
+    const elementoValor = document.getElementById('tabela-valor-vista');
+    const elementoTipo = document.getElementById('tabela-tipo-taxa');
+    const elementoTbody = document.getElementById('tabela-fatores-body');
+    
+    // Verificar se elementos existem
+    if (!elementoValor || !elementoTipo || !elementoTbody) {
+        showToast('error', 'Erro no sistema', 'Modal de fatores não está disponível. Recarregue a página.');
+        return;
+    }
+    
     // Atualizar informações do modal
-    document.getElementById('tabela-valor-vista').textContent = brl(valorVista);
-    document.getElementById('tabela-tipo-taxa').textContent = tipo === 'carne' ? 'Carnê' : 'Cartão';
+    elementoValor.textContent = brl(valorVista);
+    elementoTipo.textContent = tipo === 'carne' ? 'Carnê' : 'Cartão';
 
     const fatores = FATORES[tipo];
-    const tbody = document.getElementById('tabela-fatores-body');
-    tbody.innerHTML = '';
+    elementoTbody.innerHTML = '';
 
     // Gerar linhas da tabela
     for (let parcelas = 1; parcelas <= 12; parcelas++) {
@@ -939,10 +949,10 @@ function gerarTabelaFatores(valorVista, tipo) {
         row.innerHTML = `
             <td>${parcelas}x</td>
             <td>${fator.toFixed(4)}</td>
-            <td>R$ ${valorParcelaFormatado}</td>
             <td>R$ ${totalPrazoFormatado}</td>
+            <td>R$ ${valorParcelaFormatado}</td>
         `;
-        tbody.appendChild(row);
+        elementoTbody.appendChild(row);
     }
 
     // Mostrar modal
