@@ -46,7 +46,7 @@ const AVISOS_DATABASE = [
         title: 'Busca Avançada de Produtos',
         description: 'Sistema completo de busca por texto com múltiplos critérios e agrupamentos inteligentes.',
         type: 'new',
-        pages: ['cartazes'],
+        pages: ['index'],
         features: [
             'Busca por código parcial ou completo',
             'Busca por nome/descrição com similaridade fuzzy (70%)',
@@ -62,7 +62,7 @@ const AVISOS_DATABASE = [
         title: 'Sistema de Agrupamento de Produtos',
         description: 'Organize os resultados da busca de diferentes formas para facilitar a visualização.',
         type: 'new',
-        pages: ['cartazes],
+        pages: ['index'],
         features: [
             'Agrupamento por marca (alfabético)',
             'Agrupamento por código similar',
@@ -78,7 +78,7 @@ const AVISOS_DATABASE = [
         title: 'Overlay de Busca Modernizado',
         description: 'Feedback visual aprimorado durante a busca de produtos com 3 estados distintos.',
         type: 'improvement',
-        pages: ['cartazes'],
+        pages: ['index'],
         features: [
             'Estado 1: "Buscando informações" com spinner duplo',
             'Estado 2: "Informações encontradas" com ícone de sucesso',
@@ -94,7 +94,7 @@ const AVISOS_DATABASE = [
         title: 'Toasts com Ícones Coloridos',
         description: 'Sistema de notificações completamente reformulado com design moderno e intuitivo.',
         type: 'improvement',
-        pages: ['cartazes'],
+        pages: ['index'],
         features: [
             'Ícones Font Awesome específicos por tipo',
             'Cores diferenciadas: Verde (sucesso), Vermelho (erro), Amarelo (aviso), Azul (info)',
@@ -110,7 +110,7 @@ const AVISOS_DATABASE = [
         title: 'Correção do Menu de Agrupamento',
         description: 'Menu dropdown agora funciona perfeitamente após ajustes de CSS.',
         type: 'fix',
-        pages: ['cartazes'],
+        pages: ['index'],
         features: [
             'Adicionado position: relative nos containers pais',
             'z-index corrigido para 1000',
@@ -125,7 +125,7 @@ const AVISOS_DATABASE = [
         title: 'Otimização de Performance',
         description: 'Sistema agora reutiliza dados já carregados em memória.',
         type: 'improvement',
-        pages: ['cartazes],
+        pages: ['index'],
         features: [
             'Cache de produtos em memória',
             'Eliminação de requisições desnecessárias à API',
@@ -144,7 +144,7 @@ const AVISOS_DATABASE = [
         title: 'Sistema de Login Seguro',
         description: 'Autenticação implementada com verificação de permissões.',
         type: 'new',
-        pages: ['index'],
+        pages: ['login'],
         features: [
             'Validação de credenciais',
             'Armazenamento seguro em localStorage',
@@ -163,7 +163,7 @@ const AVISOS_DATABASE = [
         title: 'Atualização de Segurança',
         description: 'Melhorias gerais de segurança implementadas em todo o sistema.',
         type: 'warning',
-        pages: ['index', 'cartazes'], 
+        pages: ['index', 'login'], // Aparece em index E login
         features: [
             'Validação reforçada de inputs',
             'Proteção contra XSS',
@@ -180,7 +180,7 @@ const AVISOS_DATABASE = [
  * ==================================================
  */
 const AVISOS_CONFIG = {
-
+    // Configuração para index.html (Cartazes)
     'cartazes': {
         title: 'Novidades do Sistema de Cartazes',
         subtitle: 'Acompanhe as últimas atualizações',
@@ -240,7 +240,7 @@ const AVISOS_ICONS = {
 function detectarPaginaAtual() {
     const path = window.location.pathname;
     const fileName = path.split('/').pop().replace('.html', '');
-    return fileName || 'cartazes';
+    return fileName || 'index';
 }
 
 // Retorna avisos filtrados por página
@@ -291,4 +291,3 @@ function foiLido(avisoId) {
     const lidos = JSON.parse(localStorage.getItem('avisos_lidos') || '[]');
     return lidos.includes(avisoId);
 }
-
