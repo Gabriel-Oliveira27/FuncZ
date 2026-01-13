@@ -761,7 +761,7 @@ function generatePosterHTML(product, isPreview = false) {
                     <div class="poster-installment">${product.metodo}</div>
                     <div class="poster-currency">R$</div>
                 </div>
-                <div class="poster-value-container">
+                <div class="poster-value-container" data-digits="${numDigitosParcela}">
                     <div class="poster-value-integer" style="font-size: ${fontSizeParcela};">${formatarMilhar(parcelaInteiro)}</div>
                     <div class="poster-value-decimal">,${String(parcelaCentavos).padStart(2, '0')}</div>
                 </div>
@@ -771,7 +771,7 @@ function generatePosterHTML(product, isPreview = false) {
                 <div class="poster-left-section">
                     <div class="poster-currency">R$</div>
                 </div>
-                <div class="poster-value-container">
+                <div class="poster-value-container" data-digits="${numDigitosAvista}">
                     <div class="poster-value-integer" style="font-size: ${fontSizeAvista};">${formatarMilhar(avistaInteiro)}</div>
                     <div class="poster-value-decimal">,${String(Math.round((product.avista - Math.floor(product.avista)) * 100)).padStart(2, '0')}</div>
                 </div>
