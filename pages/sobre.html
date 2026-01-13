@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FuncZ - Arquitetura Viva</title>
+    <link rel="stylesheet" href="../css/sobre.css">
+</head>
+<body>
+    <!-- Hero Corporativo -->
+    <section class="hero">
+        <div class="hero-grid"></div>
+        <div class="hero-content">
+            <div class="container">
+                <div class="hero-main">
+                    <div class="hero-text">
+                        <div class="logo-float-container">
+                            <img src="../image/logo-ativos.png" class="logo-float" height="100">
+                            <svg width="100" height="100" viewBox="0 0 200 200" class="logo-float" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <linearGradient id="badgeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#0066cc;stop-opacity:1" />
+                                        <stop offset="50%" style="stop-color:#0088ee;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#004a99;stop-opacity:1" />
+                                    </linearGradient>
+                                    
+                                    <linearGradient id="badgeFGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#e0f2ff;stop-opacity:1" />
+                                    </linearGradient>
+                                    
+                                    <linearGradient id="badgeZGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#00ccff;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#ffffff;stop-opacity:1" />
+                                    </linearGradient>
+                                    
+                                    <radialGradient id="badgeGlow">
+                                        <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.9"/>
+                                        <stop offset="100%" style="stop-color:#0099ff;stop-opacity:0"/>
+                                    </radialGradient>
+                                    
+                                    <filter id="badgeShadow">
+                                        <feGaussianBlur in="SourceAlpha" stdDeviation="6"/>
+                                        <feOffset dx="0" dy="5" result="offsetblur"/>
+                                        <feComponentTransfer>
+                                            <feFuncA type="linear" slope="0.5"/>
+                                        </feComponentTransfer>
+                                        <feMerge>
+                                            <feMergeNode/>
+                                            <feMergeNode in="SourceGraphic"/>
+                                        </feMerge>
+                                    </filter>
+                                    
+                                    <filter id="badgeInnerGlow">
+                                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                                        <feMerge>
+                                            <feMergeNode in="coloredBlur"/>
+                                            <feMergeNode in="SourceGraphic"/>
+                                        </feMerge>
+                                    </filter>
+                                </defs>
+                                
+                                <!-- Anéis decorativos externos rotacionando -->
+                                <g opacity="0.3">
+                                    <circle cx="100" cy="100" r="92" fill="none" stroke="url(#badgeGradient)" stroke-width="1.5" stroke-dasharray="12,8">
+                                        <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="30s" repeatCount="indefinite"/>
+                                    </circle>
+                                    <circle cx="100" cy="100" r="88" fill="none" stroke="#0099ff" stroke-width="1" stroke-dasharray="8,12" opacity="0.5">
+                                        <animateTransform attributeName="transform" type="rotate" from="360 100 100" to="0 100 100" dur="40s" repeatCount="indefinite"/>
+                                    </circle>
+                                </g>
+                                
+                                <!-- Círculo principal -->
+                                <circle cx="100" cy="100" r="82" fill="url(#badgeGradient)" filter="url(#badgeShadow)"/>
+                                
+                                <!-- Brilho interno -->
+                                <circle cx="100" cy="100" r="78" fill="url(#badgeGlow)" opacity="0.5"/>
+                                
+                                <!-- Anéis internos -->
+                                <circle cx="100" cy="100" r="80" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.3"/>
+                                <circle cx="100" cy="100" r="75" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.2"/>
+                                
+                                <!-- Padrão geométrico de fundo -->
+                                <g opacity="0.12">
+                                    <path d="M 100 30 L 145 55 L 145 105 L 100 130 L 55 105 L 55 55 Z" 
+                                          fill="none" 
+                                          stroke="#ffffff" 
+                                          stroke-width="3"/>
+                                    <circle cx="100" cy="30" r="4" fill="#ffffff"/>
+                                    <circle cx="145" cy="55" r="4" fill="#ffffff"/>
+                                    <circle cx="145" cy="105" r="4" fill="#ffffff"/>
+                                    <circle cx="100" cy="130" r="4" fill="#ffffff"/>
+                                    <circle cx="55" cy="105" r="4" fill="#ffffff"/>
+                                    <circle cx="55" cy="55" r="4" fill="#ffffff"/>
+                                </g>
+                                
+                                <!-- LETRA F - Muito destacada -->
+                                <g transform="translate(100, 100)" filter="url(#badgeInnerGlow)">
+                                    <rect x="-40" y="-55" width="12" height="110" rx="6" fill="url(#badgeFGrad)"/>
+                                    <rect x="-40" y="-55" width="62" height="12" rx="6" fill="url(#badgeFGrad)"/>
+                                    <rect x="-40" y="-12" width="50" height="12" rx="6" fill="url(#badgeFGrad)"/>
+                                    
+                                    <!-- Pontos brilhantes F -->
+                                    <circle cx="-34" cy="-49" r="7" fill="#00ccff">
+                                        <animate attributeName="r" values="7;9;7" dur="2s" repeatCount="indefinite"/>
+                                        <animate attributeName="opacity" values="1;0.7;1" dur="2s" repeatCount="indefinite"/>
+                                    </circle>
+                                    <circle cx="16" cy="-49" r="7" fill="#00ccff">
+                                        <animate attributeName="r" values="7;9;7" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+                                        <animate attributeName="opacity" values="1;0.7;1" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+                                    </circle>
+                                    <circle cx="-34" cy="-6" r="7" fill="#00ccff">
+                                        <animate attributeName="r" values="7;9;7" dur="2s" begin="1s" repeatCount="indefinite"/>
+                                        <animate attributeName="opacity" values="1;0.7;1" dur="2s" begin="1s" repeatCount="indefinite"/>
+                                    </circle>
+                                    <circle cx="4" cy="-6" r="7" fill="#00ccff">
+                                        <animate attributeName="r" values="7;9;7" dur="2s" begin="1.5s" repeatCount="indefinite"/>
+                                        <animate attributeName="opacity" values="1;0.7;1" dur="2s" begin="1.5s" repeatCount="indefinite"/>
+                                    </circle>
+                                    <circle cx="-34" cy="49" r="9" fill="#00ffff">
+                                        <animate attributeName="r" values="9;12;9" dur="2s" repeatCount="indefinite"/>
+                                        <animate attributeName="opacity" values="1;0.6;1" dur="2s" repeatCount="indefinite"/>
+                                    </circle>
+                                </g>
+                                
+                                <!-- LETRA Z - Muito destacada e integrada -->
+                                <g transform="translate(100, 100)" filter="url(#badgeInnerGlow)">
+                                    <!-- Preenchimento Z -->
+                                    <path d="M 20 15 L 55 15 L 20 48 L 55 48 Z" 
+                                          fill="url(#badgeZGrad)" 
+                                          opacity="0.85"/>
+                                    
+                                    <!-- Contorno Z -->
+                                    <path d="M 20 15 L 55 15 L 20 48 L 55 48" 
+                                          stroke="url(#badgeZGrad)" 
+                                          stroke-width="11" 
+                                          fill="none" 
+                                          stroke-linecap="round" 
+                                          stroke-linejoin="round"/>
+                                    
+                                    <!-- Pontos brilhantes Z -->
+                                    <circle cx="20" cy="15" r="6" fill="#00ffff">
+                                        <animate attributeName="opacity" values="1;0.5;1" dur="1.5s" repeatCount="indefinite"/>
+                                        <animate attributeName="r" values="6;7;6" dur="1.5s" repeatCount="indefinite"/>
+                                    </circle>
+                                    <circle cx="55" cy="15" r="6" fill="#00ffff">
+                                        <animate attributeName="opacity" values="1;0.5;1" dur="1.5s" begin="0.3s" repeatCount="indefinite"/>
+                                        <animate attributeName="r" values="6;7;6" dur="1.5s" begin="0.3s" repeatCount="indefinite"/>
+                                    </circle>
+                                    <circle cx="20" cy="48" r="6" fill="#ffffff">
+                                        <animate attributeName="opacity" values="1;0.5;1" dur="1.5s" begin="0.6s" repeatCount="indefinite"/>
+                                        <animate attributeName="r" values="6;7;6" dur="1.5s" begin="0.6s" repeatCount="indefinite"/>
+                                    </circle>
+                                    <circle cx="55" cy="48" r="6" fill="#ffffff">
+                                        <animate attributeName="opacity" values="1;0.5;1" dur="1.5s" begin="0.9s" repeatCount="indefinite"/>
+                                        <animate attributeName="r" values="6;7;6" dur="1.5s" begin="0.9s" repeatCount="indefinite"/>
+                                    </circle>
+                                    
+                                    <!-- Brilho diagonal Z -->
+                                    <line x1="20" y1="15" x2="55" y2="48" stroke="#00ffff" stroke-width="3" opacity="0.6">
+                                        <animate attributeName="opacity" values="0.6;0.2;0.6" dur="2s" repeatCount="indefinite"/>
+                                    </line>
+                                </g>
+                                
+                                <!-- Linhas de conexão F-Z animadas -->
+                                <g opacity="0.7">
+                                    <line x1="66" y1="149" x2="120" y2="148" stroke="#00ccff" stroke-width="2" stroke-dasharray="5,5">
+                                        <animate attributeName="stroke-dashoffset" from="0" to="10" dur="1s" repeatCount="indefinite"/>
+                                    </line>
+                                    <line x1="104" y1="94" x2="120" y2="115" stroke="#00ffff" stroke-width="2" stroke-dasharray="5,5">
+                                        <animate attributeName="stroke-dashoffset" from="0" to="10" dur="1.2s" repeatCount="indefinite"/>
+                                    </line>
+                                </g>
+                                
+                                <!-- Texto circular "FUNCZ AUTOMAÇÃO" -->
+                                <path id="topCirclePath" d="M 100,25 a 75,75 0 0,1 0,0.1" fill="none"/>
+                                <text font-family="Arial, sans-serif" font-size="14" font-weight="800" fill="white" letter-spacing="6">
+                                    <textPath href="#topCirclePath" startOffset="14%">
+                                        FUNCZ · AUTOMAÇÃO
+                                    </textPath>
+                                </text>
+                                
+                                <path id="bottomCirclePath" d="M 100,175 a 75,75 0 1,1 -0.1,0" fill="none"/>
+                                <text font-family="Arial, sans-serif" font-size="14" font-weight="800" fill="white" letter-spacing="6" opacity="0.9">
+                                    <textPath href="#bottomCirclePath" startOffset="16%">
+                                        INTELIGENTE · 2026
+                                    </textPath>
+                                </text>
+                                
+                                <!-- Partículas orbitando -->
+                                <g opacity="0.8">
+                                    <circle cx="155" cy="100" r="3" fill="#00ffff">
+                                        <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="8s" repeatCount="indefinite"/>
+                                        <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2s" repeatCount="indefinite"/>
+                                    </circle>
+                                    <circle cx="45" cy="100" r="3" fill="#00ccff">
+                                        <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="10s" repeatCount="indefinite"/>
+                                        <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2.5s" repeatCount="indefinite"/>
+                                    </circle>
+                                    <circle cx="100" cy="155" r="2" fill="#ffffff">
+                                        <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="12s" repeatCount="indefinite"/>
+                                        <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2.2s" repeatCount="indefinite"/>
+                                    </circle>
+                                </g>
+                            </svg>   
+                            <img src="../image/zenirlogo.png" class="logo-float" width="100">
+                        </div>
+                        <h1 class="hero-title">FuncZ</h1>
+                        <p class="hero-subtitle">Plataforma viva de automação interna</p>
+                        <p class="hero-description">A evolução do AtivosZ</p>
+                        <button class="hero-button" onclick="scrollToExplorer()">
+                            <svg width="20" height="20" viewBox="0 0 20 20">
+                                <path d="M10 3 L10 14 M6 10 L10 14 L14 10" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Explorar a arquitetura do sistema
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sobre o Sistema -->
+    <section class="about-system-section">
+        <div class="container">
+            <div class="about-system-content">
+                <div class="about-system-icon">
+                    <svg width="80" height="80" viewBox="0 0 80 80">
+                        <defs>
+                            <linearGradient id="iconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#0066cc;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#004a99;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <circle cx="40" cy="40" r="35" fill="none" stroke="url(#iconGrad)" stroke-width="2" stroke-dasharray="5,5" opacity="0.3"/>
+                        <circle cx="40" cy="40" r="28" fill="#e8f4ff"/>
+                        <path d="M30 35 L40 45 L50 35" stroke="#0066cc" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M40 20 L40 43" stroke="#0066cc" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        <rect x="25" y="50" width="30" height="8" rx="2" fill="#0066cc"/>
+                    </svg>
+                </div>
+
+                <h2>Sobre o Sistema</h2>
+
+                <div class="system-story">
+                    <div class="story-block lead-block">
+                        <div class="block-icon">
+                            <svg width="32" height="32" viewBox="0 0 32 32">
+                                <circle cx="16" cy="16" r="14" fill="#e8f4ff"/>
+                                <path d="M16 8 L16 16 L22 16" stroke="#0066cc" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="16" cy="16" r="12" stroke="#0066cc" stroke-width="2" fill="none"/>
+                            </svg>
+                        </div>
+                        <div class="block-content">
+                            <p>
+                                <strong>AtivosZ e FuncZ nasceram de um problema real do dia a dia operacional.</strong>
+                                Em vez de cartazes e documentos dependerem do crediário, gerando atrasos, erros e sobrecarga, 
+                                a ideia foi simples: <strong>devolver autonomia a quem realmente precisava produzir.</strong>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="story-block">
+                        <div class="block-icon">
+                            <svg width="32" height="32" viewBox="0 0 32 32">
+                                <circle cx="16" cy="16" r="14" fill="#e8f4ff"/>
+                                <path d="M12 16 L16 20 L16 8" stroke="#0066cc" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M16 12 L20 16 L20 24" stroke="#0066cc" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="block-content">
+                            <p>
+                                O <strong>AtivosZ</strong> começou como uma solução prática — uma planilha inteligente — e evoluiu 
+                                para um sistema completo capaz de gerar cartazes, controlar sessões, padronizar modelos e reduzir 
+                                retrabalho. Com o crescimento do uso e a mudança dos layouts institucionais, surgiu o <strong>FuncZ</strong>: 
+                                uma nova fase da mesma plataforma, agora estruturada, escalável e alinhada à identidade do Grupo.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="story-block">
+                        <div class="block-icon">
+                            <svg width="32" height="32" viewBox="0 0 32 32">
+                                <circle cx="16" cy="16" r="14" fill="#e8f4ff"/>
+                                <circle cx="10" cy="16" r="2" fill="#0066cc"/>
+                                <circle cx="16" cy="16" r="2" fill="#0066cc"/>
+                                <circle cx="22" cy="16" r="2" fill="#0066cc"/>
+                                <path d="M10 16 L16 10 L22 16 L16 22 Z" stroke="#0066cc" stroke-width="2" fill="none"/>
+                            </svg>
+                        </div>
+                        <div class="block-content">
+                            <p>
+                                Mais do que automatizar processos, o projeto <strong>transformou a forma como as pessoas trabalham</strong>: 
+                                menos dependência, menos estresse e mais produtividade. Hoje, o FuncZ é uma ferramenta real em uso 
+                                em múltiplas filiais, e também uma demonstração viva de como tecnologia, quando bem aplicada, 
+                                pode melhorar tanto a operação quanto a experiência humana no trabalho.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="system-pillars">
+                    <div class="pillar-card">
+                        <div class="pillar-icon">
+                            <svg width="48" height="48" viewBox="0 0 48 48">
+                                <rect x="8" y="12" width="32" height="24" rx="2" fill="none" stroke="#0066cc" stroke-width="2"/>
+                                <circle cx="24" cy="24" r="4" fill="#0066cc"/>
+                                <path d="M8 20 L40 20" stroke="#0066cc" stroke-width="2"/>
+                            </svg>
+                        </div>
+                        <h4>Por que existe?</h4>
+                        <p>Resolver problemas operacionais reais e eliminar gargalos de dependência</p>
+                    </div>
+
+                    <div class="pillar-card">
+                        <div class="pillar-icon">
+                            <svg width="48" height="48" viewBox="0 0 48 48">
+                                <path d="M24 8 L24 24 L36 24" stroke="#0066cc" stroke-width="2" fill="none" stroke-linecap="round"/>
+                                <circle cx="24" cy="24" r="16" stroke="#0066cc" stroke-width="2" fill="none"/>
+                                <path d="M24 24 L18 18" stroke="#0066cc" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <h4>O que resolveu?</h4>
+                        <p>Atrasos, erros, sobrecarga e falta de autonomia das equipes operacionais</p>
+                    </div>
+
+                    <div class="pillar-card">
+                        <div class="pillar-icon">
+                            <svg width="48" height="48" viewBox="0 0 48 48">
+                                <rect x="12" y="12" width="10" height="10" rx="1" fill="#0066cc" opacity="0.3"/>
+                                <rect x="26" y="12" width="10" height="10" rx="1" fill="#0066cc" opacity="0.5"/>
+                                <rect x="12" y="26" width="10" height="10" rx="1" fill="#0066cc" opacity="0.7"/>
+                                <rect x="26" y="26" width="10" height="10" rx="1" fill="#0066cc"/>
+                            </svg>
+                        </div>
+                        <h4>Como evoluiu?</h4>
+                        <p>De planilha inteligente a plataforma modular, escalável e alinhada ao Grupo</p>
+                    </div>
+
+                    <div class="pillar-card">
+                        <div class="pillar-icon">
+                            <svg width="48" height="48" viewBox="0 0 48 48">
+                                <path d="M12 24 L18 30 L36 12" stroke="#0066cc" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="24" cy="24" r="16" stroke="#0066cc" stroke-width="2" fill="none"/>
+                            </svg>
+                        </div>
+                        <h4>Por que importa?</h4>
+                        <p>Tecnologia que melhora a operação e a experiência humana no trabalho</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quem está por trás do FuncZ -->
+    <section class="creator-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Quem está por trás do FuncZ</h2>
+                <p>A história de quem transformou vivência em solução</p>
+            </div>
+
+            <div class="creator-profile">
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <div class="profile-avatar">
+                            <img src="../image/gabriel.jpg" height="180" style=" border-radius: 50%;">
+                        </div>
+                        <div class="profile-info">
+                            <h3>Gabriel Oliveira</h3>
+                            <p class="profile-role">Criador do AtivosZ / FuncZ</p>
+                            <p class="profile-area">Assistente administrativo | Suporte T.I</p>
+                        </div>
+                    </div>
+
+                    <div class="profile-story">
+                        <p>
+                            Gabriel iniciou sua trajetória como <strong>Jovem Aprendiz na Filial 28</strong>. 
+                            Após o encerramento do contrato, foi <strong>efetivado na Filial 02</strong>, onde 
+                            continuou seu desenvolvimento profissional.
+                        </p>
+                        <p>
+                            Seu interesse por tecnologia, processos e automação o levou ao <strong>Suporte de T.I</strong>, 
+                            área onde hoje atua e onde criou o AtivosZ e sua evolução, o FuncZ.
+                        </p>
+                        <p class="highlight-text">
+                            O projeto nasceu da vivência prática no chão da operação, transformando problemas 
+                            reais em soluções digitais que hoje impactam várias filiais.
+                        </p>
+                    </div>
+
+                    <div class="profile-badges">
+                        <div class="badge-item">
+                            <svg width="24" height="24" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" fill="none" stroke="#0066cc" stroke-width="2"/>
+                                <path d="M12 6 L12 12 L16 14" stroke="#0066cc" stroke-width="2" fill="none" stroke-linecap="round"/>
+                            </svg>
+                            <span>Aprendizado</span>
+                        </div>
+                        <div class="badge-item">
+                            <svg width="24" height="24" viewBox="0 0 24 24">
+                                <path d="M4 12 L9 17 L20 6" stroke="#0066cc" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="12" cy="12" r="10" fill="none" stroke="#0066cc" stroke-width="2"/>
+                            </svg>
+                            <span>Evolução</span>
+                        </div>
+                        <div class="badge-item">
+                            <svg width="24" height="24" viewBox="0 0 24 24">
+                                <rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="#0066cc" stroke-width="2"/>
+                                <path d="M8 8 L16 16 M16 8 L8 16" stroke="#0066cc" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            <span>Tecnologia</span>
+                        </div>
+                        <div class="badge-item">
+                            <svg width="24" height="24" viewBox="0 0 24 24">
+                                <path d="M12 2 L15 8 L22 9 L17 14 L18 21 L12 18 L6 21 L7 14 L2 9 L9 8 Z" fill="none" stroke="#0066cc" stroke-width="2" stroke-linejoin="round"/>
+                            </svg>
+                            <span>Inovação</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="journey-timeline">
+                    <h4>Jornada Profissional</h4>
+                    
+                    <div class="journey-path">
+                        <div class="journey-step">
+                            <div class="step-marker">
+                                <div class="marker-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24">
+                                        <path d="M12 2 L2 7 L12 12 L22 7 L12 2 Z" fill="#0066cc"/>
+                                        <path d="M2 17 L12 22 L22 17" fill="none" stroke="#0066cc" stroke-width="2"/>
+                                        <path d="M2 12 L12 17 L22 12" fill="none" stroke="#0066cc" stroke-width="2"/>
+                                    </svg>
+                                </div>
+                                <div class="marker-line"></div>
+                            </div>
+                            <div class="step-content">
+                                <div class="step-label">Início</div>
+                                <h5>Filial 28</h5>
+                                <p>Jovem Aprendiz</p>
+                                <span class="step-description">Primeiros passos na empresa, aprendendo sobre operação e processos do dia a dia</span>
+                            </div>
+                        </div>
+
+                        <div class="journey-step">
+                            <div class="step-marker">
+                                <div class="marker-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24">
+                                        <circle cx="12" cy="12" r="10" fill="none" stroke="#0066cc" stroke-width="2"/>
+                                        <path d="M8 12 L11 15 L16 9" stroke="#0066cc" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                                <div class="marker-line"></div>
+                            </div>
+                            <div class="step-content">
+                                <div class="step-label">Consolidação</div>
+                                <h5>Filial 02</h5>
+                                <p>Atendente de Lojas</p>
+                                <span class="step-description">Desenvolvimento profissional e compreensão profunda dos desafios operacionais</span>
+                            </div>
+                        </div>
+
+                        <div class="journey-step">
+                            <div class="step-marker">
+                                <div class="marker-icon active">
+                                    <svg width="24" height="24" viewBox="0 0 24 24">
+                                        <rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="#fff" stroke-width="2"/>
+                                        <path d="M9 12 L11 14 L15 10" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="step-content">
+                                <div class="step-label current">Atual</div>
+                                <h5>CDZ Iguatu</h5>
+                                <p>Técnico de Suporte T.I</p>
+                                <span class="step-description">Criação do AtivosZ e FuncZ — transformando conhecimento em solução digital</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="creator-impact">
+                <div class="impact-quote">
+                    <svg width="48" height="48" viewBox="0 0 48 48">
+                        <path d="M12 18 C12 12 16 8 20 8 C16 8 12 12 12 18 C12 24 16 28 20 28 C16 28 12 24 12 18 Z M28 18 C28 12 32 8 36 8 C32 8 28 12 28 18 C28 24 32 28 36 28 C32 28 28 24 28 18 Z" fill="#0066cc" opacity="0.2"/>
+                    </svg>
+                    <p>
+                        "O FuncZ não nasceu de uma empresa de software, mas da evolução profissional de 
+                        alguém que vive a operação e resolveu o problema de dentro."
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- System Explorer -->
+    <section class="explorer-section" id="explorer">
+        <div class="container-full">
+            <div class="section-header">
+                <h2>System Explorer</h2>
+                <p>Navegue pela arquitetura modular do FuncZ</p>
+            </div>
+
+            <div class="explorer-container">
+                <!-- Sidebar -->
+                <div class="explorer-sidebar">
+                    <div class="sidebar-header">
+                        <svg width="16" height="16" viewBox="0 0 16 16">
+                            <path d="M2 4 L8 2 L14 4 L14 12 L8 14 L2 12 Z" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>ESTRUTURA DO SISTEMA</span>
+                    </div>
+                    <div class="folder-tree">
+                        <div class="folder-item" data-folder="ativosz">
+                            <svg class="folder-icon" width="16" height="16" viewBox="0 0 16 16">
+                                <path d="M2 3 L6 3 L7 5 L14 5 L14 13 L2 13 Z" fill="#0066cc" opacity="0.3"/>
+                            </svg>
+                            <span>AtivosZ</span>
+                            <span class="folder-arrow">›</span>
+                        </div>
+                        <div class="folder-item active" data-folder="funcz">
+                            <svg class="folder-icon" width="16" height="16" viewBox="0 0 16 16">
+                                <path d="M2 3 L6 3 L7 5 L14 5 L14 13 L2 13 Z" fill="#0066cc"/>
+                            </svg>
+                            <span>FuncZ</span>
+                            <span class="folder-arrow">›</span>
+                        </div>
+                        <div class="folder-item" data-folder="worker">
+                            <svg class="folder-icon" width="16" height="16" viewBox="0 0 16 16">
+                                <circle cx="8" cy="8" r="6" fill="none" stroke="#0066cc" stroke-width="2"/>
+                                <path d="M8 5 L8 8 L11 8" stroke="#0066cc" stroke-width="2"/>
+                            </svg>
+                            <span>Cloudflare Worker</span>
+                            <span class="folder-arrow">›</span>
+                        </div>
+                        <div class="folder-item" data-folder="gas">
+                            <svg class="folder-icon" width="16" height="16" viewBox="0 0 16 16">
+                                <rect x="3" y="3" width="10" height="10" rx="1" fill="#0066cc" opacity="0.3"/>
+                                <path d="M6 6 L10 6 M6 8 L10 8 M6 10 L9 10" stroke="#0066cc" stroke-width="1.5"/>
+                            </svg>
+                            <span>Google App Script</span>
+                            <span class="folder-arrow">›</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content Area -->
+                <div class="explorer-content">
+                    <div class="explorer-tabs">
+                        <div class="tab active">
+                            <svg width="14" height="14" viewBox="0 0 14 14">
+                                <circle cx="7" cy="7" r="6" fill="#0066cc"/>
+                            </svg>
+                            <span id="current-folder-name">FuncZ</span>
+                            <button class="tab-close">×</button>
+                        </div>
+                    </div>
+                    <div class="explorer-body">
+                        <div id="folder-content">
+                            <!-- Conteúdo dinâmico -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Timeline Temporal -->
+    <section class="timeline-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Linha do Tempo do Projeto</h2>
+                <p>De "E se...?" até a evolução contínua</p>
+            </div>
+
+            <div class="timeline-container">
+                <!-- 2025 -->
+                <div class="timeline-year">
+                    <div class="year-badge">2025</div>
+                    
+                    <div class="timeline-event" data-month="julho">
+                        <div class="event-marker"></div>
+                        <div class="event-card">
+                            <div class="event-month">Julho</div>
+                            <div class="event-title">E se...?</div>
+                            <div class="event-description">
+                                A ideia inicial surge: automatizar a geração de cartazes para economizar horas de trabalho manual
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-event" data-month="agosto-1">
+                        <div class="event-marker"></div>
+                        <div class="event-card">
+                            <div class="event-month">Agosto (1ª metade)</div>
+                            <div class="event-title">Primeiros Passos</div>
+                            <div class="event-description">
+                                Criação da planilha com cálculos automáticos de parcelamento e integração inicial
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-event" data-month="agosto-2">
+                        <div class="event-marker"></div>
+                        <div class="event-card">
+                            <div class="event-month">Agosto (2ª metade)</div>
+                            <div class="event-title">Versões Alpha</div>
+                            <div class="event-description">
+                                Primeiras versões funcionais com layout básico e geração automatizada
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-event" data-month="setembro-1">
+                        <div class="event-marker"></div>
+                        <div class="event-card">
+                            <div class="event-month">Setembro (1ª metade)</div>
+                            <div class="event-title">Versões Beta</div>
+                            <div class="event-description">
+                                Testes com usuários reais, correções de bugs e ajustes finos
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-event" data-month="setembro-2">
+                        <div class="event-marker"></div>
+                        <div class="event-card highlight">
+                            <div class="event-month">Setembro (2ª metade)</div>
+                            <div class="event-title">Lançamento Oficial</div>
+                            <div class="event-description">
+                                AtivosZ entra em produção na loja principal, gerando dezenas de cartazes diariamente
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-event" data-month="dezembro">
+                        <div class="event-marker"></div>
+                        <div class="event-card highlight">
+                            <div class="event-month">Dezembro (Final)</div>
+                            <div class="event-title">Nascimento do FuncZ</div>
+                            <div class="event-description">
+                                Nova versão completa: layouts adaptáveis, dashboard, múltiplos caminhos, novo layout de impressão
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2026 -->
+                <div class="timeline-year">
+                    <div class="year-badge">2026</div>
+                    
+                    <div class="timeline-event" data-month="janeiro">
+                        <div class="event-marker"></div>
+                        <div class="event-card">
+                            <div class="event-month">Janeiro</div>
+                            <div class="event-title">Desenvolvimento Contínuo</div>
+                            <div class="event-description">
+                                Expansão do FuncZ para conectar ambos os sistemas e criar layout mais assertivo e agradável
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-event" data-month="futuro">
+                        <div class="event-marker pulse"></div>
+                        <div class="event-card active">
+                            <div class="event-month">Presente</div>
+                            <div class="event-title">Evolução Contínua</div>
+                            <div class="event-description">
+                                Sistema vivo que evolui conforme necessidades dos usuários e da empresa
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Propósito -->
+    <section class="purpose-section">
+        <div class="container">
+            <div class="purpose-content">
+                <div class="purpose-icon-grid">
+                    <img src="../image/logo-ativos.png" class="logo-float" height="100">
+                    <svg width="100" height="100" viewBox="0 0 200 200" class="logo-float" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="badgeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#0066cc;stop-opacity:1" />
+                                <stop offset="50%" style="stop-color:#0088ee;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#004a99;stop-opacity:1" />
+                            </linearGradient>
+                            
+                            <linearGradient id="badgeFGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#e0f2ff;stop-opacity:1" />
+                            </linearGradient>
+                            
+                            <linearGradient id="badgeZGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#00ccff;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#ffffff;stop-opacity:1" />
+                            </linearGradient>
+                            
+                            <radialGradient id="badgeGlow">
+                                <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.9"/>
+                                <stop offset="100%" style="stop-color:#0099ff;stop-opacity:0"/>
+                            </radialGradient>
+                            
+                            <filter id="badgeShadow">
+                                <feGaussianBlur in="SourceAlpha" stdDeviation="6"/>
+                                <feOffset dx="0" dy="5" result="offsetblur"/>
+                                <feComponentTransfer>
+                                    <feFuncA type="linear" slope="0.5"/>
+                                </feComponentTransfer>
+                                <feMerge>
+                                    <feMergeNode/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                            
+                            <filter id="badgeInnerGlow">
+                                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                                <feMerge>
+                                    <feMergeNode in="coloredBlur"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                        </defs>
+                        
+                        <!-- Anéis decorativos externos rotacionando -->
+                        <g opacity="0.3">
+                            <circle cx="100" cy="100" r="92" fill="none" stroke="url(#badgeGradient)" stroke-width="1.5" stroke-dasharray="12,8">
+                                <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="30s" repeatCount="indefinite"/>
+                            </circle>
+                            <circle cx="100" cy="100" r="88" fill="none" stroke="#0099ff" stroke-width="1" stroke-dasharray="8,12" opacity="0.5">
+                                <animateTransform attributeName="transform" type="rotate" from="360 100 100" to="0 100 100" dur="40s" repeatCount="indefinite"/>
+                            </circle>
+                        </g>
+                        
+                        <!-- Círculo principal -->
+                        <circle cx="100" cy="100" r="82" fill="url(#badgeGradient)" filter="url(#badgeShadow)"/>
+                        
+                        <!-- Brilho interno -->
+                        <circle cx="100" cy="100" r="78" fill="url(#badgeGlow)" opacity="0.5"/>
+                        
+                        <!-- Anéis internos -->
+                        <circle cx="100" cy="100" r="80" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.3"/>
+                        <circle cx="100" cy="100" r="75" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.2"/>
+                        
+                        <!-- Padrão geométrico de fundo -->
+                        <g opacity="0.12">
+                            <path d="M 100 30 L 145 55 L 145 105 L 100 130 L 55 105 L 55 55 Z" 
+                                  fill="none" 
+                                  stroke="#ffffff" 
+                                  stroke-width="3"/>
+                            <circle cx="100" cy="30" r="4" fill="#ffffff"/>
+                            <circle cx="145" cy="55" r="4" fill="#ffffff"/>
+                            <circle cx="145" cy="105" r="4" fill="#ffffff"/>
+                            <circle cx="100" cy="130" r="4" fill="#ffffff"/>
+                            <circle cx="55" cy="105" r="4" fill="#ffffff"/>
+                            <circle cx="55" cy="55" r="4" fill="#ffffff"/>
+                        </g>
+                        
+                        <!-- LETRA F - Muito destacada -->
+                        <g transform="translate(100, 100)" filter="url(#badgeInnerGlow)">
+                            <rect x="-40" y="-55" width="12" height="110" rx="6" fill="url(#badgeFGrad)"/>
+                            <rect x="-40" y="-55" width="62" height="12" rx="6" fill="url(#badgeFGrad)"/>
+                            <rect x="-40" y="-12" width="50" height="12" rx="6" fill="url(#badgeFGrad)"/>
+                            
+                            <!-- Pontos brilhantes F -->
+                            <circle cx="-34" cy="-49" r="7" fill="#00ccff">
+                                <animate attributeName="r" values="7;9;7" dur="2s" repeatCount="indefinite"/>
+                                <animate attributeName="opacity" values="1;0.7;1" dur="2s" repeatCount="indefinite"/>
+                            </circle>
+                            <circle cx="16" cy="-49" r="7" fill="#00ccff">
+                                <animate attributeName="r" values="7;9;7" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+                                <animate attributeName="opacity" values="1;0.7;1" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+                            </circle>
+                            <circle cx="-34" cy="-6" r="7" fill="#00ccff">
+                                <animate attributeName="r" values="7;9;7" dur="2s" begin="1s" repeatCount="indefinite"/>
+                                <animate attributeName="opacity" values="1;0.7;1" dur="2s" begin="1s" repeatCount="indefinite"/>
+                            </circle>
+                            <circle cx="4" cy="-6" r="7" fill="#00ccff">
+                                <animate attributeName="r" values="7;9;7" dur="2s" begin="1.5s" repeatCount="indefinite"/>
+                                <animate attributeName="opacity" values="1;0.7;1" dur="2s" begin="1.5s" repeatCount="indefinite"/>
+                            </circle>
+                            <circle cx="-34" cy="49" r="9" fill="#00ffff">
+                                <animate attributeName="r" values="9;12;9" dur="2s" repeatCount="indefinite"/>
+                                <animate attributeName="opacity" values="1;0.6;1" dur="2s" repeatCount="indefinite"/>
+                            </circle>
+                        </g>
+                        
+                        <!-- LETRA Z - Muito destacada e integrada -->
+                        <g transform="translate(100, 100)" filter="url(#badgeInnerGlow)">
+                            <!-- Preenchimento Z -->
+                            <path d="M 20 15 L 55 15 L 20 48 L 55 48 Z" 
+                                  fill="url(#badgeZGrad)" 
+                                  opacity="0.85"/>
+                            
+                            <!-- Contorno Z -->
+                            <path d="M 20 15 L 55 15 L 20 48 L 55 48" 
+                                  stroke="url(#badgeZGrad)" 
+                                  stroke-width="11" 
+                                  fill="none" 
+                                  stroke-linecap="round" 
+                                  stroke-linejoin="round"/>
+                            
+                            <!-- Pontos brilhantes Z -->
+                            <circle cx="20" cy="15" r="6" fill="#00ffff">
+                                <animate attributeName="opacity" values="1;0.5;1" dur="1.5s" repeatCount="indefinite"/>
+                                <animate attributeName="r" values="6;7;6" dur="1.5s" repeatCount="indefinite"/>
+                            </circle>
+                            <circle cx="55" cy="15" r="6" fill="#00ffff">
+                                <animate attributeName="opacity" values="1;0.5;1" dur="1.5s" begin="0.3s" repeatCount="indefinite"/>
+                                <animate attributeName="r" values="6;7;6" dur="1.5s" begin="0.3s" repeatCount="indefinite"/>
+                            </circle>
+                            <circle cx="20" cy="48" r="6" fill="#ffffff">
+                                <animate attributeName="opacity" values="1;0.5;1" dur="1.5s" begin="0.6s" repeatCount="indefinite"/>
+                                <animate attributeName="r" values="6;7;6" dur="1.5s" begin="0.6s" repeatCount="indefinite"/>
+                            </circle>
+                            <circle cx="55" cy="48" r="6" fill="#ffffff">
+                                <animate attributeName="opacity" values="1;0.5;1" dur="1.5s" begin="0.9s" repeatCount="indefinite"/>
+                                <animate attributeName="r" values="6;7;6" dur="1.5s" begin="0.9s" repeatCount="indefinite"/>
+                            </circle>
+                            
+                            <!-- Brilho diagonal Z -->
+                            <line x1="20" y1="15" x2="55" y2="48" stroke="#00ffff" stroke-width="3" opacity="0.6">
+                                <animate attributeName="opacity" values="0.6;0.2;0.6" dur="2s" repeatCount="indefinite"/>
+                            </line>
+                        </g>
+                        
+                        <!-- Linhas de conexão F-Z animadas -->
+                        <g opacity="0.7">
+                            <line x1="66" y1="149" x2="120" y2="148" stroke="#00ccff" stroke-width="2" stroke-dasharray="5,5">
+                                <animate attributeName="stroke-dashoffset" from="0" to="10" dur="1s" repeatCount="indefinite"/>
+                            </line>
+                            <line x1="104" y1="94" x2="120" y2="115" stroke="#00ffff" stroke-width="2" stroke-dasharray="5,5">
+                                <animate attributeName="stroke-dashoffset" from="0" to="10" dur="1.2s" repeatCount="indefinite"/>
+                            </line>
+                        </g>
+                        
+                        <!-- Texto circular "FUNCZ AUTOMAÇÃO" -->
+                        <path id="topCirclePath" d="M 100,25 a 75,75 0 0,1 0,0.1" fill="none"/>
+                        <text font-family="Arial, sans-serif" font-size="14" font-weight="800" fill="white" letter-spacing="6">
+                            <textPath href="#topCirclePath" startOffset="14%">
+                                FUNCZ · AUTOMAÇÃO
+                            </textPath>
+                        </text>
+                        
+                        <path id="bottomCirclePath" d="M 100,175 a 75,75 0 1,1 -0.1,0" fill="none"/>
+                        <text font-family="Arial, sans-serif" font-size="14" font-weight="800" fill="white" letter-spacing="6" opacity="0.9">
+                            <textPath href="#bottomCirclePath" startOffset="16%">
+                                INTELIGENTE · 2026
+                            </textPath>
+                        </text>
+                        
+                        <!-- Partículas orbitando -->
+                        <g opacity="0.8">
+                            <circle cx="155" cy="100" r="3" fill="#00ffff">
+                                <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="8s" repeatCount="indefinite"/>
+                                <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2s" repeatCount="indefinite"/>
+                            </circle>
+                            <circle cx="45" cy="100" r="3" fill="#00ccff">
+                                <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="10s" repeatCount="indefinite"/>
+                                <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2.5s" repeatCount="indefinite"/>
+                            </circle>
+                            <circle cx="100" cy="155" r="2" fill="#ffffff">
+                                <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="12s" repeatCount="indefinite"/>
+                                <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2.2s" repeatCount="indefinite"/>
+                            </circle>
+                        </g>
+                    </svg>   
+                    <img src="../image/zenirlogo.png" class="logo-float" width="100">
+                </div>
+                <h2>Arquitetura que Evolui com a Empresa</h2>
+                <p class="purpose-lead">
+                    O FuncZ não é apenas um gerador de cartazes. É uma plataforma viva que se adapta às mudanças do negócio, automatiza processos críticos e escala conforme a empresa cresce.
+                </p>
+                <div class="purpose-principles">
+                    <div class="principle">
+                        <div class="principle-number">01</div>
+                        <h3>Modularidade</h3>
+                        <p>Cada componente é independente, permitindo atualizações sem interromper o fluxo operacional</p>
+                    </div>
+                    <div class="principle">
+                        <div class="principle-number">02</div>
+                        <h3>Escalabilidade</h3>
+                        <p>Arquitetura preparada para crescer de 3 para 30 filiais sem reescrever código</p>
+                    </div>
+                    <div class="principle">
+                        <div class="principle-number">03</div>
+                        <h3>Sustentabilidade</h3>
+                        <p>Código documentado e estruturado para manutenção de longo prazo</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <h3>FuncZ</h3>
+                    <p>Plataforma de automação interna</p>
+                </div>
+                <div class="footer-info">
+                    <div class="info-item">
+                        <span class="label">Desenvolvedor</span>
+                        <span class="value">Gabriel Oliveira</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Versão</span>
+                        <span class="value">4.0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Status</span>
+                        <span class="value">
+                            <span class="status-dot"></span>
+                            Produção
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Botões Flutuantes de Navegação -->
+    <button id="backToTop" class="floating-button" onclick="scrollToTop()" title="Voltar ao topo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 19V5M5 12l7-7 7 7"/>
+        </svg>
+    </button>
+
+    <button id="backToHome" class="floating-button show" onclick="goToHome()" title="Voltar à página inicial">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+    </button>
+
+    <script src="../js/script.js"></script>
+</body>
+</html>
