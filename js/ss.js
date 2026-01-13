@@ -832,7 +832,7 @@ function addLockOverlayCard(card) {
 function applyAccessControlsFromAuth(auth) {
   const permRaw = auth && auth.perm ? String(auth.perm).toLowerCase() : '';
   const allowed = permissionsMap[permRaw] || [];
-  const btnCart = document.getElementById('btn-cartazista');
+  const btnCart = document.getElementById('btn-sobre');
   const btnAdmin = document.getElementById('btn-admin');
   if (auth) { if (btnCart) btnCart.style.display = ''; if (btnAdmin) btnAdmin.style.display = ''; }
   else { if (btnCart) btnCart.style.display = 'none'; if (btnAdmin) btnAdmin.style.display = 'none'; }
@@ -855,7 +855,7 @@ function applyAccessControlsFromAuth(auth) {
       const a = readAuthSession(); const pr = a && a.perm ? String(a.perm).toLowerCase() : '';
       const allowed2 = permissionsMap[pr] || [];
       if (!a) { showToast('Você não está logado.', 'error'); return; }
-      if (!(pr === 'admin' || pr === 'suporte' || allowed2.includes('cartazista'))) { showToast('Acesso negado: você não tem permissão para a Área Cartazista.', 'error'); return; }
+      if (!(pr === 'admin' || pr === 'suporte' || pr === 'cred' || pr === 'fat' || allowed2.includes('vendedor'))) { showToast('Acesso negado: você não tem permissão para a Área Cartazista.', 'error'); return; }
       showToast('Ainda em desenvolvimento...', 'error', 4000);
     };
   }
@@ -1112,4 +1112,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     getStoredCoords
   };
 });
+
 
