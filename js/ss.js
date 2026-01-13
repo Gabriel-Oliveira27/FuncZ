@@ -855,8 +855,8 @@ function applyAccessControlsFromAuth(auth) {
       const a = readAuthSession(); const pr = a && a.perm ? String(a.perm).toLowerCase() : '';
       const allowed2 = permissionsMap[pr] || [];
       if (!a) { showToast('Você não está logado.', 'error'); return; }
-      if (!(pr === 'admin' || pr === 'suporte' || pr === 'cred' || pr === 'fat' || allowed2.includes('vendedor'))) { showToast('Acesso negado: você não tem permissão para a Área Cartazista.', 'error'); return; }
-      showToast('Ainda em desenvolvimento...', 'error', 4000);
+      if (!(pr === 'admin' || pr === 'suporte' || pr === 'cred' || pr === 'fat' || pr === 'vendedor')) { showToast('Acesso negado: você não tem permissão para a Área Cartazista.', 'error'); return; }
+
     };
   }
   if (btnAdmin) {
@@ -873,7 +873,7 @@ function attachCardClicks() {
     try { if (card._clickHandler) card.removeEventListener('click', card._clickHandler); } catch(e) {}
     const handler = (e) => {
       if (card.classList.contains('locked')) { showToast('Você não tem acesso a esta área.', 'error'); return; }
-      const routeMap = { vendas: 'cartazes.html', faturamento: 'declaracoes.html', crediario: 'declaracoes.html', cartazista: 'cartazista.html', admin: 'admin.html' };
+      const routeMap = { vendas: 'cartazes.html', faturamento: 'declaracoes.html', crediario: 'declaracoes.html', sobre: 'sobre.html', admin: 'admin.html' };
       const target = routeMap[card.dataset.feature] || '#';
       if (target === '#') showToast('Rota não definida para este setor.', 'info');
       else window.location.href = target;
@@ -1112,5 +1112,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     getStoredCoords
   };
 });
+
 
 
