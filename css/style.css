@@ -1092,7 +1092,7 @@ input:checked + .slider:before {
 .poster-price-section {
     position: absolute;
     left: 2.55cm; /* Reduzido 15% de 3cm = 2.55cm */
-    top: 10cm;
+    top: 11.5cm; /* ⬇️ AJUSTE: Desceu 1,5cm (era 10cm, agora 11.5cm) */
     display: flex;
     align-items: flex-start;
     gap: 15px;
@@ -1127,20 +1127,21 @@ input:checked + .slider:before {
 /* Valor da parcela com formatação especial */
 .poster-value-container {
     display: flex;
-    align-items: flex-start;
+    align-items: flex-start; /* Alinha tudo no topo */
     gap: 0; /* Ajuste aqui - gap zerado para não empurrar o ,90 */
 }
 
-/* Parte inteira: grande e esticada (+20% = 240pt) */
+/* Parte inteira: grande e esticada (+20% = 238pt) */
 .poster-value-integer {
     font-family: 'Impact', 'Arial Black', sans-serif;
-    font-size: 240pt;
+    font-size: 238pt; /* Fonte padrão */
     font-weight: 700;
     color: #000;
     line-height: 0.8;
-    letter-spacing: -4px;
+    letter-spacing: 4.8px; /* ⬆️ AJUSTE: 20% maior espaçamento entre números (era -4px, agora +4.8px) */
     transform: scaleX(0.70) scaleY(1.15); /* Ajuste aqui - mais estreita (0.70) e mais alta (1.15) */
     transform-origin: left center;
+    margin-top: -38px; /* ⬆️ AJUSTE: Sobe 1cm na tela */
 }
 
 /* Vírgula e centavos: distância de 0.4cm (aproximadamente 15px) */
@@ -1151,10 +1152,41 @@ input:checked + .slider:before {
     color: #000;
     line-height: 0.8;
     transform: scaleX(0.85); /* Ajuste aqui - volta ao original, SEM scaleY */
-    transform-origin: left center;
-    margin-top: 0;
+    transform-origin: left top; /* Alinha pelo topo */
+    margin-top: -57px; /* ⭐ Sobe mais 0,5cm em TODOS (-38px - 19px = -57px) */
     padding-top: 0;
-    margin-left: -100px; /* Ajuste aqui - ainda mais próximo (aumentado de -80px para -100px) */
+    margin-left: -157px; /* Distância padrão (para 4+ dígitos) */
+}
+
+
+
+/* ⭐ AJUSTES DO ,90 BASEADO NO NÚMERO DE DÍGITOS ⭐ */
+
+/* 2 dígitos: fonte menor + ,90 vai 1,5cm DIREITA (1cm + 0,5cm extra) */
+.poster-value-container[data-digits="2"] .poster-value-integer {
+    font-size: 236pt; /* ⬇️ Diminui mais 2pt (238pt → 236pt) */
+}
+
+.poster-value-container[data-digits="2"] .poster-value-decimal {
+    margin-left: -100px; /* -119px + 19px = -100px (mais 0,5cm direita) */
+}
+
+/* 3 dígitos: ,90 vai 1cm DIREITA */
+.poster-value-container[data-digits="3"] .poster-value-decimal {
+    margin-left: -119px; /* -157px + 38px = -119px (1cm direita) */
+}
+
+/* 4 dígitos: usa distância padrão + fonte diminui 30% */
+.poster-value-container[data-digits="4"] .poster-value-decimal {
+    /* margin-left já está em -157px no padrão */
+    font-size: 56pt; /* 80pt - 30% = 56pt */
+}
+
+/* 5+ dígitos: mesma regra de 4 dígitos */
+.poster-value-container[data-digits="5"] .poster-value-decimal,
+.poster-value-container[data-digits="6"] .poster-value-decimal {
+    /* margin-left já está em -157px no padrão */
+    font-size: 56pt;
 }
 
 /* Validade por extenso - girada 270° no canto direito */
