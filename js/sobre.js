@@ -2,6 +2,7 @@
 // DADOS DA ARQUITETURA REAL
 // ===================================
 
+
 const architectureData = {
     ativosz: {
         name: 'AtivosZ',
