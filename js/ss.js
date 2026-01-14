@@ -16,12 +16,12 @@ const GAS_PRODUCTS_URL = 'https://script.google.com/macros/s/AKfycbzDpyIIi3x1Hu8
 
 /* Permissões */
 const permissionsMap = {
-  vendedor: ["vendas"],
-  fat: ["vendas", "faturamento", "crediario"],
-  ger: ["vendas", "faturamento", "crediario", "cartazista"],
-  cred: ["vendas", "crediario"],
-  admin: ["vendas", "faturamento", "crediario", "cartazista", "admin"],
-  suporte: ["vendas", "faturamento", "crediario", "cartazista", "admin"]
+  vendedor: ["vendas", "sobre"],
+  fat: ["vendas", "faturamento", "crediario", "sobre"],
+  ger: ["vendas", "faturamento", "crediario", "sobre"],
+  cred: ["vendas", "crediario", "sobre"],
+  admin: ["vendas", "faturamento", "crediario", "sobre", "admin"],
+  suporte: ["vendas", "faturamento", "crediario", "sobre", "admin"]
 };
 
 /* Fallbacks locais */
@@ -841,9 +841,12 @@ function applyAccessControlsFromAuth(auth) {
   $all('.card[data-feature]').forEach(card => {
     const feat = card.dataset.feature;
     const existing = card.querySelector('.lock-overlay'); if (existing) existing.remove();
-    if (!auth) { card.classList.add('locked'); card.setAttribute('aria-disabled','true'); addLockOverlayCard(card); }
+    if (!auth && feat !== 'sobre') {
+  card.classList.add('locked');
+  addLockOverlayCard(card);
+}
     else {
-      if (permRaw === 'admin' || permRaw === 'suporte' || allowed.includes(feat)) {
+      if (feat === 'sobre' || permRaw === 'admin' || permRaw === 'suporte' || allowed.includes(feat)) {
         card.classList.remove('locked'); card.removeAttribute('aria-disabled');
       } else {
         card.classList.add('locked'); card.setAttribute('aria-disabled','true'); addLockOverlayCard(card);
@@ -873,7 +876,10 @@ function attachCardClicks() {
   $all('.card[data-feature]').forEach(card => {
     try { if (card._clickHandler) card.removeEventListener('click', card._clickHandler); } catch(e) {}
     const handler = (e) => {
-      if (card.classList.contains('locked')) { showToast('Você não tem acesso a esta área.', 'error'); return; }
+      if (card.classList.contains('locked') && card.dataset.feature !== 'sobre') {
+  showToast('Você não tem acesso a esta área.', 'error');
+  return;
+}
       const routeMap = { vendas: 'cartazes.html', faturamento: 'declaracoes.html', crediario: 'declaracoes.html', sobre: 'sobre.html', admin: 'admin.html' };
       const target = routeMap[card.dataset.feature] || '#';
       if (target === '#') showToast('Rota não definida para este setor.', 'info');
@@ -1113,6 +1119,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     getStoredCoords
   };
 });
+
 
 
 
