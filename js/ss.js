@@ -5,6 +5,16 @@ const DEFAULT_TOAST_DURATION = 3000;
 // OpenWeather API key (fornecida)
 const OPENWEATHER_KEY = '7dcc8dd07bbafc102b2844c88b1dc6b8';
 
+const btnSobre = document.getElementById('btn-sobre');
+
+if (btnSobre) {
+  btnSobre.style.display = 'inline-flex'; // sempre visível
+
+  btnSobre.addEventListener('click', () => {
+    window.location.href = 'sobre.html';
+  });
+}
+
 
 // Feeds
 const RSS2JSON_BASE = 'https://api.rss2json.com/v1/api.json?rss_url=';
@@ -1119,6 +1129,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     getStoredCoords
   };
 });
+
 
 
 
