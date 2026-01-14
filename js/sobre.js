@@ -235,7 +235,7 @@ function scrollToTop() {
 
 // Voltar à home (selectsetor.html)
 function goToHome() {
-    window.location.href = '../selectsetor.html';
+    window.location.href = '/selectsetor.html';
 }
 
 // Controlar visibilidade do botão "Voltar ao Topo"
