@@ -5,6 +5,7 @@ const DEFAULT_TOAST_DURATION = 3000;
 // OpenWeather API key (fornecida)
 const OPENWEATHER_KEY = '7dcc8dd07bbafc102b2844c88b1dc6b8';
 
+
 // Feeds
 const RSS2JSON_BASE = 'https://api.rss2json.com/v1/api.json?rss_url=';
 const G1_GERAL_RSS = 'https://g1.globo.com/rss/g1/';
@@ -1112,6 +1113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     getStoredCoords
   };
 });
+
 
 
 
