@@ -717,6 +717,9 @@ function generatePosterHTML(product, isPreview = false) {
     let tipoParcelamento = product.juros === 'carne' ? 'carnê' : 'cartão';
     let taxaTexto = jurosTexto[product.juros];
     
+    // Classe especial para carnê
+    const posterClass = product.juros === 'carne' ? 'poster poster-carne' : 'poster';
+    
     // Lógica especial para parcelamentos sem juros
     if (product.metodo === '3x' || product.metodo === '5x') {
         taxaTexto = 'Sem juros';
@@ -747,7 +750,7 @@ function generatePosterHTML(product, isPreview = false) {
     }
 
     return `
-        <div class="poster">
+        <div class="${posterClass}">
             <div class="poster-header">
                 <div class="poster-title">${product.descricao}</div>
                 ${product.subdescricao ? `<div class="poster-subtitle">${product.subdescricao}</div>` : ''}
@@ -874,7 +877,7 @@ document.getElementById('btn-gerar-pdf').addEventListener('click', async () => {
         
         // Criar título com códigos dos produtos
         const codigos = products.map(p => p.codigo).join(', ');
-        const titulo = `Cartaz(es) gerado(s) - Cód. ${codigos}`;
+        const titulo = `Cartazes gerados - ${codigos}`;
         
         // Abrir em nova aba com título personalizado
         const newWindow = window.open(pdfUrl, '_blank');
