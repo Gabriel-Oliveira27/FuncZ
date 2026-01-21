@@ -1040,6 +1040,34 @@ input:checked + .slider:before {
     page-break-after: always;
 }
 
+/* ⭐ LAYOUT ESPECIAL PARA CARNÊ ⭐ */
+.poster-carne .poster-header {
+    top: 7.5cm !important; /* Desce 2cm (era 5.5cm, agora 7.5cm) */
+    left: 0.95cm !important; /* Move 1.6cm para ESQUERDA (2.55cm - 1.6cm = 0.95cm) */
+}
+
+.poster-carne .poster-price-section {
+    top: 13.5cm !important; /* Desce 2cm (era 11.5cm, agora 13.5cm) */
+    left: 0.95cm !important; /* Move 1.6cm para ESQUERDA (2.55cm - 1.6cm = 0.95cm) */
+    transform: scale(1.2); /* Aumenta 20% */
+    transform-origin: left top;
+}
+
+.poster-carne .poster-validity {
+    top: 6.7cm !important; /* Desce 2cm (era 4.7cm, agora 6.7cm) */
+    right: 2.6cm !important; /* Move 1.6cm para ESQUERDA (1.0cm + 1.6cm = 2.6cm no right) */
+}
+
+/* Tabela fica 1cm abaixo do valor da parcela */
+.poster-carne .poster-footer-table {
+    top: 21.5cm !important; /* 1cm abaixo do valor da parcela (considerando altura + escala) */
+}
+
+/* Parcela vai mais 0,2cm para DIREITA (além do 0,5cm do container) */
+.poster-carne .poster-value-container {
+    margin-left: 0.2cm;
+}
+
 /* Nome/Subdesc/Características/Código: 4cm de cima, 15% mais à esquerda */
 .poster-header {
     position: absolute;
