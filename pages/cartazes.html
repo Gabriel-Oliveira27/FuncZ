@@ -3,16 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de Cartazes - Sistema Interno</title>
+    <title>Gerador de Cartazes - FuncZ</title>
     <link rel="icon" type="image/png" href="/image/zenirlogo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../avisos/avisos.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
+    <!-- Modal de Aviso para Dispositivos Móveis -->
+    <div id="modal-mobile-warning" class="mobile-warning-overlay" style="display: none;">
+        <div class="mobile-warning-dialog">
+            <div class="mobile-warning-icon">
+                <i class="fa-solid fa-mobile-screen-button"></i>
+            </div>
+            <h2 class="mobile-warning-title">Olá! Percebi que você está usando um dispositivo móvel</h2>
+            <p class="mobile-warning-text">
+                Infelizmente nossa plataforma não é muito adequada para dispositivos móveis devido à necessidade de uma impressora conectada. 
+                Porém você pode criar seus cartazes de uma outra maneira por aqui, usando uma versão otimizada para celular.
+            </p>
+            <div class="mobile-warning-buttons">
+                <button class="mobile-warning-btn mobile-warning-btn-yes" onclick="irParaVersaoMobile()">
+                    <i class="fa-solid fa-check"></i>
+                    Sim, gostaria de testar
+                </button>
+                <button class="mobile-warning-btn mobile-warning-btn-no" onclick="fecharAvisoMobile()">
+                    <i class="fa-solid fa-times"></i>
+                    Não, sair
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Loading Overlay Moderno -->
     <div id="overlay">
         <div class="overlay-box">
@@ -94,9 +117,32 @@
                             <i class="fa-solid fa-layer-group"></i>
                             <span>Cama, mesa e banho</span>
                         </button>
+                        <button class="nav-item sub-item" data-view="importar-json">
+                            <i class="fa-solid fa-file-import"></i>
+                            <span>Importar cartazes por JSON</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Seção Suporte (apenas admin/suporte) -->
+                <div class="nav-section" id="suporte-section" style="display: none;">
+                    <button class="nav-section-toggle" id="toggle-suporte">
+                        <i class="fa-solid fa-headset"></i>
+                        <span>Suporte</span>
+                        <i class="fa-solid fa-chevron-down nav-section-arrow"></i>
+                    </button>
+                    <div class="nav-section-content" id="suporte-content">
                         <button class="nav-item sub-item" id="btn-debug">
                             <i class="fa-solid fa-bug"></i>
                             <span>Debug</span>
+                        </button>
+                        <button class="nav-item sub-item" id="btn-ver-json">
+                            <i class="fa-solid fa-code"></i>
+                            <span>Ver JSON dos cartazes</span>
+                        </button>
+                        <button class="nav-item sub-item" id="btn-gerar-json">
+                            <i class="fa-solid fa-file-code"></i>
+                            <span>Gerar JSON de cartazes</span>
                         </button>
                     </div>
                 </div>
@@ -108,7 +154,7 @@
                     <span>Voltar ao início</span>
                 </button>
                 
-                <p>v3.0.5 • Sistema cartazes</p>
+                <p>v4.0.0 • Sistema cartazes</p>
                 <p>© 2025–2026 Gabriel Oliveira</p>
                 <p>Todos os direitos reservados.</p>
  
@@ -270,12 +316,18 @@
                         <h2>Produtos Adicionados</h2>
                         <p id="products-count">0 produto(s) adicionado(s)</p>
                     </div>
-                    <button id="btn-gerar-pdf" class="btn-primary" style="display: none;">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                        </svg>
-                        Gerar PDF de todos os cartazes
-                    </button>
+                    <div id="products-actions" style="display: none; gap: 10px;">
+                        <button id="btn-limpar-todos" class="btn-secondary">
+                            <i class="fa-solid fa-trash"></i>
+                            Limpar todos
+                        </button>
+                        <button id="btn-gerar-pdf" class="btn-primary">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                            </svg>
+                            Gerar PDF de todos os cartazes
+                        </button>
+                    </div>
                 </div>
 
                 <div id="products-list" class="products-list">
@@ -641,6 +693,271 @@
                     </form>
                 </div>
             </div>
+
+            <!-- View: Importar JSON -->
+            <div id="view-importar-json" class="view">
+                <div class="card">
+                    <h2 style="margin-bottom: 16px;">
+                        <i class="fa-solid fa-file-import"></i> Importar Cartazes por JSON
+                    </h2>
+                    <p style="margin-bottom: 24px; color: var(--gray-600);">
+                        Cole o JSON gerado ou faça upload de um arquivo para importar cartazes.
+                    </p>
+
+                    <!-- Abas de método de importação -->
+                    <div class="import-tabs">
+                        <button class="import-tab active" data-import-tab="texto">
+                            <i class="fa-solid fa-keyboard"></i>
+                            <span>Colar JSON</span>
+                        </button>
+                        <button class="import-tab" data-import-tab="arquivo">
+                            <i class="fa-solid fa-file-upload"></i>
+                            <span>Upload de Arquivo</span>
+                        </button>
+                    </div>
+
+                    <!-- Conteúdo: Colar JSON -->
+                    <div id="import-content-texto" class="import-content active">
+                        <div class="form-group">
+                            <label for="json-text-input">JSON dos Cartazes *</label>
+                            <textarea id="json-text-input" rows="12" placeholder='{"cartazes": [...]}'></textarea>
+                            <p class="help-text">Cole o JSON exportado do sistema</p>
+                        </div>
+                    </div>
+
+                    <!-- Conteúdo: Upload de Arquivo -->
+                    <div id="import-content-arquivo" class="import-content">
+                        <!-- Sub-abas dentro de Upload de Arquivo -->
+                        <div class="sub-import-tabs">
+                            <button class="sub-import-tab active" data-sub-import-tab="drive">
+                                <i class="fa-solid fa-cloud"></i>
+                                <span>Importar do Drive</span>
+                            </button>
+                            <button class="sub-import-tab" data-sub-import-tab="local">
+                                <i class="fa-solid fa-upload"></i>
+                                <span>Upload do arquivo</span>
+                            </button>
+                        </div>
+
+                        <!-- Sub-conteúdo: Importar do Drive -->
+                        <div id="sub-import-content-drive" class="sub-import-content active">
+                            <div class="cloud-import-container">
+                        <div class="cloud-import-container">
+                            <div class="cloud-import-header">
+                                <i class="fa-solid fa-cloud"></i>
+                                <h3>Buscar JSON na Cloud</h3>
+                                <p>Busque automaticamente o JSON mais recente salvo no Google Drive</p>
+                            </div>
+
+                            <!-- Seletor de método -->
+                            <div class="cloud-method-selector">
+                                <button class="cloud-method-btn active" data-method="auto">
+                                    <i class="fa-solid fa-user-check"></i>
+                                    <span>Usuário Logado</span>
+                                </button>
+                                <button class="cloud-method-btn" data-method="manual">
+                                    <i class="fa-solid fa-keyboard"></i>
+                                    <span>Digitar Manualmente</span>
+                                </button>
+                            </div>
+
+                            <!-- Informações do usuário logado -->
+                            <div id="cloud-auto-info" class="cloud-user-info">
+                                <div class="info-card">
+                                    <div class="info-row">
+                                        <span class="info-label">Usuário:</span>
+                                        <span class="info-value" id="cloud-current-user">—</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Filial:</span>
+                                        <span class="info-value" id="cloud-current-filial">—</span>
+                                    </div>
+                                </div>
+                                <button id="btn-buscar-cloud-auto" class="btn-primary">
+                                    <i class="fa-solid fa-cloud-arrow-down"></i>
+                                    Buscar JSON na Cloud
+                                </button>
+                            </div>
+
+                            <!-- Formulário manual -->
+                            <div id="cloud-manual-form" class="cloud-manual-form" style="display: none;">
+                                <div class="form-group">
+                                    <label for="cloud-user-input">Usuário *</label>
+                                    <input type="text" id="cloud-user-input" placeholder="Ex: gabriel" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="cloud-filial-input">Filial *</label>
+                                    <input type="text" id="cloud-filial-input" placeholder="Ex: 01" />
+                                </div>
+                                <button id="btn-buscar-cloud-manual" class="btn-primary">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                    Buscar JSON na Cloud
+                                </button>
+                            </div>
+
+                            <!-- Estado de loading -->
+                            <div id="cloud-loading" class="cloud-state" style="display: none;">
+                                <div class="cloud-loading-spinner"></div>
+                                <h4>Buscando JSON na Cloud...</h4>
+                                <p>Aguarde enquanto localizamos o arquivo mais recente</p>
+                            </div>
+
+                            <!-- Estado de sucesso -->
+                            <div id="cloud-success" class="cloud-state cloud-state-success" style="display: none;">
+                                <i class="fa-solid fa-circle-check"></i>
+                                <h4>JSON encontrado!</h4>
+                                <p id="cloud-success-message">Arquivo carregado com sucesso</p>
+                                <div class="cloud-file-details">
+                                    <span id="cloud-file-name">—</span>
+                                    <span id="cloud-file-date">—</span>
+                                </div>
+                            </div>
+
+                            <!-- Estado de erro -->
+                            <div id="cloud-error" class="cloud-state cloud-state-error" style="display: none;">
+                                <i class="fa-solid fa-circle-xmark"></i>
+                                <h4>Nenhum JSON encontrado</h4>
+                                <p id="cloud-error-message">Nenhum JSON foi encontrado para este usuário e filial.</p>
+                                <button id="btn-retry-cloud" class="btn-secondary">
+                                    <i class="fa-solid fa-rotate-right"></i>
+                                    Tentar Novamente
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Sub-conteúdo: Upload do arquivo (local) -->
+                        <div id="sub-import-content-local" class="sub-import-content">
+                            <div class="upload-area" id="upload-area">
+                                <div class="upload-icon">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                                </div>
+                                <h3>Arraste o arquivo JSON aqui</h3>
+                                <p>ou clique para selecionar</p>
+                                <input type="file" id="json-file-input" accept=".json" style="display: none;">
+                                <button type="button" class="btn-secondary" onclick="document.getElementById('json-file-input').click()">
+                                    <i class="fa-solid fa-folder-open"></i>
+                                    Selecionar Arquivo
+                                </button>
+                            </div>
+                            <div id="file-info" class="file-info" style="display: none;">
+                                <i class="fa-solid fa-file-code"></i>
+                                <div class="file-details">
+                                    <strong id="file-name">arquivo.json</strong>
+                                    <span id="file-size">0 KB</span>
+                                </div>
+                                <button class="file-remove" onclick="removerArquivo()">
+                                    <i class="fa-solid fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Erro de validação -->
+                    <div id="json-import-error" class="import-error" style="display: none;">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                        <span id="json-import-error-text"></span>
+                    </div>
+
+                    <!-- Botão tratar arquivo -->
+                    <button id="btn-tratar-json" class="btn-secondary" style="margin-top: 20px;">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        Tratar Arquivo e Visualizar Previews
+                    </button>
+
+                    <!-- Área de previews -->
+                    <div id="import-previews-area" class="import-previews-area" style="display: none;">
+                        <div class="previews-header">
+                            <div>
+                                <h3><i class="fa-solid fa-eye"></i> Pré-visualização dos Cartazes</h3>
+                                <p id="previews-count">0 cartaz(es) encontrado(s)</p>
+                            </div>
+                            <button id="btn-confirmar-importacao" class="btn-primary">
+                                <i class="fa-solid fa-file-import"></i>
+                                Confirmar e Importar Tudo
+                            </button>
+                        </div>
+                        <div id="import-previews-list" class="import-previews-list">
+                            <!-- Previews serão inseridos aqui -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View: Ver JSON dos Cartazes (Suporte) -->
+            <div id="view-ver-json" class="view">
+                <div class="card">
+                    <h2 style="margin-bottom: 16px;">
+                        <i class="fa-solid fa-code"></i> JSON dos Cartazes Salvos
+                    </h2>
+                    <p style="margin-bottom: 24px; color: var(--gray-600);">
+                        Visualize e edite o JSON de todos os cartazes. Você pode alterar informações diretamente.
+                    </p>
+
+                    <div id="ver-json-empty" style="padding: 60px 20px; text-align: center; background: var(--gray-50); border-radius: 8px;">
+                        <i class="fa-solid fa-inbox" style="font-size: 48px; color: var(--gray-400); margin-bottom: 16px; display: block;"></i>
+                        <h3 style="color: var(--gray-600); margin-bottom: 8px;">Nenhum cartaz adicionado</h3>
+                        <p style="color: var(--gray-500);">Adicione cartazes para visualizar e editar o JSON</p>
+                    </div>
+
+                    <div id="ver-json-content" style="display: none;">
+                        <!-- Abas -->
+                        <div style="display: flex; gap: 12px; margin-bottom: 20px; border-bottom: 2px solid var(--gray-200);">
+                            <button id="tab-visualizar" class="json-view-tab active" data-tab="visualizar">
+                                <i class="fa-solid fa-eye"></i>
+                                Visualizar
+                            </button>
+                            <button id="tab-editar" class="json-view-tab" data-tab="editar">
+                                <i class="fa-solid fa-edit"></i>
+                                Editar JSON
+                            </button>
+                        </div>
+
+                        <!-- Conteúdo: Visualizar -->
+                        <div id="json-view-visualizar" class="json-view-content active">
+                            <div style="background: #1e1e1e; border-radius: 8px; padding: 20px; margin-bottom: 20px; border: 1px solid var(--gray-700);">
+                                <pre id="json-viewer-code" style="color: #a5f3fc; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; margin: 0; white-space: pre-wrap; word-break: break-word; max-height: 500px; overflow-y: auto;"></pre>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button id="btn-copiar-json-viewer" class="btn-primary">
+                                    <i class="fa-solid fa-copy"></i>
+                                    Copiar JSON
+                                </button>
+                                <button id="btn-download-json-viewer" class="btn-secondary">
+                                    <i class="fa-solid fa-download"></i>
+                                    Baixar JSON
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Conteúdo: Editar -->
+                        <div id="json-view-editar" class="json-view-content">
+                            <div class="form-group">
+                                <label for="json-editor-textarea">Editar JSON dos Cartazes</label>
+                                <textarea id="json-editor-textarea" rows="20" style="font-family: 'Courier New', monospace; font-size: 13px; background: #1e1e1e; color: #d4d4d4; padding: 16px; border: 1px solid var(--gray-600); border-radius: 8px; width: 100%; resize: vertical;"></textarea>
+                                <p class="help-text">Edite o JSON diretamente. Tenha cuidado para manter a estrutura válida.</p>
+                            </div>
+                            <div id="json-edit-error" class="import-error" style="display: none; margin-bottom: 16px;">
+                                <i class="fa-solid fa-circle-xmark"></i>
+                                <span id="json-edit-error-text"></span>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button id="btn-validar-json-editado" class="btn-primary">
+                                    <i class="fa-solid fa-check-circle"></i>
+                                    Validar JSON
+                                </button>
+                                <button id="btn-aplicar-json-editado" class="btn-success" style="background: var(--success); display: none;">
+                                    <i class="fa-solid fa-save"></i>
+                                    Aplicar Alterações
+                                </button>
+                                <button id="btn-cancelar-edicao" class="btn-secondary">
+                                    <i class="fa-solid fa-times"></i>
+                                    Cancelar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -784,9 +1101,94 @@
         </div>
     </div>
 
+    <!-- Modal de Ver JSON -->
+    <div id="modal-ver-json" class="modal-overlay">
+        <div class="modal-fator-content">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-code"></i> JSON dos Cartazes Salvos</h2>
+                <button class="modal-close" onclick="fecharModalVerJSON()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 16px; padding: 12px; background: var(--gray-50); border-radius: 8px; border: 1px solid var(--gray-200);">
+                    <p style="font-size: 14px; color: var(--gray-700); margin: 0;">
+                        <i class="fa-solid fa-info-circle"></i> 
+                        <strong>Total de cartazes salvos:</strong> <span id="json-count">0</span>
+                    </p>
+                </div>
+                <pre id="json-display" style="background: #1e1e1e; color: #d4d4d4; padding: 20px; border-radius: 8px; overflow-x: auto; max-height: 500px; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.5;"></pre>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="copiarJSON()">
+                    <i class="fa-solid fa-copy"></i> Copiar JSON
+                </button>
+                <button class="btn-primary" onclick="fecharModalVerJSON()">
+                    <i class="fa-solid fa-check"></i> Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Importar JSON -->
+    <div id="modal-importar-json" class="modal-overlay">
+        <div class="modal-fator-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-file-import"></i> Importar Cartazes por JSON</h2>
+                <button class="modal-close" onclick="fecharModalImportarJSON()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 20px; color: var(--gray-600); font-size: 14px;">
+                    Cole o JSON gerado pela funcionalidade "Gerar JSON de cartazes" da aba Suporte.
+                </p>
+                <div class="form-group">
+                    <label for="json-input">JSON dos Cartazes *</label>
+                    <textarea id="json-input" rows="12" placeholder='{"cartazes": [...]}' style="width: 100%; padding: 16px; border: 1px solid var(--gray-300); border-radius: 8px; font-family: 'Courier New', monospace; font-size: 13px; resize: vertical; background: #1e1e1e; color: #d4d4d4;"></textarea>
+                    <p class="help-text">O JSON será validado antes da importação</p>
+                </div>
+                <div id="import-error" style="display: none; margin-top: 16px; padding: 12px; background: #fef2f2; border-left: 4px solid var(--danger); border-radius: 8px;">
+                    <p style="color: var(--danger); font-size: 14px; margin: 0;">
+                        <i class="fa-solid fa-circle-xmark"></i> <span id="import-error-text"></span>
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="fecharModalImportarJSON()">
+                    <i class="fa-solid fa-times"></i> Cancelar
+                </button>
+                <button class="btn-primary" onclick="importarCartazesJSON()">
+                    <i class="fa-solid fa-file-import"></i> Importar Cartazes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu Dropdown do Debug -->
+    <div id="debug-menu" class="debug-dropdown" style="display: none;">
+        <div class="debug-dropdown-header">
+            <i class="fa-solid fa-bug"></i>
+            <span>Ferramentas de Debug</span>
+        </div>
+        <button class="debug-dropdown-item" onclick="testarCartaz()">
+            <div class="debug-item-icon">
+                <i class="fa-solid fa-flask"></i>
+            </div>
+            <div class="debug-item-content">
+                <span class="debug-item-title">Testar cartaz</span>
+                <span class="debug-item-desc">Adicionar cartaz de teste</span>
+            </div>
+        </button>
+        <button class="debug-dropdown-item" onclick="testarFimSessao()">
+            <div class="debug-item-icon">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+            </div>
+            <div class="debug-item-content">
+                <span class="debug-item-title">Fim de sessão</span>
+                <span class="debug-item-desc">Simular inatividade</span>
+            </div>
+        </button>
+    </div>
+
     <script src="../js/script.js"></script>
+    <script src="../js/func-json.js"></script>
     <script src="../js/session-guard.js"></script>
-    <script src="../avisos/avisos-data.js"></script>
-    <script src="../avisos/avisos.js"></script>
 </body>
 </html>
