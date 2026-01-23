@@ -557,55 +557,98 @@ function removerItem(id) {
 // ==================================================
 
 // Função para fazer upload do JSON para o Worker
+// Função para fazer upload do JSON para o Worker (com logs)
 async function uploadJsonToWorker(payload) {
     const endpoint = 'https://json-cartazes.gab-oliveirab27.workers.dev/json';
-
+  
+    console.log('[uploadJsonToWorker] POST ->', endpoint);
+    // opcional: limitar ou sanitizar payload aqui
+  
     const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
     });
-
-    // tenta retornar JSON (ou lançará erro)
+  
+    // pega texto cru sempre (pra debug caso não seja JSON)
+    const text = await res.text();
+    let parsed;
+    try { parsed = JSON.parse(text); } catch { parsed = null; }
+  
+    console.log('[uploadJsonToWorker] resposta HTTP', res.status, res.statusText);
+    console.log('[uploadJsonToWorker] body recebido:', parsed !== null ? parsed : text);
+  
     if (!res.ok) {
-        // tenta obter erro detalhado do body
-        let errBody;
-        try { errBody = await res.json(); } catch { errBody = await res.text(); }
-        throw new Error('Upload failed: ' + (errBody && errBody.error ? errBody.error : JSON.stringify(errBody)));
+      // tenta extrair mensagem de erro do corpo
+      const errMsg = (parsed && parsed.error) ? parsed.error : (text || `${res.status} ${res.statusText}`);
+      throw new Error(errMsg);
     }
-
-    return res.json();
-}
+  
+    return parsed !== null ? parsed : { raw: text };
+  }
+  
 
 // Botão Enviar JSON (Upload para Worker do Cloudflare)
 document.getElementById('btn-enviar-json')?.addEventListener('click', async () => {
     if (carrinho.length === 0) {
-        showToast('warning', 'Carrinho vazio', 'Adicione cartazes antes de enviar');
-        return;
+      showToast('warning', 'Carrinho vazio', 'Adicione cartazes antes de enviar');
+      return;
     }
-    
-    const jsonData = gerarJSON();
-    
+  
+    // ler sessão com try/catch
+    let authSession = null;
     try {
-        showToast('info', 'Enviando...', 'Fazendo upload do JSON para o servidor');
-        
-        const resultado = await uploadJsonToWorker(jsonData);
-        
-        showToast('success', 'Enviado com sucesso!', `JSON enviado para o servidor. ${carrinho.length} cartazes processados.`);
-        
-        console.log('Resposta do servidor:', resultado);
-        
-        // Opcional: limpar carrinho após envio bem-sucedido
-        // carrinho = [];
-        // salvarCarrinho();
-        
-    } catch (error) {
-        console.error('Erro ao enviar JSON:', error);
-        showToast('error', 'Erro no envio', error.message || 'Não foi possível enviar o JSON ao servidor');
+      const raw = localStorage.getItem('authSession');
+      if (!raw) throw new Error('authSession não encontrada no localStorage');
+      authSession = JSON.parse(raw);
+    } catch (err) {
+      console.error('Erro lendo authSession:', err);
+      showToast('error', 'Sessão inválida', 'authSession não encontrada ou inválida');
+      return;
     }
-});
+  
+    // tentar várias chaves possíveis (compatibilidade)
+    const user = (authSession.user || authSession.username || authSession.email || '').toString().trim();
+    const filial = (authSession.filial || authSession.branch || authSession.store || '').toString().trim();
+  
+    if (!user || !filial) {
+      console.error('authSession disponível, mas faltam user/filial:', authSession);
+      showToast('error', 'Sessão incompleta', 'Usuário ou filial ausente em authSession');
+      return;
+    }
+  
+    // montar payload conforme a GAS espera
+    const payload = {
+      user: user,
+      filial: filial,
+      data: gerarJSON()
+    };
+  
+    // LOG para debug — verifique Network > Request Payload no DevTools
+    console.log('Payload enviado para o Worker:', payload);
+  
+    try {
+      showToast('info', 'Enviando...', 'Fazendo upload do JSON para o servidor');
+  
+      const resultado = await uploadJsonToWorker(payload);
+  
+      // resultado deve ser { success: true, fileName: '...' } (conforme a GAS)
+      console.log('Resposta do servidor:', resultado);
+      if (resultado && resultado.success) {
+        showToast('success', 'Enviado com sucesso!', `Arquivo salvo: ${resultado.fileName}`);
+      } else if (resultado && resultado.error) {
+        showToast('error', 'Erro no servidor', resultado.error);
+      } else {
+        showToast('success', 'Resposta recebida', JSON.stringify(resultado));
+      }
+    } catch (err) {
+      console.error('Erro ao enviar JSON:', err);
+      showToast('error', 'Erro no envio', err.message || 'Não foi possível enviar o JSON ao servidor');
+    }
+  });
+
 
 // Botão Ver/Copiar JSON
 document.getElementById('btn-ver-copiar-json')?.addEventListener('click', () => {
