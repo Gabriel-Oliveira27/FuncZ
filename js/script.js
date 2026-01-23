@@ -5,6 +5,187 @@ console.log('Script carregado com sucesso!');
 
 const API_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLic4iE63JAJ0j4KpGWfRFINeiD4uyCsMjfF_uLkUNzhOsJMzO4uiiZpWV3xzDjbduZK8kU_wWw3ZSCs6cODW2gdFnIGb6pZ0Lz0cBqMpiV-SBOJroENJHqO1XML_YRs_41KFfQOKEehUQmf-Xg6Xhh-bKiYpPxxwQhQzEMP5g0DdJHN4sgG_Fc9cdvRRU4abxlz_PzeQ_5eJ7NtCfxWuP-ET0DEzUyiWhWITlXMZKJMfwmZQg5--gKmAEGpwSr0yXi3eycr23BCGltlXGIWtYZ3I0WkWg&lib=M38uuBDbjNiNXY1lAK2DF9n3ltsPa6Ver";
 
+// ==================================================
+// DETECÇÃO DE DISPOSITIVO MÓVEL
+// ==================================================
+function isMobileDevice() {
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i;
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const isSmallScreen = window.innerWidth <= 768;
+    
+    return mobileRegex.test(userAgent.toLowerCase()) || (isTouchDevice && isSmallScreen);
+}
+
+function verificarDispositivoMobile() {
+    // Verificar se já foi mostrado o aviso (salvar em sessionStorage)
+    const avisoMostrado = sessionStorage.getItem('mobile_warning_shown');
+    
+    if (!avisoMostrado && isMobileDevice()) {
+        // Mostrar modal de aviso
+        document.getElementById('modal-mobile-warning').style.display = 'flex';
+        sessionStorage.setItem('mobile_warning_shown', 'true');
+    }
+}
+
+function irParaVersaoMobile() {
+    window.location.href = '../celular/mobile.html';
+}
+
+function fecharAvisoMobile() {
+    document.getElementById('modal-mobile-warning').style.display = 'none';
+    // Opcional: pode redirecionar para página inicial ou fechar aba
+    // window.close(); // Não funciona em todas as situações
+}
+
+// Verificar dispositivo ao carregar a página
+window.addEventListener('DOMContentLoaded', verificarDispositivoMobile);
+
+// ==================================================
+// SISTEMA DE PERMISSÕES E LOCALSTORAGE
+// ==================================================
+
+// Definir tipo de usuário (admin/suporte/usuario)
+// Para teste, defina manualmente. Em produção, isso viria de autenticação
+const TIPO_USUARIO = 'admin'; // ou 'suporte' ou 'usuario'
+
+// Validar se usuário tem permissão admin/suporte
+function isAdminOuSuporte() {
+    return TIPO_USUARIO === 'admin' || TIPO_USUARIO === 'suporte';
+}
+
+// Mostrar/ocultar aba Suporte baseado em permissão
+if (isAdminOuSuporte()) {
+    document.getElementById('suporte-section').style.display = 'block';
+}
+
+// Timer de inatividade (30 minutos = 1800000ms)
+let inactivityTimer;
+const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutos
+
+// Função para resetar o timer de inatividade
+function resetInactivityTimer() {
+    clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(() => {
+        limparSessao();
+    }, INACTIVITY_TIMEOUT);
+}
+
+// Função para limpar sessão e localStorage
+function limparSessao() {
+    console.log('Limpando sessão por inatividade...');
+    localStorage.clear();
+    products = [];
+    renderProducts();
+    showToast('info', 'Sessão encerrada', 'Seus dados foram limpos por inatividade.');
+}
+
+// Eventos que resetam o timer de inatividade
+['mousedown', 'keydown', 'scroll', 'touchstart', 'click'].forEach(event => {
+    document.addEventListener(event, resetInactivityTimer, true);
+});
+
+// Iniciar timer ao carregar página
+resetInactivityTimer();
+
+// ==================================================
+// FUNÇÕES DE LOCALSTORAGE PARA CARTAZES
+// ==================================================
+
+// Salvar cartazes no localStorage
+function salvarCartazesLocalStorage() {
+    try {
+        const dadosCartazes = {
+            versao: '1.0',
+            dataGeracao: new Date().toISOString(),
+            totalCartazes: products.length,
+            cartazes: products.map(p => ({
+                id: p.id,
+                codigo: p.codigo,
+                descricao: p.descricao,
+                subdescricao: p.subdescricao || '',
+                features: p.features,
+                metodo: p.metodo,
+                juros: p.juros,
+                avista: p.avista,
+                parcela: p.parcela,
+                motivo: p.motivo || '',
+                validade: p.validade || '',
+                autorizacao: p.autorizacao || '',
+                garantia12: p.garantia12 || 0,
+                garantia24: p.garantia24 || 0,
+                garantia36: p.garantia36 || 0
+            }))
+        };
+        localStorage.setItem('cartazes_salvos', JSON.stringify(dadosCartazes));
+        console.log(`✅ ${products.length} cartazes salvos no localStorage`);
+    } catch (error) {
+        console.error('❌ Erro ao salvar cartazes:', error);
+        showToast('error', 'Erro ao salvar', 'Não foi possível salvar os cartazes.');
+    }
+}
+
+// Carregar cartazes do localStorage
+function carregarCartazesLocalStorage() {
+    try {
+        const dados = localStorage.getItem('cartazes_salvos');
+        if (dados) {
+            const parsed = JSON.parse(dados);
+            console.log(`📦 ${parsed.totalCartazes} cartazes encontrados no localStorage`);
+            return parsed;
+        }
+        return null;
+    } catch (error) {
+        console.error('❌ Erro ao carregar cartazes:', error);
+        return null;
+    }
+}
+
+// Gerar JSON para download
+function gerarJSONCartazes() {
+    if (products.length === 0) {
+        showToast('warning', 'Nenhum cartaz', 'Não há cartazes para gerar JSON.');
+        return;
+    }
+    
+    const dadosCartazes = {
+        versao: '1.0',
+        dataGeracao: new Date().toISOString(),
+        totalCartazes: products.length,
+        cartazes: products.map(p => ({
+            id: p.id,
+            codigo: p.codigo,
+            descricao: p.descricao,
+            subdescricao: p.subdescricao || '',
+            features: p.features,
+            metodo: p.metodo,
+            juros: p.juros,
+            avista: p.avista,
+            parcela: p.parcela,
+            motivo: p.motivo || '',
+            validade: p.validade || '',
+            autorizacao: p.autorizacao || '',
+            garantia12: p.garantia12 || 0,
+            garantia24: p.garantia24 || 0,
+            garantia36: p.garantia36 || 0
+        }))
+    };
+    
+    // Criar blob e fazer download
+    const jsonString = JSON.stringify(dadosCartazes, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cartazes_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showToast('success', 'JSON gerado!', `${products.length} cartazes exportados com sucesso.`);
+}
+
 // Tabela de fatores para cálculo de parcelas
 const FATORES = {
     carne: {
@@ -601,6 +782,7 @@ productForm.addEventListener('submit', (e) => {
     };
 
     products.push(product);
+    salvarCartazesLocalStorage(); // Salvar no localStorage
     renderProducts();
     
     showToast('success', 'Produto adicionado!', `${descricao} foi adicionado com sucesso.`);
@@ -820,12 +1002,14 @@ window.deleteProduct = function(id) {
             const deletedIndex = products.findIndex(p => p.id === id);
             
             products = products.filter(p => p.id !== id);
+            salvarCartazesLocalStorage(); // Atualizar localStorage
             renderProducts();
             
             // Mostrar toast com opção de desfazer
             showUndoToast('Produto removido!', 'O produto foi removido da lista.', () => {
                 // Restaurar produto na mesma posição
                 products.splice(deletedIndex, 0, deletedProduct);
+                salvarCartazesLocalStorage(); // Atualizar localStorage
                 renderProducts();
                 showToast('success', 'Produto restaurado!', 'O produto foi adicionado novamente à lista.');
             });
@@ -1476,14 +1660,18 @@ function adicionarProdutoDaBusca(codigo) {
 // INICIALIZAÇÃO
 // ==================================================
 document.addEventListener('DOMContentLoaded', () => {
+    // Carregar cartazes salvos do localStorage (se existir)
+    const dadosSalvos = carregarCartazesLocalStorage();
+    if (dadosSalvos && dadosSalvos.cartazes && dadosSalvos.cartazes.length > 0) {
+        products = dadosSalvos.cartazes;
+        console.log(`📦 ${products.length} cartazes carregados do localStorage`);
+    }
+    
     renderProducts();
     updateHeader('gerar');
     
-    // Botão Debug
-    const btnDebug = document.getElementById('btn-debug');
-    if (btnDebug) {
-        btnDebug.addEventListener('click', gerarCartazesDebug);
-    }
+    // Botão Debug - agora é gerenciado pelo script-modals.js
+    // (removido daqui para evitar conflito com menu dropdown)
     
     // ✅ Event listener para busca em tempo real no modal
     const inputBusca = document.getElementById('busca-texto-input');
@@ -2162,6 +2350,7 @@ formCamaBox.addEventListener('submit', (e) => {
     };
     
     products.push(product);
+    salvarCartazesLocalStorage(); // Salvar no localStorage
     renderProducts();
     showToast('success', 'Cama Box adicionada!', 'Produto adicionado com sucesso.');
     
@@ -2369,6 +2558,7 @@ formMesaCadeiras.addEventListener('submit', (e) => {
     };
     
     products.push(product);
+    salvarCartazesLocalStorage(); // Salvar no localStorage
     renderProducts();
     showToast('success', 'Mesa e cadeiras adicionadas!', 'Produto adicionado com sucesso.');
     
@@ -2455,6 +2645,7 @@ formCamaMesaBanho.addEventListener('submit', (e) => {
     };
     
     products.push(product);
+    salvarCartazesLocalStorage(); // Salvar no localStorage
     renderProducts();
     showToast('success', 'Combo adicionado!', 'Produto adicionado com sucesso.');
     
