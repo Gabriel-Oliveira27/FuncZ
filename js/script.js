@@ -1,12 +1,7 @@
-// ==================================================
-// CONFIGURAÇÕES E VARIÁVEIS GLOBAIS
-// ==================================================
-console.log('Script carregado com sucesso!');
-
 const API_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLic4iE63JAJ0j4KpGWfRFINeiD4uyCsMjfF_uLkUNzhOsJMzO4uiiZpWV3xzDjbduZK8kU_wWw3ZSCs6cODW2gdFnIGb6pZ0Lz0cBqMpiV-SBOJroENJHqO1XML_YRs_41KFfQOKEehUQmf-Xg6Xhh-bKiYpPxxwQhQzEMP5g0DdJHN4sgG_Fc9cdvRRU4abxlz_PzeQ_5eJ7NtCfxWuP-ET0DEzUyiWhWITlXMZKJMfwmZQg5--gKmAEGpwSr0yXi3eycr23BCGltlXGIWtYZ3I0WkWg&lib=M38uuBDbjNiNXY1lAK2DF9n3ltsPa6Ver";
 
 // ==================================================
-// DETECÇÃO DE DISPOSITIVO MÓVEL
+// DETECÇÃO DE DISPOSITIVO MÓVEL (VALIDAÇÃO INFINITA)
 // ==================================================
 function isMobileDevice() {
     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
@@ -17,14 +12,61 @@ function isMobileDevice() {
     return mobileRegex.test(userAgent.toLowerCase()) || (isTouchDevice && isSmallScreen);
 }
 
-function verificarDispositivoMobile() {
-    // Verificar se já foi mostrado o aviso (salvar em sessionStorage)
-    const avisoMostrado = sessionStorage.getItem('mobile_warning_shown');
+// Validação infinita - executa SEMPRE que a página carrega
+function validacaoInfinitaMobile() {
+    if (isMobileDevice()) {
+        console.log('📱 Dispositivo móvel detectado - Aplicando restrições');
+        
+        // 1. Esconder TODO o conteúdo do cartazes
+        esconderConteudoDesktop();
+        
+        // 2. Mostrar modal de aviso
+        mostrarModalMobile();
+        
+        // 3. Criar botão de mobile no header (sempre visível)
+        criarBotaoMobileHeader();
+    }
+}
+
+// Esconder conteúdo desktop quando for mobile
+function esconderConteudoDesktop() {
+    const mainContent = document.getElementById('main-content');
+    if (mainContent) {
+        mainContent.style.display = 'none';
+    }
     
-    if (!avisoMostrado && isMobileDevice()) {
-        // Mostrar modal de aviso
-        document.getElementById('modal-mobile-warning').style.display = 'flex';
-        sessionStorage.setItem('mobile_warning_shown', 'true');
+    // Adicionar classe ao body
+    document.body.classList.add('mobile-detected');
+}
+
+// Mostrar modal para mobile (sempre que carregar)
+function mostrarModalMobile() {
+    const modal = document.getElementById('modal-mobile-warning');
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+}
+
+// Criar botão de mobile no header
+function criarBotaoMobileHeader() {
+    // Verificar se já existe
+    if (document.getElementById('btn-mobile-header')) {
+        return;
+    }
+    
+    const header = document.querySelector('.header-top') || document.querySelector('header') || document.body;
+    
+    const btnMobile = document.createElement('button');
+    btnMobile.id = 'btn-mobile-header';
+    btnMobile.className = 'btn-mobile-header';
+    btnMobile.innerHTML = '<i class="fa-solid fa-mobile-screen-button"></i> Versão Mobile';
+    btnMobile.onclick = irParaVersaoMobile;
+    
+    // Inserir no header
+    if (header.classList && header.classList.contains('header-top')) {
+        header.appendChild(btnMobile);
+    } else {
+        header.insertBefore(btnMobile, header.firstChild);
     }
 }
 
@@ -34,12 +76,40 @@ function irParaVersaoMobile() {
 
 function fecharAvisoMobile() {
     document.getElementById('modal-mobile-warning').style.display = 'none';
-    // Opcional: pode redirecionar para página inicial ou fechar aba
-    // window.close(); // Não funciona em todas as situações
+    // Redirecionar para selectsetor.html
+    window.location.href = '../selectsetor.html';
+}
+
+// Verificar a cada 2 segundos (validação contínua)
+function iniciarValidacaoContinua() {
+    setInterval(() => {
+        if (isMobileDevice()) {
+            const modal = document.getElementById('modal-mobile-warning');
+            const mainContent = document.getElementById('main-content');
+            
+            // Garantir que o conteúdo está escondido
+            if (mainContent && mainContent.style.display !== 'none') {
+                mainContent.style.display = 'none';
+            }
+            
+            // Garantir que tem o botão no header
+            if (!document.getElementById('btn-mobile-header')) {
+                criarBotaoMobileHeader();
+            }
+        }
+    }, 2000);
 }
 
 // Verificar dispositivo ao carregar a página
-window.addEventListener('DOMContentLoaded', verificarDispositivoMobile);
+window.addEventListener('DOMContentLoaded', () => {
+    validacaoInfinitaMobile();
+    iniciarValidacaoContinua();
+});
+
+// Verificar também ao redimensionar
+window.addEventListener('resize', () => {
+    validacaoInfinitaMobile();
+});
 
 // ==================================================
 // SISTEMA DE PERMISSÕES E LOCALSTORAGE
