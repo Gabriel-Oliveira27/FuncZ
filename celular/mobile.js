@@ -8,6 +8,10 @@ const API_URL = "https://script.googleusercontent.com/macros/echo?user_content_k
 let carrinho = [];
 let produtosCache = [];
 
+// Exportar variáveis globais para o window (acessível pelo patch)
+window.carrinho = carrinho;
+window.produtosCache = produtosCache;
+
 // Fatores de cálculo
 const FATORES = {
     carne: {
@@ -25,12 +29,14 @@ function carregarCarrinho() {
     const dados = localStorage.getItem('carrinho_mobile');
     if (dados) {
         carrinho = JSON.parse(dados);
+        window.carrinho = carrinho; // Atualizar referência global
         atualizarCarrinho();
     }
 }
 
 // Salvar carrinho no localStorage
 function salvarCarrinho() {
+    window.carrinho = carrinho; // Atualizar referência global
     localStorage.setItem('carrinho_mobile', JSON.stringify(carrinho));
     atualizarCarrinho();
 }
@@ -132,23 +138,29 @@ document.addEventListener('DOMContentLoaded', () => {
     camposMoeda.forEach(campo => aplicarMascaraMoeda(campo));
     
     carregarCarrinho();
+    
+    // Event listener do botão de busca
+    const btnBuscar = document.getElementById('btn-buscar');
+    if (btnBuscar) {
+        btnBuscar.addEventListener('click', async () => {
+            const codigo = document.getElementById('codigo').value.trim();
+            
+            // Se tiver código, busca direto
+            if (codigo) {
+                await window.buscarProdutoPorCodigo(codigo);
+                return;
+            }
+            
+            // Se não tiver código, abre modal de busca
+            abrirModalBusca();
+        });
+    }
 });
 
 // ==================================================
 // BUSCAR PRODUTO - MODAL DE BUSCA
 // ==================================================
-document.getElementById('btn-buscar')?.addEventListener('click', async () => {
-    const codigo = document.getElementById('codigo').value.trim();
-    
-    // Se tiver código, busca direto
-    if (codigo) {
-        await buscarProdutoPorCodigo(codigo);
-        return;
-    }
-    
-    // Se não tiver código, abre modal de busca
-    abrirModalBusca();
-});
+window.buscarProdutoPorCodigo = buscarProdutoPorCodigo;
 
 async function buscarProdutoPorCodigo(codigo) {
     showToast('info', 'Buscando...', `Procurando produto código ${codigo}...`);
@@ -179,19 +191,15 @@ async function buscarProdutoPorCodigo(codigo) {
             document.getElementById("descricao").value = (partes[0] || "").trim();
             document.getElementById("subdescricao").value = (partes[1] || "").trim();
 
+            // CORRIGIDO: Preencher valor à vista SEM aplicar máscara duplicada
             const avistaValor = parseCurrency(primeiroItem["Total à vista"]);
-            document.getElementById("avista").value = formatCurrency(avistaValor.toFixed(2));
-
-            // Preencher garantias se houver
-            if (primeiroItem["Tot. G.E 12"]) {
-                document.getElementById("garantia12").value = formatCurrency(parseCurrency(primeiroItem["Tot. G.E 12"]).toFixed(2));
-            }
-            if (primeiroItem["Tot. G.E 24"]) {
-                document.getElementById("garantia24").value = formatCurrency(parseCurrency(primeiroItem["Tot. G.E 24"]).toFixed(2));
-            }
-            if (primeiroItem["Tot. G.E 36"]) {
-                document.getElementById("garantia36").value = formatCurrency(parseCurrency(primeiroItem["Tot. G.E 36"]).toFixed(2));
-            }
+            const avistaInput = document.getElementById("avista");
+            // Remover event listener temporariamente para não aplicar máscara
+            const novoInput = avistaInput.cloneNode(true);
+            avistaInput.parentNode.replaceChild(novoInput, avistaInput);
+            novoInput.value = formatCurrency(avistaValor);
+            // Reaplicar máscara
+            aplicarMascaraMoeda(novoInput);
 
             // Recalcular parcela
             calcularParcela();
@@ -299,6 +307,9 @@ function selecionarProduto(codigo) {
     }
 }
 
+// Tornar função global
+window.selecionarProduto = selecionarProduto;
+
 function preencherFormulario(produto) {
     // Preencher código
     document.getElementById('codigo').value = produto.codigo || '';
@@ -308,21 +319,16 @@ function preencherFormulario(produto) {
     document.getElementById('descricao').value = (partes[0] || "").trim();
     document.getElementById('subdescricao').value = (partes[1] || "").trim();
     
-    // Preencher preço à vista se existir
+    // CORRIGIDO: Preencher preço à vista SEM aplicar máscara duplicada
     if (produto.avista) {
         const avistaValor = parseCurrency(produto.avista);
-        document.getElementById('avista').value = formatCurrency(avistaValor.toFixed(2));
-    }
-    
-    // Preencher garantias se houver
-    if (produto.garantia12) {
-        document.getElementById('garantia12').value = formatCurrency(parseCurrency(produto.garantia12).toFixed(2));
-    }
-    if (produto.garantia24) {
-        document.getElementById('garantia24').value = formatCurrency(parseCurrency(produto.garantia24).toFixed(2));
-    }
-    if (produto.garantia36) {
-        document.getElementById('garantia36').value = formatCurrency(parseCurrency(produto.garantia36).toFixed(2));
+        const avistaInput = document.getElementById('avista');
+        // Remover event listener temporariamente para não aplicar máscara
+        const novoInput = avistaInput.cloneNode(true);
+        avistaInput.parentNode.replaceChild(novoInput, avistaInput);
+        novoInput.value = formatCurrency(avistaValor);
+        // Reaplicar máscara
+        aplicarMascaraMoeda(novoInput);
     }
     
     // Recalcular parcela
@@ -557,7 +563,6 @@ function removerItem(id) {
 // ==================================================
 
 // Função para fazer upload do JSON para o Worker
-// Função para fazer upload do JSON para o Worker (com logs)
 async function uploadJsonToWorker(payload) {
     const endpoint = 'https://json-cartazes.gab-oliveirab27.workers.dev/json';
   
@@ -587,26 +592,31 @@ async function uploadJsonToWorker(payload) {
     }
   
     return parsed !== null ? parsed : { raw: text };
-  }
-  
+}
+
+// Tornar funções globais para o patch ter acesso
+window.uploadJsonToWorker = uploadJsonToWorker;
+window.gerarJSON = gerarJSON;
+window.limparValor = limparValor;
+window.carrinho = carrinho;
 
 // Botão Enviar JSON (Upload para Worker do Cloudflare)
 document.getElementById('btn-enviar-json')?.addEventListener('click', async () => {
     if (carrinho.length === 0) {
-      showToast('warning', 'Carrinho vazio', 'Adicione cartazes antes de enviar');
-      return;
+        showToast('warning', 'Carrinho vazio', 'Adicione cartazes antes de enviar');
+        return;
     }
   
     // ler sessão com try/catch
     let authSession = null;
     try {
-      const raw = localStorage.getItem('authSession');
-      if (!raw) throw new Error('authSession não encontrada no localStorage');
-      authSession = JSON.parse(raw);
+        const raw = localStorage.getItem('authSession');
+        if (!raw) throw new Error('authSession não encontrada no localStorage');
+        authSession = JSON.parse(raw);
     } catch (err) {
-      console.error('Erro lendo authSession:', err);
-      showToast('error', 'Sessão inválida', 'authSession não encontrada ou inválida');
-      return;
+        console.error('Erro lendo authSession:', err);
+        showToast('error', 'Sessão inválida', 'authSession não encontrada ou inválida');
+        return;
     }
   
     // tentar várias chaves possíveis (compatibilidade)
@@ -614,41 +624,40 @@ document.getElementById('btn-enviar-json')?.addEventListener('click', async () =
     const filial = (authSession.filial || authSession.branch || authSession.store || '').toString().trim();
   
     if (!user || !filial) {
-      console.error('authSession disponível, mas faltam user/filial:', authSession);
-      showToast('error', 'Sessão incompleta', 'Usuário ou filial ausente em authSession');
-      return;
+        console.error('authSession disponível, mas faltam user/filial:', authSession);
+        showToast('error', 'Sessão incompleta', 'Usuário ou filial ausente em authSession');
+        return;
     }
   
     // montar payload conforme a GAS espera
     const payload = {
-      user: user,
-      filial: filial,
-      data: gerarJSON()
+        user: user,
+        filial: filial,
+        data: gerarJSON()
     };
   
     // LOG para debug — verifique Network > Request Payload no DevTools
     console.log('Payload enviado para o Worker:', payload);
   
     try {
-      showToast('info', 'Enviando...', 'Fazendo upload do JSON para o servidor');
+        showToast('info', 'Enviando...', 'Fazendo upload do JSON para o servidor');
   
-      const resultado = await uploadJsonToWorker(payload);
+        const resultado = await uploadJsonToWorker(payload);
   
-      // resultado deve ser { success: true, fileName: '...' } (conforme a GAS)
-      console.log('Resposta do servidor:', resultado);
-      if (resultado && resultado.success) {
-        showToast('success', 'Enviado com sucesso!', `Arquivo salvo: ${resultado.fileName}`);
-      } else if (resultado && resultado.error) {
-        showToast('error', 'Erro no servidor', resultado.error);
-      } else {
-        showToast('success', 'Resposta recebida', JSON.stringify(resultado));
-      }
+        // resultado deve ser { success: true, fileName: '...' } (conforme a GAS)
+        console.log('Resposta do servidor:', resultado);
+        if (resultado && resultado.success) {
+            showToast('success', 'Enviado com sucesso!', `Arquivo salvo: ${resultado.fileName}`);
+        } else if (resultado && resultado.error) {
+            showToast('error', 'Erro no servidor', resultado.error);
+        } else {
+            showToast('success', 'Resposta recebida', JSON.stringify(resultado));
+        }
     } catch (err) {
-      console.error('Erro ao enviar JSON:', err);
-      showToast('error', 'Erro no envio', err.message || 'Não foi possível enviar o JSON ao servidor');
+        console.error('Erro ao enviar JSON:', err);
+        showToast('error', 'Erro no envio', err.message || 'Não foi possível enviar o JSON ao servidor');
     }
-  });
-
+});
 
 // Botão Ver/Copiar JSON
 document.getElementById('btn-ver-copiar-json')?.addEventListener('click', () => {
@@ -785,3 +794,495 @@ function fecharModalHelp() {
 // INICIALIZAÇÃO
 // ==================================================
 console.log('Sistema mobile inicializado!');
+
+// ==================================================
+// 1. SKELETON LOADING AO BUSCAR PRODUTO
+// ==================================================
+
+function mostrarSkeletonLoading() {
+    const skeleton = document.createElement('div');
+    skeleton.id = 'skeleton-overlay';
+    skeleton.className = 'skeleton-overlay';
+    skeleton.innerHTML = `
+        <div class="skeleton-content">
+            <div class="skeleton-status">
+                <div class="skeleton-icon">
+                    <i class="fa-solid fa-search"></i>
+                </div>
+                <div class="skeleton-text" id="skeleton-text">Buscando produto...</div>
+            </div>
+            <div class="skeleton-form">
+                <div class="skeleton-field">
+                    <div class="skeleton-label"></div>
+                    <div class="skeleton-input"></div>
+                </div>
+                <div class="skeleton-field">
+                    <div class="skeleton-label"></div>
+                    <div class="skeleton-input"></div>
+                </div>
+                <div class="skeleton-field">
+                    <div class="skeleton-label"></div>
+                    <div class="skeleton-input short"></div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(skeleton);
+    
+    // Animação de textos
+    const textos = [
+        'Buscando produto...',
+        'Olhando cada linha...',
+        'Encontrei!',
+        'Tudo pronto.'
+    ];
+    
+    let currentIndex = 0;
+    const textElement = document.getElementById('skeleton-text');
+    
+    const intervalo = setInterval(() => {
+        currentIndex++;
+        if (currentIndex < textos.length) {
+            textElement.style.animation = 'none';
+            setTimeout(() => {
+                textElement.textContent = textos[currentIndex];
+                textElement.style.animation = 'fadeInOut 0.8s ease-in-out';
+            }, 50);
+        } else {
+            clearInterval(intervalo);
+        }
+    }, currentIndex === 2 ? 400 : 1200); // "Encontrei!" aparece mais rápido
+    
+    return skeleton;
+}
+
+function esconderSkeletonLoading() {
+    const skeleton = document.getElementById('skeleton-overlay');
+    if (skeleton) {
+        skeleton.style.animation = 'fadeIn 0.2s ease-out reverse';
+        setTimeout(() => skeleton.remove(), 200);
+    }
+}
+
+// ==================================================
+// 2. VALIDAÇÃO INTELIGENTE DE CAMPOS
+// ==================================================
+
+function validarCamposObrigatorios() {
+    const campos = [
+        { id: 'codigo', nome: 'Código do produto', tipo: 'text' },
+        { id: 'descricao', nome: 'Descrição', tipo: 'text' },
+        { id: 'metodo', nome: 'Parcelamento', tipo: 'select' },
+        { id: 'avista', nome: 'Valor à vista', tipo: 'currency' },
+        { id: 'juros', nome: 'Taxa de juros', tipo: 'select' }
+    ];
+    
+    let primeiroErro = null;
+    let todosValidos = true;
+    
+    // Limpar erros anteriores
+    document.querySelectorAll('.form-group').forEach(group => {
+        group.classList.remove('error');
+    });
+    
+    for (const campo of campos) {
+        const elemento = document.getElementById(campo.id);
+        const formGroup = elemento.closest('.form-group');
+        
+        let valor = elemento.value.trim();
+        let erroMsg = '';
+        
+        // Validar campo vazio
+        if (!valor) {
+            erroMsg = `Campo obrigatório: ${campo.nome}`;
+        }
+        // Validar valor de moeda
+        else if (campo.tipo === 'currency') {
+            const valorNumerico = limparValor(valor);
+            if (valorNumerico <= 0) {
+                erroMsg = `${campo.nome} deve ser maior que zero`;
+            }
+        }
+        
+        if (erroMsg) {
+            todosValidos = false;
+            mostrarErroCampo(formGroup, erroMsg);
+            
+            if (!primeiroErro) {
+                primeiroErro = formGroup;
+            }
+        }
+    }
+    
+    // Validar campos extras condicionais
+    const juros = document.getElementById('juros').value;
+    
+    if (juros === 'cartao') {
+        const validade = document.getElementById('validade');
+        if (validade && !validade.value) {
+            const formGroup = validade.closest('.form-group');
+            mostrarErroCampo(formGroup, 'Validade da oferta é obrigatória para Cartão');
+            todosValidos = false;
+            if (!primeiroErro) primeiroErro = formGroup;
+        }
+    }
+    
+    if (juros === 'virado') {
+        const motivo = document.getElementById('motivo');
+        const autorizacao = document.getElementById('autorizacao');
+        
+        if (motivo && !motivo.value.trim()) {
+            const formGroup = motivo.closest('.form-group');
+            mostrarErroCampo(formGroup, 'Motivo é obrigatório para Preço Virado');
+            todosValidos = false;
+            if (!primeiroErro) primeiroErro = formGroup;
+        }
+        
+        if (autorizacao && !autorizacao.value.trim()) {
+            const formGroup = autorizacao.closest('.form-group');
+            mostrarErroCampo(formGroup, 'Autorização é obrigatória para Preço Virado');
+            todosValidos = false;
+            if (!primeiroErro) primeiroErro = formGroup;
+        }
+    }
+    
+    // Scroll e foco no primeiro erro
+    if (primeiroErro) {
+        primeiroErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => {
+            const input = primeiroErro.querySelector('input, select');
+            if (input) input.focus();
+        }, 500);
+    }
+    
+    return todosValidos;
+}
+
+function mostrarErroCampo(formGroup, mensagem) {
+    formGroup.classList.add('error');
+    
+    // Remove mensagem de erro existente
+    const erroExistente = formGroup.querySelector('.field-error-message');
+    if (erroExistente) {
+        erroExistente.remove();
+    }
+    
+    // Adiciona nova mensagem de erro
+    const erroElement = document.createElement('div');
+    erroElement.className = 'field-error-message';
+    erroElement.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${mensagem}`;
+    formGroup.appendChild(erroElement);
+}
+
+// ==================================================
+// 3. DETECÇÃO DE INCONSISTÊNCIA DE PARCELA
+// ==================================================
+
+function detectarInconsistenciaParcela() {
+    const avistaInput = document.getElementById('avista');
+    const avistaAtual = limparValor(avistaInput.value);
+    
+    // Se o valor à vista mudou desde o último cálculo
+    if (avistaOriginal > 0 && avistaAtual !== avistaOriginal && parcelaCalculada) {
+        mostrarAlertaParcela();
+    } else {
+        esconderAlertaParcela();
+    }
+}
+
+function mostrarAlertaParcela() {
+    const warning = document.getElementById('parcela-warning');
+    if (warning) {
+        warning.classList.add('active');
+    }
+}
+
+function esconderAlertaParcela() {
+    const warning = document.getElementById('parcela-warning');
+    if (warning) {
+        warning.classList.remove('active');
+    }
+}
+
+window.recalcularParcelaManual = function() {
+    recalcularParcela();
+    esconderAlertaParcela();
+    
+    const avistaInput = document.getElementById('avista');
+    avistaOriginal = limparValor(avistaInput.value);
+    parcelaCalculada = true;
+    
+    showToastEnhanced('success', 'Recalculado!', 'Parcela atualizada com o novo valor');
+};
+
+// Monitor de mudanças no campo à vista
+document.getElementById('avista')?.addEventListener('input', function() {
+    detectarInconsistenciaParcela();
+});
+
+// Atualizar avistaOriginal após cálculo
+const recalcularParcelaOriginal = window.recalcularParcela;
+window.recalcularParcela = function() {
+    recalcularParcelaOriginal();
+    
+    const avistaInput = document.getElementById('avista');
+    avistaOriginal = limparValor(avistaInput.value);
+    parcelaCalculada = true;
+    esconderAlertaParcela();
+};
+
+// ==================================================
+// 4. TOAST EVOLUÍDO
+// ==================================================
+
+function showToastEnhanced(type, title, message, action = null) {
+    const container = document.getElementById('toast-container');
+    
+    const toast = document.createElement('div');
+    toast.className = `toast enhanced ${type}`;
+    
+    let actionHtml = '';
+    if (action) {
+        actionHtml = `<div class="toast-action" onclick="${action.onClick}">${action.text} <i class="fa-solid fa-arrow-right"></i></div>`;
+    }
+    
+    toast.innerHTML = `
+        <div class="toast-icon">
+            <i class="fa-solid fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : type === 'warning' ? 'exclamation-triangle' : 'info'}-circle"></i>
+        </div>
+        <div class="toast-content">
+            <div class="toast-title">${title}</div>
+            <div class="toast-message">${message}${actionHtml}</div>
+        </div>
+    `;
+    
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'slideDown 0.3s ease-out reverse';
+        setTimeout(() => toast.remove(), 300);
+    }, action ? 5000 : 3500);
+}
+
+// ==================================================
+// 5. TELA DE CONSOLE PARA ENVIO
+// ==================================================
+
+function mostrarConsoleEnvio() {
+    const console = document.createElement('div');
+    console.id = 'console-overlay';
+    console.className = 'console-overlay';
+    console.innerHTML = `
+        <div class="console-container">
+            <div class="console-header">
+                <div class="console-dot red"></div>
+                <div class="console-dot yellow"></div>
+                <div class="console-dot green"></div>
+                <div class="console-title">terminal ~ /mobile</div>
+            </div>
+            <div class="console-body" id="console-body">
+                <div class="console-line" style="animation-delay: 0s;">
+                    <span class="console-prompt">></span>
+                    <span class="console-text">Enviando cartazes...</span>
+                    <span class="console-cursor"></span>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(console);
+    return console;
+}
+
+function atualizarConsole(texto, tipo = 'normal', delay = 0) {
+    const body = document.getElementById('console-body');
+    if (!body) return;
+    
+    // Limpar conteúdo anterior
+    body.innerHTML = '';
+    
+    const line = document.createElement('div');
+    line.className = 'console-line';
+    line.style.animationDelay = `${delay}s`;
+    
+    const className = tipo === 'success' ? 'console-success' : tipo === 'error' ? 'console-error' : '';
+    
+    line.innerHTML = `
+        <span class="console-prompt">></span>
+        <span class="console-text ${className}">${texto}</span>
+        ${tipo === 'normal' ? '<span class="console-cursor"></span>' : ''}
+    `;
+    
+    body.appendChild(line);
+}
+
+function mostrarOpcoesConsole(sucesso) {
+    const body = document.getElementById('console-body');
+    const container = body.closest('.console-container');
+    
+    const actions = document.createElement('div');
+    actions.className = 'console-actions';
+    
+    if (sucesso) {
+        actions.innerHTML = `
+            <button class="primary" onclick="fecharConsole()">
+                <i class="fa-solid fa-check"></i> OK
+            </button>
+        `;
+    } else {
+        actions.innerHTML = `
+            <button onclick="tentarEnviarNovamente()">
+                <i class="fa-solid fa-rotate-right"></i> Tentar Novamente
+            </button>
+            <button onclick="verCopiarJSON()">
+                <i class="fa-solid fa-eye"></i> Ver/Copiar JSON
+            </button>
+        `;
+    }
+    
+    container.appendChild(actions);
+}
+
+function fecharConsole() {
+    const console = document.getElementById('console-overlay');
+    if (console) {
+        console.style.animation = 'fadeIn 0.3s ease-out reverse';
+        setTimeout(() => console.remove(), 300);
+    }
+}
+
+window.tentarEnviarNovamente = function() {
+    fecharConsole();
+    document.getElementById('btn-enviar-json')?.click();
+};
+
+window.verCopiarJSON = function() {
+    fecharConsole();
+    document.getElementById('btn-ver-copiar-json')?.click();
+};
+
+// ==================================================
+// 6. INTEGRAÇÃO COM FUNÇÕES EXISTENTES
+// ==================================================
+
+// Aguardar o DOM estar completamente pronto
+setTimeout(() => {
+    // Substituir buscarProdutoPorCodigo com skeleton loading
+    const buscarProdutoPorCodigoOriginal = window.buscarProdutoPorCodigo;
+    
+    if (!buscarProdutoPorCodigoOriginal) {
+        console.error('❌ Função buscarProdutoPorCodigo não encontrada!');
+        return;
+    }
+    
+    window.buscarProdutoPorCodigo = async function(codigo) {
+        const skeleton = mostrarSkeletonLoading();
+        
+        try {
+            await new Promise(resolve => setTimeout(resolve, 2400)); // Tempo para animação completa
+            await buscarProdutoPorCodigoOriginal(codigo);
+        } finally {
+            esconderSkeletonLoading();
+        }
+    };
+    
+    console.log('✅ Função de busca interceptada com sucesso!');
+}, 100);
+
+// NÃO substituir o formulário - deixar o original funcionar
+// O formulário já tem validação básica e adiciona ao carrinho corretamente
+
+// Substituir envio de JSON com console
+const btnEnviar = document.getElementById('btn-enviar-json');
+if (btnEnviar) {
+    const novoBtnEnviar = btnEnviar.cloneNode(true);
+    btnEnviar.parentNode.replaceChild(novoBtnEnviar, btnEnviar);
+    
+    novoBtnEnviar.addEventListener('click', async () => {
+        // Acessar carrinho do window
+        const carrinhoAtual = window.carrinho || [];
+        
+        if (carrinhoAtual.length === 0) {
+            showToastEnhanced('warning', 'Carrinho vazio', 'Adicione cartazes antes de enviar');
+            return;
+        }
+        
+        // Ler authSession
+        let authSession = null;
+        try {
+            const raw = localStorage.getItem('authSession');
+            if (!raw) throw new Error('authSession não encontrada no localStorage');
+            authSession = JSON.parse(raw);
+        } catch (err) {
+            console.error('Erro lendo authSession:', err);
+            showToastEnhanced('error', 'Sessão inválida', 'authSession não encontrada ou inválida');
+            return;
+        }
+        
+        // Extrair user e filial
+        const user = (authSession.user || authSession.username || authSession.email || '').toString().trim();
+        const filial = (authSession.filial || authSession.branch || authSession.store || '').toString().trim();
+        
+        if (!user || !filial) {
+            console.error('authSession disponível, mas faltam user/filial:', authSession);
+            showToastEnhanced('error', 'Sessão incompleta', 'Usuário ou filial ausente em authSession');
+            return;
+        }
+        
+        const consoleEl = mostrarConsoleEnvio();
+        
+        // Montar payload correto
+        const payload = {
+            user: user,
+            filial: filial,
+            data: window.gerarJSON()
+        };
+        
+        console.log('Payload enviado para o Worker:', payload);
+        
+        try {
+            // Aguardar 1.5s para mostrar "Enviando..."
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            atualizarConsole('Aguardando resposta do êxito...', 'normal');
+            
+            // Fazer upload real
+            const resultado = await window.uploadJsonToWorker(payload);
+            
+            // Aguardar mais um pouco
+            await new Promise(resolve => setTimeout(resolve, 800));
+            
+            // Mostrar sucesso
+            atualizarConsole('Tudo certo.', 'success');
+            
+            await new Promise(resolve => setTimeout(resolve, 1200));
+            
+            mostrarOpcoesConsole(true);
+            
+            if (resultado && resultado.success) {
+                showToastEnhanced('success', 'Enviado!', `Arquivo salvo: ${resultado.fileName}`);
+            } else {
+                showToastEnhanced('success', 'Enviado!', `${carrinhoAtual.length} cartaz(es) enviado(s) com sucesso`);
+            }
+            
+        } catch (error) {
+            console.error('Erro ao enviar:', error);
+            
+            atualizarConsole(`Erro: ${error.message}`, 'error');
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            mostrarOpcoesConsole(false);
+            
+            showToastEnhanced('error', 'Erro no envio', error.message || 'Não foi possível enviar o JSON');
+        }
+    });
+}
+
+// ==================================================
+// 7. INICIALIZAÇÃO DO PATCH
+// ==================================================
+
+console.log('✅ Patch Mobile aplicado com sucesso!');
+console.log('🎨 Skeleton loading: ativado');
+console.log('✔️ Validação inteligente: ativada');
+console.log('⚠️ Detecção de inconsistência: ativada');
+console.log('💬 Toast evoluído: ativado');

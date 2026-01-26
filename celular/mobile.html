@@ -119,11 +119,17 @@
                     </div>
 
                     <!-- Valor da parcela -->
-                    <div class="form-group">
+                    <div class="form-group" id="form-group-parcela">
                         <label for="parcela">Valor da parcela</label>
                         <div class="input-currency">
                             <span>R$</span>
                             <input type="text" id="parcela" placeholder="0,00">
+                        </div>
+                        <!-- Alerta de inconsistência -->
+                        <div class="parcela-warning" id="parcela-warning">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>O valor à vista mudou. Recalcule a parcela.</span>
+                            <button type="button" onclick="recalcularParcelaManual()">Recalcular</button>
                         </div>
                     </div>
 
@@ -354,5 +360,6 @@
     </div>
 
     <script src="mobile.js"></script>
+    <script src="../js/session-guard.js"></script>
 </body>
 </html>
