@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de Cartazes - FuncZ</title>
+    <title>Gerador de Cartazes - Sistema Interno</title>
     <link rel="icon" type="image/png" href="/image/zenirlogo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
@@ -18,19 +18,19 @@
             <div class="mobile-warning-icon">
                 <i class="fa-solid fa-mobile-screen-button"></i>
             </div>
-            <h2 class="mobile-warning-title">Olá! Percebi que você está usando um dispositivo móvel</h2>
-            <p class="mobile-warning-text">
+            <h2 class="mobile-warning-title modal-mobile-title">Olá! Percebi que você está usando um dispositivo móvel</h2>
+            <p class="mobile-warning-text modal-mobile-message">
                 Infelizmente nossa plataforma não é muito adequada para dispositivos móveis devido à necessidade de uma impressora conectada. 
                 Porém você pode criar seus cartazes de uma outra maneira por aqui, usando uma versão otimizada para celular.
             </p>
             <div class="mobile-warning-buttons">
-                <button class="mobile-warning-btn mobile-warning-btn-yes" onclick="irParaVersaoMobile()">
+                <button class="mobile-warning-btn mobile-warning-btn-yes btn-mobile-yes" onclick="irParaVersaoMobile()">
                     <i class="fa-solid fa-check"></i>
                     Sim, gostaria de testar
                 </button>
-                <button class="mobile-warning-btn mobile-warning-btn-no" onclick="fecharAvisoMobile()">
+                <button class="mobile-warning-btn mobile-warning-btn-no btn-mobile-no" onclick="fecharAvisoMobile()">
                     <i class="fa-solid fa-times"></i>
-                    Não, sair
+                    Não, obrigado
                 </button>
             </div>
         </div>
@@ -58,6 +58,8 @@
         </div>
     </div>
 
+    <!-- Conteúdo principal (escondido em dispositivos móveis) -->
+    <div id="main-content">
     <div class="container">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -154,7 +156,7 @@
                     <span>Voltar ao início</span>
                 </button>
                 
-                <p>v4.0.0 • Sistema cartazes</p>
+                <p>v5.0.0 • Sistema cartazes</p>
                 <p>© 2025–2026 Gabriel Oliveira</p>
                 <p>Todos os direitos reservados.</p>
  
@@ -733,10 +735,6 @@
                                 <i class="fa-solid fa-cloud"></i>
                                 <span>Importar do Drive</span>
                             </button>
-                            <button class="sub-import-tab" data-sub-import-tab="local">
-                                <i class="fa-solid fa-upload"></i>
-                                <span>Upload do arquivo</span>
-                            </button>
                         </div>
 
                         <!-- Sub-conteúdo: Importar do Drive -->
@@ -1185,6 +1183,7 @@
                 <span class="debug-item-desc">Simular inatividade</span>
             </div>
         </button>
+    </div>
     </div>
 
     <script src="../js/script.js"></script>
