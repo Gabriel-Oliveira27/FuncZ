@@ -668,6 +668,126 @@ body {
     margin-bottom: 20px;
 }
 
+/* Switch de Modelos */
+.checkbox-wrapper-35 .switch {
+    display: none;
+}
+
+.checkbox-wrapper-35 .switch + label {
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+    color: #78768d;
+    cursor: pointer;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 15px;
+    position: relative;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.checkbox-wrapper-35 .switch + label::before,
+.checkbox-wrapper-35 .switch + label::after {
+    content: '';
+    display: block;
+}
+
+.checkbox-wrapper-35 .switch + label::before {
+    background-color: #6b7280;
+    border-radius: 500px;
+    height: 15px;
+    margin-right: 8px;
+    -webkit-transition: background-color 0.125s ease-out;
+    transition: background-color 0.125s ease-out;
+    width: 25px;
+}
+
+.checkbox-wrapper-35 .switch + label::after {
+    background-color: #fff;
+    border-radius: 13px;
+    box-shadow: 0 3px 1px 0 rgba(37, 34, 71, 0.05), 0 2px 2px 0 rgba(37, 34, 71, 0.1), 0 3px 3px 0 rgba(37, 34, 71, 0.05);
+    height: 13px;
+    left: 1px;
+    position: absolute;
+    top: 1px;
+    -webkit-transition: -webkit-transform 0.125s ease-out;
+    transition: -webkit-transform 0.125s ease-out;
+    transition: transform 0.125s ease-out;
+    transition: transform 0.125s ease-out, -webkit-transform 0.125s ease-out;
+    width: 13px;
+}
+
+.checkbox-wrapper-35 .switch + label .switch-x-text {
+    display: block;
+    margin-right: .3em;
+}
+
+.checkbox-wrapper-35 .switch + label .switch-x-toggletext {
+    display: block;
+    font-weight: bold;
+    height: 15px;
+    overflow: hidden;
+    position: relative;
+    width: 50px;
+}
+
+.checkbox-wrapper-35 .switch + label .switch-x-unchecked,
+.checkbox-wrapper-35 .switch + label .switch-x-checked {
+    left: 0;
+    position: absolute;
+    top: 0;
+    -webkit-transition: opacity 0.125s ease-out, -webkit-transform 0.125s ease-out;
+    transition: opacity 0.125s ease-out, -webkit-transform 0.125s ease-out;
+    transition: transform 0.125s ease-out, opacity 0.125s ease-out;
+    transition: transform 0.125s ease-out, opacity 0.125s ease-out, -webkit-transform 0.125s ease-out;
+}
+
+.checkbox-wrapper-35 .switch + label .switch-x-unchecked {
+    opacity: 1;
+    -webkit-transform: none;
+    transform: none;
+}
+
+.checkbox-wrapper-35 .switch + label .switch-x-checked {
+    opacity: 0;
+    -webkit-transform: translate3d(0, 100%, 0);
+    transform: translate3d(0, 100%, 0);
+}
+
+.checkbox-wrapper-35 .switch + label .switch-x-hiddenlabel {
+    position: absolute;
+    visibility: hidden;
+}
+
+.checkbox-wrapper-35 .switch:checked + label::before {
+    background-color: #10b981;
+}
+
+.checkbox-wrapper-35 .switch:checked + label::after {
+    -webkit-transform: translate3d(10px, 0, 0);
+    transform: translate3d(10px, 0, 0);
+}
+
+.checkbox-wrapper-35 .switch:checked + label .switch-x-unchecked {
+    opacity: 0;
+    -webkit-transform: translate3d(0, -100%, 0);
+    transform: translate3d(0, -100%, 0);
+}
+
+.checkbox-wrapper-35 .switch:checked + label .switch-x-checked {
+    opacity: 1;
+    -webkit-transform: none;
+    transform: none;
+}
+
 /* Linha de 4 colunas: Parcelamento, Valor à vista, Taxa, Parcela */
 .form-row-4cols {
     display: grid;
@@ -944,6 +1064,23 @@ input:checked + .slider:before {
     font-size: 14px;
 }
 
+.modelo-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.modelo-badge-cameba {
+    background-color: #d1fae5;
+    color: #065f46;
+    border: 1px solid #6ee7b7;
+}
+
 .product-preview {
     width: 200px;
     height: 280px;
@@ -1217,13 +1354,18 @@ input:checked + .slider:before {
 
 /* ⭐ AJUSTES DO ,90 BASEADO NO NÚMERO DE DÍGITOS ⭐ */
 
-/* 2 dígitos: fonte menor + ,90 vai 1,5cm DIREITA (1cm + 0,5cm extra) */
+/* 1 dígito: ,90 vai 3cm DIREITA */
+.poster-value-container[data-digits="1"] .poster-value-decimal {
+    margin-left: -50px; /* -157px + 114px = -43px (3cm direita) */
+}
+
+/* 2 dígitos: ,90 vai 0,5cm DIREITA */
 .poster-value-container[data-digits="2"] .poster-value-integer {
     font-size: 236pt; /* ⬇️ Diminui mais 2pt (238pt → 236pt) */
 }
 
 .poster-value-container[data-digits="2"] .poster-value-decimal {
-    margin-left: -100px; /* -119px + 19px = -100px (mais 0,5cm direita) */
+    margin-left: -90px; 
 }
 
 /* 3 dígitos: ,90 vai 1cm DIREITA */
@@ -1418,6 +1560,26 @@ input:checked + .slider:before {
     .product-details {
         grid-template-columns: repeat(2, 1fr);
     }
+}
+
+/* ==================================================
+   ⭐ LAYOUT ESPECIAL PARA MODELO CAMEBA ⭐
+   TODO O CONTEÚDO DESCE 5CM EM RELAÇÃO AO MODELO PADRÃO
+   ================================================== */
+.poster-cameba .poster-header {
+    top: 12.5cm !important; /* 10cm + 5cm = 15cm - Título/Nome/Características */
+}
+
+.poster-cameba .poster-price-section {
+    top: 17.5cm !important; /* 16cm + 5cm = 21cm - Preço grande (12x e R$) */
+}
+
+.poster-cameba .poster-validity {
+    top: 11.5cm !important; /* 9cm + 5cm = 14cm - Validade (canto superior direito) */
+}
+
+.poster-cameba .poster-footer-table {
+    top: 26cm !important; /* 23.2cm + 5cm = 28.2cm - Tabela do rodapé (termina em ~29.7cm - fim da página) */
 }
 
 /* Modal de Tabela de Fatores */
