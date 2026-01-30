@@ -1356,33 +1356,36 @@ input:checked + .slider:before {
 
 /* 1 dígito: ,90 vai 3cm DIREITA */
 .poster-value-container[data-digits="1"] .poster-value-decimal {
-    margin-left: -50px; /* -157px + 114px = -43px (3cm direita) */
+    margin-left: -50px; 
 }
 
 /* 2 dígitos: ,90 vai 0,5cm DIREITA */
 .poster-value-container[data-digits="2"] .poster-value-integer {
-    font-size: 236pt; /* ⬇️ Diminui mais 2pt (238pt → 236pt) */
+    font-size: 234pt; 
 }
 
 .poster-value-container[data-digits="2"] .poster-value-decimal {
     margin-left: -90px; 
 }
 
+.poster-value-container[data-digits="3"] .poster-value-integer {
+    font-size: 234pt;
+}
 /* 3 dígitos: ,90 vai 1cm DIREITA */
 .poster-value-container[data-digits="3"] .poster-value-decimal {
-    margin-left: -119px; /* -157px + 38px = -119px (1cm direita) */
+    margin-left: -135px;
 }
 
 /* 4 dígitos: usa distância padrão + fonte diminui 30% */
 .poster-value-container[data-digits="4"] .poster-value-decimal {
-    /* margin-left já está em -157px no padrão */
-    font-size: 56pt; /* 80pt - 30% = 56pt */
+  
+    font-size: 56pt; 
 }
 
-/* 5+ dígitos: mesma regra de 4 dígitos */
+
 .poster-value-container[data-digits="5"] .poster-value-decimal,
 .poster-value-container[data-digits="6"] .poster-value-decimal {
-    /* margin-left já está em -157px no padrão */
+   
     font-size: 56pt;
 }
 
@@ -1567,19 +1570,19 @@ input:checked + .slider:before {
    TODO O CONTEÚDO DESCE 5CM EM RELAÇÃO AO MODELO PADRÃO
    ================================================== */
 .poster-cameba .poster-header {
-    top: 12.5cm !important; /* 10cm + 5cm = 15cm - Título/Nome/Características */
+    top: 13cm !important; /* 10cm + 5cm = 15cm - Título/Nome/Características */
 }
 
 .poster-cameba .poster-price-section {
-    top: 17.5cm !important; /* 16cm + 5cm = 21cm - Preço grande (12x e R$) */
+    top: 18cm !important; /* 16cm + 5cm = 21cm - Preço grande (12x e R$) */
 }
 
 .poster-cameba .poster-validity {
-    top: 11.5cm !important; /* 9cm + 5cm = 14cm - Validade (canto superior direito) */
+    top: 12cm !important; /* 9cm + 5cm = 14cm - Validade (canto superior direito) */
 }
 
 .poster-cameba .poster-footer-table {
-    top: 26cm !important; /* 23.2cm + 5cm = 28.2cm - Tabela do rodapé (termina em ~29.7cm - fim da página) */
+    top: 26.5cm !important; /* 23.2cm + 5cm = 28.2cm - Tabela do rodapé (termina em ~29.7cm - fim da página) */
 }
 
 /* Modal de Tabela de Fatores */
