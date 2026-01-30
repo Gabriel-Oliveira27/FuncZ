@@ -675,7 +675,16 @@ btnBuscar.addEventListener("click", async () => {
   );
 
   try {
-    const resposta = await fetch(API_URL);
+    // 🔧 FIX: Adiciona timeout de 10 segundos para evitar travamento
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    const resposta = await fetch(API_URL, { 
+      signal: controller.signal,
+      cache: 'no-cache'
+    });
+    clearTimeout(timeoutId);
+
     if (!resposta.ok) throw new Error("Erro ao acessar a API");
 
     const dados = await resposta.json();
@@ -751,16 +760,25 @@ btnBuscar.addEventListener("click", async () => {
     }
   } catch (e) {
     console.error(e);
-    mostrarOverlayErro(
-      "Erro na busca",
-      "Não foi possível acessar o banco de dados",
-    );
+    
+    // 🔧 FIX: Mensagens de erro mais específicas
+    let errorTitle = "Erro na busca";
+    let errorMessage = "Não foi possível acessar o banco de dados";
+    let toastMessage = "Verifique sua internet e tente novamente.";
+    
+    if (e.name === 'AbortError') {
+      errorTitle = "Tempo esgotado";
+      errorMessage = "A conexão demorou muito para responder";
+      toastMessage = "O servidor está demorando. Tente novamente em alguns instantes.";
+    } else if (e.message.includes('fetch')) {
+      errorTitle = "Erro de conexão";
+      errorMessage = "Não foi possível conectar ao servidor";
+      toastMessage = "Verifique sua conexão com a internet.";
+    }
+    
+    mostrarOverlayErro(errorTitle, errorMessage);
     await new Promise((res) => setTimeout(res, 1500));
-    showToast(
-      "error",
-      "Erro na conexão",
-      "Verifique sua internet e tente novamente.",
-    );
+    showToast("error", errorTitle, toastMessage);
   } finally {
     ocultarOverlay();
   }
@@ -1494,12 +1512,20 @@ document
           false,
         );
         clone.style.cssText =
-          "position:absolute;left:-99999px;top:0;width:210mm;height:297mm;background:#fff";
+          "position:absolute;left:-99999px;top:0;width:210mm;height:297mm;background:#fff;margin:0;padding:0;box-sizing:border-box;";
         document.body.appendChild(clone);
 
         const canvas = await html2canvas(clone, {
           scale: 2,
           backgroundColor: "#fff",
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
+          removeContainer: false,
+          imageTimeout: 0,
+          // 🔧 FIX CROSS-BROWSER: Força rendering consistente
+          windowWidth: clone.scrollWidth,
+          windowHeight: clone.scrollHeight,
         });
         const img = canvas.toDataURL("image/jpeg", 1.0);
 
@@ -1932,7 +1958,16 @@ async function abrirModalBuscaTexto() {
   empty.style.display = "none";
 
   try {
-    const resposta = await fetch(API_URL);
+    // 🔧 FIX: Adiciona timeout de 10 segundos para evitar travamento
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    const resposta = await fetch(API_URL, { 
+      signal: controller.signal,
+      cache: 'no-cache'
+    });
+    clearTimeout(timeoutId);
+
     if (!resposta.ok) throw new Error("Erro ao acessar a API");
 
     const dados = await resposta.json();
@@ -1968,11 +2003,17 @@ async function abrirModalBuscaTexto() {
     console.error("Erro ao carregar produtos:", error);
     loading.style.display = "none";
     empty.style.display = "block";
-    showToast(
-      "error",
-      "Erro ao carregar",
-      "Não foi possível carregar os produtos da API.",
-    );
+    
+    // 🔧 FIX: Mensagens de erro mais específicas
+    let errorMessage = "Não foi possível carregar os produtos da API.";
+    
+    if (error.name === 'AbortError') {
+      errorMessage = "Tempo esgotado. O servidor está demorando. Tente novamente.";
+    } else if (error.message.includes('fetch')) {
+      errorMessage = "Erro de conexão. Verifique sua internet.";
+    }
+    
+    showToast("error", "Erro ao carregar", errorMessage);
   }
 }
 
