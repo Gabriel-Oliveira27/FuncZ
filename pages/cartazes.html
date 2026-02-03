@@ -144,7 +144,7 @@
                     <span>Voltar ao início</span>
                 </button>
                 
-                <p>v5.1.0 • Sistema cartazes</p>
+                <p>v5.2.1 • Sistema cartazes</p>
                 <p>© 2025–2026 Gabriel Oliveira</p>
                 <p>Todos os direitos reservados.</p>
  
@@ -322,6 +322,28 @@
                         <p id="products-count">0 produto(s) adicionado(s)</p>
                     </div>
                     <div id="products-actions" style="display: none; gap: 10px;">
+                        <!-- ✅ SISTEMA DE TAMANHOS (3 opções) -->
+                        <div style="display: flex; gap: 8px; padding: 8px 12px; background: #f3f4f6; border-radius: 8px; align-items: center;">
+                            <span style="font-size: 14px; font-weight: 600; color: #374151; margin-right: 8px;">
+                                <i class="fa-solid fa-expand"></i> Tamanho:
+                            </span>
+                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; color: #374151;">
+                                <input type="radio" name="tamanho-cartaz" value="1" style="cursor: pointer; width: 16px; height: 16px; accent-color: #2563eb;">
+                                <span>1 (+50%)</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; color: #374151;">
+                                <input type="radio" name="tamanho-cartaz" value="2" style="cursor: pointer; width: 16px; height: 16px; accent-color: #2563eb;">
+                                <span>2 (+33%)</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; color: #374151;">
+                                <input type="radio" name="tamanho-cartaz" value="3" style="cursor: pointer; width: 16px; height: 16px; accent-color: #2563eb;">
+                                <span>3 (+25%)</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; color: #6b7280;">
+                                <input type="radio" name="tamanho-cartaz" value="normal" checked style="cursor: pointer; width: 16px; height: 16px; accent-color: #6b7280;">
+                                <span>Normal</span>
+                            </label>
+                        </div>
                         <button id="btn-limpar-todos" class="btn-secondary">
                             <i class="fa-solid fa-trash"></i>
                             Limpar todos
@@ -701,6 +723,10 @@
                             <i class="fa-solid fa-barcode"></i>
                             <span>Agrupar por código similar</span>
                         </button>
+                        <button class="menu-agrupamento-item" onclick="alterarModoDoisCodigos()">
+                            <i class="fa-solid fa-layer-group"></i>
+                            <span>Criar com dois códigos</span>
+                        </button>
                     </div>
                 </div>
                 
@@ -873,6 +899,8 @@
     <script src="../js/script.js"></script>
     <script src="../js/func-json.js"></script>
     <script src="../js/session-guard.js"></script>
+    <script src="../js/teste.js"></script>
+    <script src="../js/proporcao.js"></script>
             
 </body>
 </html>
