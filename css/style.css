@@ -1347,7 +1347,7 @@ input:checked + .slider:before {
     transform-origin: left top; /* Alinha pelo topo */
     margin-top: -57px; /* ⭐ Sobe mais 0,5cm em TODOS (-38px - 19px = -57px) */
     padding-top: 0;
-    margin-left: -157px; /* Distância padrão (para 4+ dígitos) */
+    margin-left: -149px; /* ✅ Movido 0,2cm DIREITA (-157px + 8px = -149px) */
 }
 
 
@@ -1356,7 +1356,7 @@ input:checked + .slider:before {
 
 /* 1 dígito: ,90 vai 3cm DIREITA */
 .poster-value-container[data-digits="1"] .poster-value-decimal {
-    margin-left: -50px; 
+    margin-left: -42px; /* ✅ +8px para direita */
 }
 
 /* 2 dígitos: ,90 vai 0,5cm DIREITA */
@@ -1365,7 +1365,7 @@ input:checked + .slider:before {
 }
 
 .poster-value-container[data-digits="2"] .poster-value-decimal {
-    margin-left: -90px; 
+    margin-left: -82px; /* ✅ +8px para direita */
 }
 
 .poster-value-container[data-digits="3"] .poster-value-integer {
@@ -1373,7 +1373,7 @@ input:checked + .slider:before {
 }
 /* 3 dígitos: ,90 vai 1cm DIREITA */
 .poster-value-container[data-digits="3"] .poster-value-decimal {
-    margin-left: -135px;
+    margin-left: -122px; /* ✅ +8px para direita */
 }
 
 /* 4 dígitos: usa distância padrão + fonte diminui 30% */
@@ -1495,6 +1495,46 @@ input:checked + .slider:before {
     transform-origin: top left;
     width: 210mm;
     height: 297mm;
+    transition: transform 0.3s ease;
+}
+
+/* ========================================
+   ZOOM DOS CARTAZES (Tamanhos 1, 2, 3)
+   ======================================== */
+
+/* PREVIEW (miniatura 0.28 base) */
+.product-preview .poster.poster-zoom-1,
+.product-preview .poster-carne.poster-zoom-1 {
+    transform: scale(0.42) !important; /* 0.28 * 1.5 = 0.42 */
+}
+
+.product-preview .poster.poster-zoom-2,
+.product-preview .poster-carne.poster-zoom-2 {
+    transform: scale(0.373) !important; /* 0.28 * 1.333 = 0.373 */
+}
+
+.product-preview .poster.poster-zoom-3,
+.product-preview .poster-carne.poster-zoom-3 {
+    transform: scale(0.35) !important; /* 0.28 * 1.25 = 0.35 */
+}
+
+/* PDF/IMPRESSÃO (escala 1.0 base) */
+.poster.poster-zoom-1:not(.product-preview .poster),
+.poster-carne.poster-zoom-1:not(.product-preview .poster-carne) {
+    transform: scale(1.5) !important;
+    transform-origin: center;
+}
+
+.poster.poster-zoom-2:not(.product-preview .poster),
+.poster-carne.poster-zoom-2:not(.product-preview .poster-carne) {
+    transform: scale(1.333) !important;
+    transform-origin: center;
+}
+
+.poster.poster-zoom-3:not(.product-preview .poster),
+.poster-carne.poster-zoom-3:not(.product-preview .poster-carne) {
+    transform: scale(1.25) !important;
+    transform-origin: center;
 }
 
 .product-preview {
@@ -2544,6 +2584,68 @@ input[readonly] {
     cursor: default;
 }
 
+/* Linha selecionada no modo dois códigos */
+.busca-texto-table tr.selecionado {
+    background-color: #dbeafe !important;
+    border-left: 3px solid #3b82f6;
+}
+
+.busca-texto-table tr.selecionado:hover {
+    background-color: #bfdbfe !important;
+}
+
+/* Checkbox customizado */
+.produto-checkbox {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+    accent-color: #3b82f6;
+}
+
+.produto-checkbox:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Squircles de códigos selecionados */
+.squircles-container {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.codigo-squircle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: #3b82f6;
+    color: white;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.codigo-squircle:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.codigo-squircle span:last-child {
+    cursor: pointer;
+    opacity: 0.8;
+    font-size: 16px;
+    line-height: 1;
+}
+
+.codigo-squircle span:last-child:hover {
+    opacity: 1;
+    transform: scale(1.2);
+}
+
 /* =================================================
    DEBUG DROPDOWN - MENU MELHORADO
    ================================================= */
@@ -3531,4 +3633,4 @@ body.mobile-detected {
     font-size: 14px;
     color: var(--gray-800);
     font-weight: 700;
-}
+}   
