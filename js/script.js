@@ -2902,3 +2902,720 @@ btnCamposObrigatorios.addEventListener("click", () => {
     );
   }
 });
+
+/* ============================================================================
+   PATCH: FUNCIONALIDADE "CRIAR COM DOIS CÓDIGOS"
+   ============================================================================
+   
+   Este arquivo adiciona:
+   1. Modo de seleção de 2 produtos no modal de busca (com checkboxes)
+   2. Botão de confirmação para mesclar os 2 produtos selecionados
+   3. Busca por barra "/" no campo principal (ex: 110049/110050)
+   
+   IMPORTANTE: Este arquivo deve ser carregado APÓS o script.js
+   ============================================================================ */
+
+// ============================================================================
+// VARIÁVEIS GLOBAIS
+// ============================================================================
+let modoDoisCodigos = false;  // Flag para ativar/desativar modo de seleção
+let codigosSelecionados = []; // Array com os 2 códigos selecionados
+
+// ============================================================================
+// PARTE 1: SOBRESCREVER renderizarProdutos() PARA ADICIONAR CHECKBOXES
+// ============================================================================
+const renderizarProdutosOriginal = window.renderizarProdutos;
+
+window.renderizarProdutos = function() {
+  const tbody = document.getElementById("busca-texto-tbody");
+  const paginationDiv = document.getElementById("busca-texto-pagination");
+  const results = document.getElementById("busca-texto-results");
+  const empty = document.getElementById("busca-texto-empty");
+  const thead = document.querySelector(".busca-texto-table thead tr");
+  
+  console.log("🎨 Renderizando produtos. Total filtrado:", produtosFiltrados.length);
+  console.log("🔄 Modo dois códigos:", modoDoisCodigos);
+
+  // Adicionar/remover coluna de checkbox no header
+  let thCheckbox = document.getElementById("th-checkbox");
+  if (modoDoisCodigos && !thCheckbox) {
+    thCheckbox = document.createElement("th");
+    thCheckbox.id = "th-checkbox";
+    thCheckbox.style.width = "50px";
+    thCheckbox.style.textAlign = "center";
+    thCheckbox.innerHTML = '<i class="fa-solid fa-check-double"></i>';
+    thead.insertBefore(thCheckbox, thead.firstChild);
+  } else if (!modoDoisCodigos && thCheckbox) {
+    thCheckbox.remove();
+  }
+
+  // Se não houver produtos, mostrar mensagem vazia
+  if (produtosFiltrados.length === 0) {
+    console.log("⚠️ Nenhum produto encontrado");
+    results.style.display = "none";
+    empty.style.display = "block";
+    return;
+  }
+
+  results.style.display = "block";
+  empty.style.display = "none";
+
+  let produtosParaRenderizar = [...produtosFiltrados];
+  let htmlProdutos = "";
+
+  // Função helper para criar linha de produto
+  const criarLinhaProduto = (produto) => {
+    const isSelecionado = codigosSelecionados.includes(produto.codigo.toString());
+    
+    // Se estiver no modo dois códigos, adiciona checkbox
+    const checkboxHTML = modoDoisCodigos ? `
+      <td style="width: 50px; text-align: center; padding: 8px;">
+        <input type="checkbox" 
+               class="produto-checkbox" 
+               ${isSelecionado ? 'checked' : ''}
+               ${!isSelecionado && codigosSelecionados.length >= 2 ? 'disabled' : ''}
+               onchange="toggleCodigoSelecionado('${produto.codigo}')"
+               style="cursor: pointer; width: 18px; height: 18px;">
+      </td>
+    ` : '';
+    
+    const rowClass = modoDoisCodigos && isSelecionado ? "selecionado" : "";
+    
+    return `
+      <tr class="${rowClass}">
+        ${checkboxHTML}
+        <td style="width: 120px;">${produto.codigo}</td>
+        <td>${produto.descricao}</td>
+        <td style="width: 140px;">R$ ${produto.avista}</td>
+        <td style="width: 80px; text-align: center;">
+          ${!modoDoisCodigos ? `
+            <button class="btn-add-product" onclick="adicionarProdutoDaBusca('${produto.codigo}')">
+              <i class="fa-solid fa-plus"></i>
+            </button>
+          ` : ''}
+        </td>
+      </tr>
+    `;
+  };
+
+  // ====== APLICAR AGRUPAMENTO ======
+  if (modoAgrupamento === "marca") {
+    // Agrupar por marca
+    const grupos = {};
+    produtosParaRenderizar.forEach((produto) => {
+      const marca = extrairMarca(produto.descricao);
+      if (!grupos[marca]) grupos[marca] = [];
+      grupos[marca].push(produto);
+    });
+
+    const marcasOrdenadas = Object.keys(grupos).sort();
+
+    marcasOrdenadas.forEach((marca) => {
+      const colspan = modoDoisCodigos ? "5" : "4";
+      htmlProdutos += `
+        <tr class="group-header-row">
+          <td colspan="${colspan}" class="group-header">
+            <i class="fa-solid fa-tag"></i> ${marca} (${grupos[marca].length} produtos)
+          </td>
+        </tr>
+      `;
+
+      grupos[marca].forEach((produto) => {
+        htmlProdutos += criarLinhaProduto(produto);
+      });
+    });
+
+    tbody.innerHTML = htmlProdutos;
+    paginationDiv.innerHTML = "";
+  } else if (modoAgrupamento === "codigo") {
+    // Agrupar por código similar
+    const grupos = {};
+    produtosParaRenderizar.forEach((produto) => {
+      const prefixo = obterPrefixoCodigo(produto.codigo);
+      if (!grupos[prefixo]) grupos[prefixo] = [];
+      grupos[prefixo].push(produto);
+    });
+
+    const prefixosOrdenados = Object.keys(grupos).sort();
+
+    prefixosOrdenados.forEach((prefixo) => {
+      const colspan = modoDoisCodigos ? "5" : "4";
+      htmlProdutos += `
+        <tr class="group-header-row">
+          <td colspan="${colspan}" class="group-header">
+            <i class="fa-solid fa-barcode"></i> Código ${prefixo}*** (${grupos[prefixo].length} produtos)
+          </td>
+        </tr>
+      `;
+
+      grupos[prefixo].forEach((produto) => {
+        htmlProdutos += criarLinhaProduto(produto);
+      });
+    });
+
+    tbody.innerHTML = htmlProdutos;
+    paginationDiv.innerHTML = "";
+  } else {
+    // ====== SEM AGRUPAMENTO - COM PAGINAÇÃO ======
+    const totalPaginas = Math.ceil(produtosFiltrados.length / itensPorPagina);
+    const inicio = (paginaAtual - 1) * itensPorPagina;
+    const fim = inicio + itensPorPagina;
+    const produtosPagina = produtosFiltrados.slice(inicio, fim);
+
+    console.log(`📄 Página ${paginaAtual} de ${totalPaginas}`);
+
+    // Renderizar produtos
+    tbody.innerHTML = produtosPagina.map(produto => criarLinhaProduto(produto)).join("");
+
+    // Renderizar paginação
+    paginationDiv.innerHTML = "";
+
+    if (totalPaginas > 1) {
+      // Botão anterior
+      const btnPrev = document.createElement("button");
+      btnPrev.className = "pagination-btn";
+      btnPrev.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+      btnPrev.disabled = paginaAtual === 1;
+      btnPrev.onclick = () => {
+        if (paginaAtual > 1) {
+          paginaAtual--;
+          renderizarProdutos();
+        }
+      };
+      paginationDiv.appendChild(btnPrev);
+
+      // Páginas
+      for (let i = 1; i <= totalPaginas; i++) {
+        if (
+          i === 1 ||
+          i === totalPaginas ||
+          (i >= paginaAtual - 2 && i <= paginaAtual + 2)
+        ) {
+          const btnPage = document.createElement("button");
+          btnPage.className = "pagination-btn" + (i === paginaAtual ? " active" : "");
+          btnPage.textContent = i;
+          btnPage.onclick = () => {
+            paginaAtual = i;
+            renderizarProdutos();
+          };
+          paginationDiv.appendChild(btnPage);
+        } else if (i === paginaAtual - 3 || i === paginaAtual + 3) {
+          const ellipsis = document.createElement("span");
+          ellipsis.className = "pagination-info";
+          ellipsis.textContent = "...";
+          paginationDiv.appendChild(ellipsis);
+        }
+      }
+
+      // Botão próximo
+      const btnNext = document.createElement("button");
+      btnNext.className = "pagination-btn";
+      btnNext.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+      btnNext.disabled = paginaAtual === totalPaginas;
+      btnNext.onclick = () => {
+        if (paginaAtual < totalPaginas) {
+          paginaAtual++;
+          renderizarProdutos();
+        }
+      };
+      paginationDiv.appendChild(btnNext);
+
+      // Info de paginação
+      const info = document.createElement("span");
+      info.className = "pagination-info";
+      info.textContent = `${inicio + 1}-${Math.min(fim, produtosFiltrados.length)} de ${produtosFiltrados.length}`;
+      paginationDiv.appendChild(info);
+    }
+  }
+  
+  // Atualizar squircles e botão de confirmação
+  if (modoDoisCodigos) {
+    atualizarSquircles();
+    if (codigosSelecionados.length === 2) {
+      mostrarBotaoConfirmar();
+    } else {
+      esconderBotaoConfirmar();
+    }
+  }
+};
+
+// ============================================================================
+// PARTE 2: FUNÇÕES PARA O MODO DOIS CÓDIGOS
+// ============================================================================
+
+function alterarModoDoisCodigos() {
+  modoDoisCodigos = !modoDoisCodigos;
+  
+  // ✅ LIMPAR SELEÇÕES E SQUIRCLES AO ALTERNAR MODO
+  limparSelecoes();
+  
+  // Fechar menu
+  const menu = document.getElementById("menu-agrupamento");
+  const btnAgrupar = document.getElementById("btn-agrupar");
+  
+  if (menu) menu.style.display = "none";
+  if (btnAgrupar) btnAgrupar.classList.remove("active");
+  
+  // Resetar agrupamento
+  modoAgrupamento = "nenhum";
+  
+  // Re-renderizar produtos
+  paginaAtual = 1;
+  renderizarProdutos();
+  
+  if (modoDoisCodigos) {
+    showToast("info", "Modo ativado", "Selecione até 2 produtos para mesclar");
+  } else {
+    showToast("info", "Modo desativado", "Voltando ao modo normal");
+  }
+}
+
+function toggleCodigoSelecionado(codigo) {
+  codigo = codigo.toString();
+  const index = codigosSelecionados.indexOf(codigo);
+  
+  if (index >= 0) {
+    // Remove código
+    codigosSelecionados.splice(index, 1);
+    console.log("❌ Código removido:", codigo);
+  } else {
+    // Adiciona código (máx 2)
+    if (codigosSelecionados.length < 2) {
+      codigosSelecionados.push(codigo);
+      console.log("✅ Código adicionado:", codigo);
+    } else {
+      showToast("warning", "Limite atingido", "Você já selecionou 2 produtos");
+      // Re-renderizar para desmarcar checkbox
+      setTimeout(() => renderizarProdutos(), 50);
+      return;
+    }
+  }
+  
+  console.log("📋 Códigos selecionados:", codigosSelecionados);
+  renderizarProdutos();
+}
+
+// ✅ NOVA FUNÇÃO: Limpar seleções e squircles
+function limparSelecoes() {
+  codigosSelecionados = [];
+  
+  // Remover squircles
+  const container = document.querySelector('.squircles-container');
+  if (container) {
+    container.remove();
+  }
+  
+  // Esconder botão de confirmação
+  esconderBotaoConfirmar();
+  
+  console.log("🧹 Seleções limpas");
+}
+
+function atualizarSquircles() {
+  // Remover container antigo se existir
+  let container = document.querySelector('.squircles-container');
+  if (container) {
+    container.remove();
+  }
+  
+  // Se não tem códigos selecionados, não mostrar nada
+  if (codigosSelecionados.length === 0) {
+    return;
+  }
+  
+  // ✅ VERIFICAR SE MODAL ESTÁ ABERTO
+  const modal = document.getElementById("modal-busca-texto");
+  if (!modal || !modal.classList.contains("active")) {
+    // Modal fechado, não mostrar squircles
+    return;
+  }
+  
+  const inputBusca = document.getElementById("busca-texto-input");
+  if (!inputBusca) return;
+  
+  // Criar container
+  container = document.createElement('div');
+  container.className = 'squircles-container';
+  container.style.cssText = `
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  `;
+  
+  // Criar squircles
+  codigosSelecionados.forEach(codigo => {
+    const squircle = document.createElement('div');
+    squircle.className = 'codigo-squircle';
+    squircle.style.cssText = `
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: #3b82f6;
+      color: white;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+    `;
+    squircle.innerHTML = `
+      <span>${codigo}</span>
+      <span onclick="event.stopPropagation(); toggleCodigoSelecionado('${codigo}')" 
+            style="cursor: pointer; opacity: 0.8; hover: opacity: 1;">✕</span>
+    `;
+    container.appendChild(squircle);
+  });
+  
+  // Inserir antes do input
+  inputBusca.parentElement.insertBefore(container, inputBusca);
+}
+
+function mostrarBotaoConfirmar() {
+  let btnConfirmar = document.getElementById("btn-confirmar-dois-codigos");
+  
+  if (!btnConfirmar) {
+    btnConfirmar = document.createElement("button");
+    btnConfirmar.id = "btn-confirmar-dois-codigos";
+    btnConfirmar.className = "btn-primary";
+    btnConfirmar.style.cssText = `
+      width: 100%;
+      margin-top: 20px;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+    `;
+    btnConfirmar.innerHTML = `
+      <i class="fa-solid fa-check-double"></i>
+      Confirmar Mesclagem dos 2 Produtos
+    `;
+    btnConfirmar.onclick = processarDoisCodigos;
+    
+    // Inserir após a paginação
+    const paginationDiv = document.getElementById("busca-texto-pagination");
+    if (paginationDiv && paginationDiv.parentNode) {
+      paginationDiv.parentNode.insertBefore(btnConfirmar, paginationDiv.nextSibling);
+    }
+  }
+  
+  btnConfirmar.style.display = "flex";
+}
+
+function esconderBotaoConfirmar() {
+  const btnConfirmar = document.getElementById("btn-confirmar-dois-codigos");
+  if (btnConfirmar) {
+    btnConfirmar.style.display = "none";
+  }
+}
+
+function processarDoisCodigos() {
+  if (codigosSelecionados.length !== 2) {
+    showToast("error", "Erro", "Selecione exatamente 2 produtos");
+    return;
+  }
+  
+  console.log("🔄 Processando códigos:", codigosSelecionados);
+  
+  const produto1 = todosProdutos.find(p => p.codigo.toString() === codigosSelecionados[0]);
+  const produto2 = todosProdutos.find(p => p.codigo.toString() === codigosSelecionados[1]);
+  
+  if (!produto1 || !produto2) {
+    showToast("error", "Erro", "Não foi possível encontrar os produtos");
+    return;
+  }
+  
+  console.log("✅ Produtos encontrados:", produto1, produto2);
+  
+  // Separar descrição e marca
+  const partes1 = (produto1.descricao || "").split(" - ");
+  const partes2 = (produto2.descricao || "").split(" - ");
+  
+  const desc1 = (partes1[0] || "").trim();
+  const desc2 = (partes2[0] || "").trim();
+  const marca = (partes1[1] || partes2[1] || "").trim();
+  
+  // Preencher campos
+  document.getElementById("codigo").value = `${codigosSelecionados[0]}/${codigosSelecionados[1]}`;
+  document.getElementById("descricao").value = `${desc1}/${desc2}`;
+  document.getElementById("subdescricao").value = marca;
+  
+  // Somar valores à vista
+  const avista1 = parseCurrency(produto1.avista);
+  const avista2 = parseCurrency(produto2.avista);
+  const avistaTotal = avista1 + avista2;
+  
+  document.getElementById("avista").value = formatCurrency(avistaTotal.toFixed(2));
+  
+  showToast(
+    "success",
+    "Produtos mesclados",
+    `Códigos ${produto1.codigo} e ${produto2.codigo} combinados com sucesso!`
+  );
+  
+  // ✅ LIMPAR SELEÇÕES ANTES DE FECHAR MODAL
+  limparSelecoes();
+  
+  // Resetar modo
+  modoDoisCodigos = false;
+  
+  // Fechar modal
+  fecharModalBuscaTexto();
+}
+
+// ✅ SOBRESCREVER fecharModalBuscaTexto() para limpar ao fechar
+const fecharModalBuscaTextoOriginal = window.fecharModalBuscaTexto;
+
+window.fecharModalBuscaTexto = function() {
+  // ✅ LIMPAR SELEÇÕES AO FECHAR MODAL
+  limparSelecoes();
+  
+  // Chamar função original
+  if (fecharModalBuscaTextoOriginal) {
+    fecharModalBuscaTextoOriginal();
+  } else {
+    const modal = document.getElementById("modal-busca-texto");
+    if (modal) modal.classList.remove("active");
+  }
+};
+
+// ============================================================================
+// PARTE 3: BUSCA POR BARRA "/" NO CAMPO PRINCIPAL
+// ============================================================================
+
+async function buscarEMesclarProdutos(codigo1, codigo2) {
+  console.log(`🔍 Buscando códigos no formulário principal: ${codigo1} e ${codigo2}`);
+  
+  // ✅ MOSTRAR OVERLAY DE BUSCA
+  mostrarOverlayBusca(
+    "Buscando produtos",
+    `Procurando códigos ${codigo1} e ${codigo2}...`
+  );
+  
+  try {
+    // ✅ CARREGAR PRODUTOS DA API SE NECESSÁRIO
+    if (!window.todosProdutos || todosProdutos.length === 0) {
+      console.log("📦 Carregando produtos da API...");
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      const resposta = await fetch(API_URL, { 
+        signal: controller.signal,
+        cache: 'no-cache'
+      });
+      clearTimeout(timeoutId);
+
+      if (!resposta.ok) throw new Error("Erro ao acessar a API");
+
+      const dados = await resposta.json();
+      window.todosProdutos = [];
+
+      ["Gabriel", "Júlia", "Giovana"].forEach((nome) => {
+        if (dados[nome]) {
+          dados[nome].forEach((item) => {
+            if (item.Código && item.Descrição) {
+              todosProdutos.push({
+                codigo: item.Código,
+                descricao: item.Descrição,
+                avista: item["Total à vista"] || "0,00",
+                garantia12: item["Tot. G.E 12"] || "",
+              });
+            }
+          });
+        }
+      });
+      
+      console.log(`✅ ${todosProdutos.length} produtos carregados`);
+    }
+    
+    // ✅ BUSCAR PRODUTOS
+    const produto1 = todosProdutos.find(p => p.codigo.toString() === codigo1);
+    const produto2 = todosProdutos.find(p => p.codigo.toString() === codigo2);
+    
+    if (!produto1) {
+      esconderOverlay();
+      showToast("error", "Produto não encontrado", `Código ${codigo1} não existe`);
+      return false;
+    }
+    
+    if (!produto2) {
+      esconderOverlay();
+      showToast("error", "Produto não encontrado", `Código ${codigo2} não existe`);
+      return false;
+    }
+    
+    console.log("✅ Produtos encontrados:", produto1, produto2);
+    
+    // ✅ MOSTRAR SUCESSO
+    mostrarOverlaySucesso(
+      "Produtos encontrados",
+      "Preenchendo campos automaticamente..."
+    );
+    
+    await new Promise(res => setTimeout(res, 800));
+  
+  // Separar descrição e marca
+  const partes1 = (produto1.descricao || "").split(" - ");
+  const partes2 = (produto2.descricao || "").split(" - ");
+  
+  const desc1 = (partes1[0] || "").trim();
+  const desc2 = (partes2[0] || "").trim();
+  const marca = (partes1[1] || partes2[1] || "").trim();
+  
+  // Preencher campos
+  document.getElementById("codigo").value = `${codigo1}/${codigo2}`;
+  document.getElementById("descricao").value = `${desc1}/${desc2}`;
+  document.getElementById("subdescricao").value = marca;
+  
+  // Somar valores
+  const avista1 = parseCurrency(produto1.avista);
+  const avista2 = parseCurrency(produto2.avista);
+  const avistaTotal = avista1 + avista2;
+  
+  document.getElementById("avista").value = formatCurrency(avistaTotal.toFixed(2));
+  
+  esconderOverlay();
+  showToast("success", "Produtos mesclados", `Códigos ${codigo1} e ${codigo2} encontrados e mesclados!`);
+  
+  return true;
+  } catch (error) {
+    console.error("❌ Erro ao buscar produtos:", error);
+    esconderOverlay();
+    showToast("error", "Erro", "Não foi possível buscar os produtos");
+    return false;
+  }
+}
+
+// ✅ INTERCEPTAR O BOTÃO DE BUSCA (CAMPO PRINCIPAL)
+document.addEventListener('DOMContentLoaded', function() {
+  const btnBuscar = document.getElementById('btn-buscar');
+  const inputCodigo = document.getElementById('codigo');
+  
+  if (!btnBuscar || !inputCodigo) return;
+  
+  console.log("🔧 Configurando busca com barra no campo principal...");
+  
+  // Remover maxlength
+  inputCodigo.removeAttribute('maxlength');
+  
+  // ✅ CLONAR BOTÃO PARA REMOVER EVENTOS ANTIGOS
+  const btnBuscarNovo = btnBuscar.cloneNode(true);
+  btnBuscar.parentNode.replaceChild(btnBuscarNovo, btnBuscar);
+  
+  // ✅ ADICIONAR NOVO EVENTO
+  btnBuscarNovo.addEventListener('click', async function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const codigoValue = inputCodigo.value.trim();
+    
+    // Campo vazio = abrir modal
+    if (!codigoValue) {
+      if (typeof abrirModalBuscaTexto === 'function') {
+        abrirModalBuscaTexto();
+      }
+      return;
+    }
+    
+    // ✅ VERIFICAR SE TEM BARRA "/"
+    if (codigoValue.includes('/')) {
+      const codigos = codigoValue.split('/').map(c => c.trim()).filter(c => c);
+      
+      if (codigos.length !== 2) {
+        showToast("error", "Formato inválido", "Digite exatamente 2 códigos separados por /");
+        return;
+      }
+      
+      console.log("🔍 Detectada busca com barra:", codigos);
+      // ✅ BUSCA APENAS COM A FUNÇÃO DE MESCLAR (NÃO FAZ BUSCA DUPLICADA)
+      await buscarEMesclarProdutos(codigos[0], codigos[1]);
+      return; // ← IMPORTANTE: Sai aqui e não continua para a busca normal
+    }
+    
+    // ✅ CÓDIGO ÚNICO - BUSCA NORMAL DA API
+    console.log("🔍 Busca normal de código único:", codigoValue);
+    
+    mostrarOverlayBusca(
+      "Buscando informações",
+      `Procurando produto código ${codigoValue}...`
+    );
+    
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      const resposta = await fetch(API_URL, { 
+        signal: controller.signal,
+        cache: 'no-cache'
+      });
+      clearTimeout(timeoutId);
+
+      if (!resposta.ok) throw new Error("Erro ao acessar a API");
+
+      const dados = await resposta.json();
+      let encontrado = false;
+      let primeiroItem = null;
+
+      ["Gabriel", "Júlia", "Giovana"].forEach((nome) => {
+        if (dados[nome]) {
+          dados[nome].forEach((item) => {
+            if (item.Código == codigoValue) {
+              encontrado = true;
+              if (!primeiroItem) primeiroItem = item;
+            }
+          });
+        }
+      });
+
+      if (encontrado && primeiroItem) {
+        mostrarOverlaySucesso(
+          "Informações encontradas",
+          "Preenchendo campos automaticamente..."
+        );
+
+        await new Promise(res => setTimeout(res, 800));
+
+        const partes = (primeiroItem.Descrição || "").split(" - ");
+        document.getElementById("descricao").value = (partes[0] || "").trim();
+        document.getElementById("subdescricao").value = (partes[1] || "").trim();
+
+        const avistaValor = parseCurrency(primeiroItem["Total à vista"]);
+        document.getElementById("avista").value = formatCurrency(avistaValor.toFixed(2));
+
+        esconderOverlay();
+        showToast("success", "Produto encontrado", `Código ${codigoValue} carregado com sucesso!`);
+      } else {
+        esconderOverlay();
+        showToast("error", "Produto não encontrado", `O código ${codigoValue} não foi encontrado.`);
+      }
+    } catch (error) {
+      console.error("❌ Erro:", error);
+      esconderOverlay();
+      showToast("error", "Erro ao buscar", "Não foi possível acessar a API");
+    }
+  });
+  
+  // ✅ ENTER NO INPUT
+  inputCodigo.addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      btnBuscarNovo.click();
+    }
+  });
+  
+  console.log("✅ Busca com barra configurada no campo principal");
+});
+
+// ============================================================================
+// EXPORTAR FUNÇÕES GLOBAIS
+// ============================================================================
+window.alterarModoDoisCodigos = alterarModoDoisCodigos;
+window.toggleCodigoSelecionado = toggleCodigoSelecionado;
+window.buscarEMesclarProdutos = buscarEMesclarProdutos;
+window.limparSelecoes = limparSelecoes;
+
+console.log("✅ Patch 'Criar com dois códigos' carregado com sucesso!");
