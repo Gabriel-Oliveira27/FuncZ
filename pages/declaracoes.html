@@ -10,7 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
-    <!-- Header -->
+    <!-- Header Modernizado -->
     <header class="header">
         <div class="container-header">
             <button class="btn-voltar" id="btnVoltar">
@@ -20,11 +20,50 @@
                 Voltar
             </button>
             
+            <h1 class="header-title">Declaração de Devolução</h1>
 
+            <!-- Container dos Botões e Progresso -->
+            <div class="header-right" id="headerRight">
+                <!-- Botões de Ação Minimalistas -->
+                <div class="header-actions">
+                    <button class="btn-action-icon" id="btnLimparHeader" title="Limpar Campos">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                        <span class="btn-action-label">Limpar</span>
+                    </button>
+                    
+                    <button class="btn-action-icon" id="btnGerarPDFHeader" title="Gerar PDF">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <span class="btn-action-label">Gerar PDF</span>
+                    </button>
+
+                    <button class="btn-action-icon" id="btnFecharHeader" title="Fechar Formulário">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                        <span class="btn-action-label">Fechar</span>
+                    </button>
+                </div>
+
+                <!-- Barra de Progresso Compacta -->
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar-wrapper">
+                        <div class="progress-bar-fill" id="progressBarFill"></div>
+                    </div>
+                    <div class="progress-percentage" id="progressPercentage">0%</div>
+                </div>
+            </div>
         </div>
     </header>
 
-    <!-- Dashboard Container -->
+    <!-- Dashboard -->
     <div class="dashboard">
         <!-- Ícones Flutuantes -->
         <div class="icones-flutuantes" id="iconesFlutuantes">
@@ -59,6 +98,12 @@
 
         <!-- Botão Central -->
         <div class="botao-central" id="botaoCentral">
+            <!-- Boas-vindas -->
+            <div class="welcome-message">
+                <h1 class="welcome-title">👋 Olá, <span class="welcome-name" id="userName">Usuário</span>!</h1>
+                <p class="welcome-subtitle">Bem-vindo ao Sistema de Declaração de Devolução</p>
+            </div>
+
             <button class="botao-abrir-form" id="btnAbrirFormulario">
                 <div class="botao-icon">
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -66,79 +111,21 @@
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                     </svg>
                 </div>
-                <h2>Abrir Formulário de Preenchimento</h2>
-                <p>Preencha os dados da declaração de devolução</p>
+                <span class="botao-text">Abrir Formulário</span>
             </button>
         </div>
 
-        <!-- Formulário de Preenchimento -->
+        <!-- Formulário -->
         <div class="formulario-layout" id="formularioLayout">
-            <!-- Sidebar Esquerda -->
-            <aside class="sidebar">
-                <!-- Círculo de Progresso -->
-                <div class="progresso-card">
-                    <div class="progresso-header">
-                        <h3>Progresso</h3>
-                    </div>
-                    
-                    <div class="progress-ring">
-                        <svg class="progress-svg" viewBox="0 0 200 200">
-                            <defs>
-                                <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
-                                    <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
-                                </linearGradient>
-                            </defs>
-                            <circle class="progress-bg" cx="100" cy="100" r="90"></circle>
-                            <circle class="progress-bar" cx="100" cy="100" r="90"></circle>
-                        </svg>
-                        <div class="progress-label" id="progressoPorcentagem">0%</div>
-                    </div>
-
-                    <div class="progresso-info">
-                        <span id="progressoTexto">Preencha os campos obrigatórios</span>
-                    </div>
-                </div>
-
-                <!-- Botões de Ação -->
-                <div class="acoes-card">
-                    <button class="btn-acao btn-limpar" id="btnLimpar">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="3 6 5 6 21 6"></polyline>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                        </svg>
-                        Limpar Campos
-                    </button>
-                    
-                    <button class="btn-acao btn-gerar" id="btnGerarPDF">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="7 10 12 15 17 10"></polyline>
-                            <line x1="12" y1="15" x2="12" y2="3"></line>
-                        </svg>
-                        Gerar PDF
-                    </button>
-
-                    <button class="btn-acao btn-fechar" id="btnFecharFormulario">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                        Fechar Formulário
-                    </button>
-                </div>
-            </aside>
-
-            <!-- Conteúdo Principal -->
-            <main class="formulario-container">
+            <main class="formulario-container-full">
                 <div class="card">
                     <div class="card-header">
                         <h2 class="card-title">Declaração de Devolução</h2>
                     </div>
                     
                     <form id="formularioDeclaracao">
-                        <!-- Primeira Linha: NF-e | Nome | CPF | Filial -->
-                        <div class="form-row-4">
+                        <!-- NF-e | Nome | CPF | Filial -->
+                        <div class="form-row form-row-4">
                             <div class="form-group">
                                 <label for="numeroNFe">NF-e de Devolução</label>
                                 <input type="text" id="numeroNFe" placeholder="Nº NF-e">
@@ -151,9 +138,71 @@
                                 <label for="cpf">CPF <span class="obrigatorio">*</span></label>
                                 <input type="text" id="cpf" placeholder="000.000.000-00" maxlength="14">
                             </div>
-                            <div class="form-group form-small">
+                            <div class="form-group">
                                 <label for="filial">Filial <span class="obrigatorio">*</span></label>
-                                <input type="text" id="filial" placeholder="Filial">
+                                <select id="filial">
+                                    <option value="">Selecione</option>
+                                    <option value="02">Filial 02 - Iguatu II</option>
+                                    <option value="04">Filial 04 - Quixadá</option>
+                                    <option value="05">Filial 05 - Brejo Santo</option>
+                                    <option value="06">Filial 06 - Crato</option>
+                                    <option value="07">Filial 07 - Mombaça</option>
+                                    <option value="09">Filial 09 - Juazeiro I</option>
+                                    <option value="13">Filial 13 - Campos Sales</option>
+                                    <option value="14">Filial 14 - Tianguá II</option>
+                                    <option value="16">Filial 16 - General II</option>
+                                    <option value="17">Filial 17 - General</option>
+                                    <option value="21">Filial 21 - Crateús</option>
+                                    <option value="23">Filial 23 - Senador II</option>
+                                    <option value="24">Filial 24 - Acopiara</option>
+                                    <option value="25">Filial 25 - Maracanaú</option>
+                                    <option value="27">Filial 27 - Itapipoca</option>
+                                    <option value="28">Filial 28 - Iguatu III</option>
+                                    <option value="29">Filial 29 - Várzea Alegre</option>
+                                    <option value="30">Filial 30 - Assaré</option>
+                                    <option value="31">Filial 31 - Sobral II</option>
+                                    <option value="32">Filial 32 - Juazeiro II</option>
+                                    <option value="34">Filial 34 - Ubajara</option>
+                                    <option value="35">Filial 35 - Cedro</option>
+                                    <option value="36">Filial 36 - Icó</option>
+                                    <option value="37">Filial 37 - Parambu</option>
+                                    <option value="38">Filial 38 - Tabuleiro</option>
+                                    <option value="39">Filial 39 - Tauá</option>
+                                    <option value="40">Filial 40 - Montese</option>
+                                    <option value="41">Filial 41 - Horizonte</option>
+                                    <option value="42">Filial 42 - Limoeiro</option>
+                                    <option value="43">Filial 43 - Morada Nova</option>
+                                    <option value="45">Filial 45 - Maranguape</option>
+                                    <option value="46">Filial 46 - Missão Velha</option>
+                                    <option value="47">Filial 47 - Pacajus</option>
+                                    <option value="48">Filial 48 - Sobral III</option>
+                                    <option value="49">Filial 49 - Guaraciaba</option>
+                                    <option value="51">Filial 51 - Quixelô</option>
+                                    <option value="52">Filial 52 - Mauriti</option>
+                                    <option value="53">Filial 53 - Maracanaú II</option>
+                                    <option value="54">Filial 54 - Barbalha</option>
+                                    <option value="55">Filial 55 - Aracati</option>
+                                    <option value="56">Filial 56 - Messejana I</option>
+                                    <option value="57">Filial 57 - Kennedy</option>
+                                    <option value="58">Filial 58 - Papicu</option>
+                                    <option value="59">Filial 59 - Senador Pompeu</option>
+                                    <option value="60">Filial 60 - Pedra Branca</option>
+                                    <option value="61">Filial 61 - Caucaia II</option>
+                                    <option value="63">Filial 63 - Sobral IV</option>
+                                    <option value="65">Filial 65 - Senador IV</option>
+                                    <option value="66">Filial 66 - Iguatemi</option>
+                                    <option value="67">Filial 67 - Eusébio</option>
+                                    <option value="68">Filial 68 - Messejana II</option>
+                                    <option value="69">Filial 69 - Massapê</option>
+                                    <option value="70">Filial 70 - São Benedito</option>
+                                    <option value="71">Filial 71 - Cascavel</option>
+                                    <option value="72">Filial 72 - Floriano Peixoto</option>
+                                    <option value="73">Filial 73 - Aquiraz</option>
+                                    <option value="74">Filial 74 - Del Paseo</option>
+                                    <option value="75">Filial 75 - Jucás</option>
+                                    <option value="76">Filial 76 - Trairi</option>
+                                    <option value="77">Filial 77 - Camocim</option>
+                                </select>
                             </div>
                         </div>
 
@@ -163,25 +212,23 @@
                             <div id="listaProdutos"></div>
                         </div>
 
-                        <!-- Endereço | Bairro | Número | Cidade | UF -->
-                        <div class="form-row-5">
-                            <div class="form-group form-col-2">
+                        <!-- Endereço com busca automática | Bairro | Número | Cidade | UF -->
+                        <div class="form-row form-row-5">
+                            <div class="form-group">
                                 <label for="endereco">Endereço <span class="obrigatorio">*</span></label>
-                                <div class="input-group">
-                                    <input type="text" id="endereco" placeholder="Rua, Avenida...">
-                                    <button type="button" class="btn-search" id="btnBuscarCEP" title="Buscar por CEP">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <circle cx="11" cy="11" r="8"></circle>
-                                            <path d="m21 21-4.35-4.35"></path>
-                                        </svg>
-                                    </button>
+                                <div class="input-with-loader">
+                                    <input type="text" id="endereco" placeholder="CEP ou Endereço">
+                                    <div class="input-loader" id="enderecoLoader">
+                                        <div class="loader-spinner"></div>
+                                    </div>
                                 </div>
+                                <small class="field-hint" id="enderecoHint"> </small>
                             </div>
                             <div class="form-group">
                                 <label for="bairro">Bairro</label>
                                 <input type="text" id="bairro" placeholder="Bairro">
                             </div>
-                            <div class="form-group form-small">
+                            <div class="form-group">
                                 <label for="numero">Número</label>
                                 <input type="text" id="numero" placeholder="Nº">
                             </div>
@@ -189,14 +236,14 @@
                                 <label for="cidade">Cidade</label>
                                 <input type="text" id="cidade" placeholder="Cidade">
                             </div>
-                            <div class="form-group form-small">
+                            <div class="form-group">
                                 <label for="estado">UF</label>
                                 <input type="text" id="estado" placeholder="UF" maxlength="2">
                             </div>
                         </div>
 
                         <!-- PV | Cupom | Nova Compra | Novo PV -->
-                        <div class="form-row-4">
+                        <div class="form-row form-row-4">
                             <div class="form-group">
                                 <label for="pv">PV <span class="obrigatorio">*</span></label>
                                 <input type="text" id="pv" placeholder="PV">
@@ -220,9 +267,11 @@
                         </div>
 
                         <!-- Motivo -->
-                        <div class="form-group">
-                            <label for="motivoDevolucao">Motivo da Devolução <span class="obrigatorio">*</span></label>
-                            <textarea id="motivoDevolucao" rows="3" placeholder="Descreva o motivo da devolução"></textarea>
+                        <div class="form-section">
+                            <div class="form-group">
+                                <label for="motivoDevolucao">Motivo da Devolução <span class="obrigatorio">*</span></label>
+                                <textarea id="motivoDevolucao" rows="3" placeholder="Descreva o motivo da devolução"></textarea>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -230,31 +279,10 @@
         </div>
     </div>
 
-    <!-- Modal de Busca de CEP -->
-    <div id="modalCEP" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Buscar Endereço por CEP</h3>
-                <button class="modal-close" id="btnFecharModal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="inputCEP">Digite o CEP</label>
-                    <input type="text" id="inputCEP" placeholder="00000-000" maxlength="9">
-                </div>
-                <div id="resultadoCEP" class="resultado-cep"></div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" id="btnCancelarCEP">Cancelar</button>
-                <button class="btn-primary" id="btnPesquisarCEP">Pesquisar</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Modal de Confirmação -->
     <div id="modalConfirmacao" class="modal">
         <div class="modal-content modal-confirmacao">
-            <div class="modal-icon warning" id="modalIcon">
+            <div class="modal-icon warning">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
                     <line x1="12" y1="9" x2="12" y2="13"></line>
@@ -270,16 +298,30 @@
         </div>
     </div>
 
-    <!-- Overlay de Loading -->
+
+    <div id="overlayBuscaProduto" class="overlay-loading">
+        <div class="modern-loader">
+            <div class="loader-icon">
+                <div class="loader-lupa"></div>
+            </div>
+            <h3 class="loader-title">Buscando produto...</h3>
+        </div>
+    </div>
+
+
     <div id="overlayLoading" class="overlay-loading">
-        <div class="spinner"></div>
-        <p id="loadingText">Carregando...</p>
+        <div class="modern-loader">
+            <div class="loader-icon">
+                <div class="loader-seta"></div>
+            </div>
+            <h3 class="loader-title" id="loadingText">Gerando PDF...</h3>
+        </div>
     </div>
 
     <!-- Toast Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <!-- Script JavaScript -->
+    <!-- Scripts -->
     <script src="../js/declaracoes.js"></script>
     <script src="../js/session-guard.js"></script>
 </body>
