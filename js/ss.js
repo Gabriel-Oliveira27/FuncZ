@@ -26,12 +26,12 @@ const GAS_PRODUCTS_URL = 'https://script.google.com/macros/s/AKfycbzDpyIIi3x1Hu8
 
 /* Permissões */
 const permissionsMap = {
-  vendedor: ["vendas", "sobre"],
-  fat: ["vendas", "faturamento", "crediario", "sobre"],
-  ger: ["vendas", "faturamento", "crediario", "sobre"],
-  cred: ["vendas", "crediario", "sobre"],
-  admin: ["vendas", "faturamento", "crediario", "sobre", "admin"],
-  suporte: ["vendas", "faturamento", "crediario", "sobre", "admin"]
+  vendedor: ["vendas","suporte"],
+  fat: ["vendas", "faturamento", "sobre", "suporte"],
+  ger: ["vendas", "faturamento", "sobre", "admin", "suporte"],
+  cred: ["vendas", "faturamento", "sobre", "suporte"],
+  admin: ["vendas", "faturamento", "sobre", "admin", "suporte"],
+  suporte: ["vendas", "faturamento", "sobre", "admin", "suporte"]
 };
 
 /* Fallbacks locais */
@@ -890,7 +890,7 @@ function attachCardClicks() {
   showToast('Você não tem acesso a esta área.', 'error');
   return;
 }
-      const routeMap = { vendas: 'cartazes.html', faturamento: 'declaracoes.html', crediario: 'declaracoes.html', sobre: 'sobre.html', admin: 'admin.html' };
+      const routeMap = { vendas: 'cartazes.html', faturamento: 'declaracoes.html', crediario: 'declaracoes.html', sobre: 'sobre.html', admin: 'admin.html', suporte: '../suporte/suporte.html' };
       const target = routeMap[card.dataset.feature] || '#';
       if (target === '#') showToast('Rota não definida para este setor.', 'info');
       else window.location.href = target;
@@ -947,11 +947,8 @@ function bindActivityEvents() {
   resetIdleTimer();
 }
 
-/* UI Bindings - menu, lock, unlock, theme, login/logout */
+/* UI Bindings - theme, lock, unlock, login/logout (menu hamburguer removido) */
 function setupUiBindings() {
-  const menuButton = document.getElementById('menuButton');
-  const menuOverlay = document.getElementById('menuOverlay');
-  const menuDropdown = document.getElementById('menuDropdown');
   const themeToggle = document.getElementById('themeToggle');
   const lockButton = document.getElementById('lockButton');
   const loginButton = document.getElementById('loginButton');
@@ -959,26 +956,17 @@ function setupUiBindings() {
   const unlockButton = document.getElementById('unlockButton');
   const newsModeSelect = document.getElementById('newsModeSelect');
 
-  if (menuButton) {
-    menuButton.addEventListener('click', () => {
-      const isOpen = menuButton.classList.toggle('active');
-      if (menuOverlay) menuOverlay.classList.toggle('active', isOpen);
-      if (menuDropdown) menuDropdown.classList.toggle('active', isOpen);
-      menuButton.setAttribute('aria-expanded', String(isOpen));
-    });
-  }
-  if (menuOverlay) {
-    menuOverlay.addEventListener('click', () => {
-      if (menuButton) menuButton.classList.remove('active');
-      if (menuOverlay) menuOverlay.classList.remove('active');
-      if (menuDropdown) menuDropdown.classList.remove('active');
-    });
-  }
   if (themeToggle) {
     themeToggle.addEventListener('click', () => {
+      // Aplica a classe dark no elemento <html>
       document.documentElement.classList.toggle('dark');
-      const txt = document.documentElement.classList.contains('dark') ? 'Tema Claro' : 'Tema Escuro';
-      const themeText = document.getElementById('themeText'); if (themeText) themeText.textContent = txt;
+      const isDark = document.documentElement.classList.contains('dark');
+      const txt = isDark ? 'Tema Claro' : 'Tema Escuro';
+      const themeText = document.getElementById('themeText'); 
+      if (themeText) themeText.textContent = txt;
+      
+      // Salva preferência no localStorage
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
     });
   }
   if (lockButton) {
@@ -1013,7 +1001,7 @@ function setupUiBindings() {
         // stop rotator
         LockPanelRotator.stop();
         try {
-          const firstFocusable = document.querySelector('main button, main a, main [tabindex]:not([tabindex="-1"])');
+          const firstFocusable = document.querySelector('main button, main a, main [tabindex]:not([tabindex=\"-1\"])');
           if (firstFocusable) firstFocusable.focus({preventScroll:true});
         } catch(e){}
       }, 400);
@@ -1039,17 +1027,12 @@ function setupUiBindings() {
     });
   }
 
-  // ESC closes menus/lockscreen
+  // ESC closes lockscreen
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       const lock = document.getElementById('lockScreen');
-      const menuBtn = document.getElementById('menuButton');
       if (lock && lock.classList.contains('active')) {
         const unlockButton = document.getElementById('unlockButton'); if (unlockButton) unlockButton.click();
-      } else if (menuBtn && menuBtn.classList.contains('active')) {
-        menuBtn.classList.remove('active');
-        const menuOverlay = document.getElementById('menuOverlay'); if (menuOverlay) menuOverlay.classList.remove('active');
-        const menuDropdown = document.getElementById('menuDropdown'); if (menuDropdown) menuDropdown.classList.remove('active');
       }
     }
   });
@@ -1060,29 +1043,36 @@ function initWelcomeAndUi() {
   const auth = readAuthSession();
   const headline = document.getElementById('welcomeHeadline');
   const sub = document.getElementById('welcomeSub');
+  const userNameEl = document.getElementById('userName');
 
   if (!auth) {
-    if (headline) headline.innerText = 'Bem-vindo!';
+    if (headline) headline.innerHTML = 'Bem-vindo!';
     if (sub) sub.innerText = 'Faça login para continuar.';
+    if (userNameEl) userNameEl.textContent = 'Usuário';
     applyAccessControlsFromAuth(null);
     attachCardClicks();
     return;
   }
 
-  const name = firstName(auth.fullName);
-  const now = new Date(); const hours = now.getHours();
-  let greeting = 'Tenha um bom dia';
-  if (hours >= 5 && hours < 11) greeting = 'Tenha uma ótima manhã';
-  else if (hours >= 11 && hours < 13) greeting = 'Bom almoço — recarregue as energias!';
-  else if (hours >= 13 && hours < 17) greeting = 'Boa tarde — continue firme nas entregas!';
-  else if (hours >= 17 && hours < 18) greeting = 'Pôr do sol — aproveite o final do dia';
-  else if (hours >= 18) greeting = 'Boa noite — descanse e recupere as forças';
-
-  if (headline) headline.innerText = `Bem-vindo(a) ${name}!`;
-  if (sub) sub.innerText = greeting;
+  const name = firstName(auth.fullName || auth.user || 'Usuário');
+  
+  // Aplicar nome do usuário
+  if (userNameEl) userNameEl.textContent = name;
+  
+  // Mostrar card Admin se for admin ou suporte
+  const permRaw = auth && auth.perm ? String(auth.perm).toLowerCase() : '';
+  const cardAdmin = document.getElementById('card-admin');
+  if (cardAdmin) {
+    if (permRaw === 'admin' || permRaw === 'suporte') {
+      cardAdmin.style.display = 'flex';
+    } else {
+      cardAdmin.style.display = 'none';
+    }
+  }
 
   applyAccessControlsFromAuth(auth);
   attachCardClicks();
+  setupQuickReactions();
 }
 
 /* initial login state */
@@ -1101,8 +1091,155 @@ function initialLoginState() {
   }
 }
 
+/* Quick Reactions (sem toast e localStorage) */
+function setupQuickReactions() {
+  const container = document.getElementById('quickReactions');
+  if (!container) return;
+
+  const userName = getUserFirstName();
+  const phrase = getRandomPhraseForTime(userName);
+  
+  // Clear container
+  container.innerHTML = '';
+  
+  // Render phrase text
+  const textDiv = document.createElement('div');
+  textDiv.className = 'reaction-phrase';
+  textDiv.textContent = phrase.text;
+  textDiv.style.fontSize = '0.95rem';
+  textDiv.style.fontWeight = '500';
+  textDiv.style.marginBottom = '0.8rem';
+  textDiv.style.color = 'var(--foreground)';
+  container.appendChild(textDiv);
+  
+  // Render buttons if available
+  if (phrase.buttons && phrase.buttons.length > 0) {
+    const buttonsWrapper = document.createElement('div');
+    buttonsWrapper.className = 'reaction-buttons-wrapper';
+    buttonsWrapper.style.display = 'flex';
+    buttonsWrapper.style.gap = '0.6rem';
+    buttonsWrapper.style.justifyContent = 'center';
+    buttonsWrapper.style.flexWrap = 'wrap';
+    
+    phrase.buttons.forEach((button, index) => {
+      const btn = document.createElement('button');
+      btn.className = 'reaction-btn';
+      btn.dataset.index = index;
+      
+      const emoji = document.createElement('span');
+      emoji.className = 'reaction-emoji';
+      emoji.textContent = button.emoji;
+      
+      const text = document.createElement('span');
+      text.className = 'reaction-text';
+      text.textContent = button.text;
+      
+      btn.appendChild(emoji);
+      btn.appendChild(text);
+      
+      btn.addEventListener('click', function() {
+        // Find all buttons
+        const allBtns = buttonsWrapper.querySelectorAll('.reaction-btn');
+        
+        // Check if already selected
+        if (this.classList.contains('selected')) return;
+        
+        // Mark as selected and float it
+        this.classList.add('selected');
+        this.style.animation = 'floatBtn 0.5s ease forwards';
+        
+        // Hide other buttons with fade
+        allBtns.forEach((otherBtn) => {
+          if (otherBtn !== this) {
+            otherBtn.style.opacity = '0';
+            otherBtn.style.transform = 'scale(0.8)';
+            otherBtn.style.transition = 'all 0.3s ease';
+            setTimeout(() => {
+              otherBtn.style.display = 'none';
+            }, 300);
+          }
+        });
+      });
+      
+      buttonsWrapper.appendChild(btn);
+    });
+    
+    container.appendChild(buttonsWrapper);
+  }
+}
+
+function getUserFirstName() {
+  const auth = readAuthSession();
+  return firstName(auth?.fullName || auth?.user || 'Usuário');
+}
+
+function getRandomPhraseForTime(user) {
+  const hour = new Date().getHours();
+  let phrases = [];
+  
+  // Manhã (5-11)
+  if (hour >= 5 && hour < 12) {
+    phrases = [
+      { text: `Bom dia, ${user}! Café na mão? Vamos encher esta loja de cartazes novos!`, buttons: [] },
+      { 
+        text: `Portas abertas! Como está a energia para as vendas de hoje?`, 
+        buttons: [
+          { emoji: '⚡', text: 'Total' },
+          { emoji: '☕', text: 'Preciso de café' }
+        ]
+      },
+      { text: `Hoje o dia promete! O que vamos organizar primeiro?`, buttons: [] }
+    ];
+  }
+  // Almoço (12-14)
+  else if (hour >= 12 && hour < 15) {
+    phrases = [
+      { 
+        text: `Como está a correria por aí agora?`, 
+        buttons: [
+          { emoji: '🍃', text: 'Calmo' },
+          { emoji: '😐', text: 'Normal' },
+          { emoji: '🔥', text: 'Uma loucura!' }
+        ]
+      },
+      { text: `${user}, o movimento hoje está mais para 'Black Friday' ou 'segunda-feira chuvosa'?`, buttons: [] },
+      { text: `Hora do check-in: Numa escala de 0 a 10, quão produtiva está sendo sua jornada hoje?`, buttons: [] },
+      { text: `Dando uma pausa para respirar? Como está o clima na loja hoje?`, buttons: [] }
+    ];
+  }
+  // Tarde (15-18)
+  else if (hour >= 15 && hour < 19) {
+    phrases = [
+      { text: `Ufa! O movimento foi grande hoje? Não esqueça de conferir as vendas antes de fechar.`, buttons: [] },
+      { text: `Dia produtivo por aí, ${user}? Bora dar aquela conferida final nas vendas e fechar com chave de ouro!`, buttons: [] },
+      { text: `O expediente está quase no fim! Hora de ver o resultado do esforço de hoje nas vendas. Como fomos?`, buttons: [] }
+    ];
+  }
+  // Noite/Madrugada (19-4)
+  else {
+    phrases = [
+      { text: `Olá, ${user}! Como está o movimento na loja hoje?`, buttons: [] }
+    ];
+  }
+  
+  // Random select
+  return phrases[Math.floor(Math.random() * phrases.length)];
+}
+
 /* Boot */
 document.addEventListener('DOMContentLoaded', async () => {
+  // Restore saved theme FIRST before anything renders
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'dark') {
+    document.documentElement.classList.add('dark');
+    const themeText = document.getElementById('themeText');
+    if (themeText) themeText.textContent = 'Tema Claro';
+  } else {
+    document.documentElement.classList.remove('dark');
+    const themeText = document.getElementById('themeText');
+    if (themeText) themeText.textContent = 'Tema Escuro';
+  }
+
   ensureToastContainer();
   setupUiBindings();
   initWelcomeAndUi();
@@ -1114,6 +1251,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // If lockScreen is already active on load, start clock and update
   if (document.querySelector('#lockScreen.active')) { startClock(); await updateLockScreen(); }
+
+  // Footer: populate year and user info
+  const currentYear = new Date().getFullYear();
+  const footerYear = document.getElementById('footer-year');
+  const footerCopyrightYear = document.getElementById('footer-copyright-year');
+  const footerUser = document.getElementById('footer-user');
+  
+  if (footerYear) footerYear.textContent = currentYear;
+  if (footerCopyrightYear) footerCopyrightYear.textContent = currentYear;
+  
+  const auth = readAuthSession();
+  if (footerUser && auth) {
+    const userName = firstName(auth.fullName || auth.user || 'Usuário');
+    footerUser.textContent = userName;
+  }
 
   // expose helpers for debug/testing
   window.ss_utils = {
@@ -1129,9 +1281,3 @@ document.addEventListener('DOMContentLoaded', async () => {
     getStoredCoords
   };
 });
-
-
-
-
-
-
