@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central de Suporte - Grupo Zenir</title>
+    <link rel="stylesheet" href="suporte.css">
+    <link rel="icon" type="image/png" href="../image/zenirlogo.png">
+</head>
+<body data-theme="light">
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <a href="../pages/selectsetor.html" class="logo-link">
+            <img src="../image/bigbanner.png" alt="Zenir Logo" class="logo-img">
+        </a>
+        <div class="header-actions">
+            <button class="header-btn" id="themeToggle" aria-label="Alternar tema">
+                <svg class="icon" id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+                <span id="themeText">Tema Escuro</span>
+            </button>
+            <button class="header-btn" id="backButton" aria-label="Voltar">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                <span>Voltar</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Welcome Section -->
+        <section class="welcome-section">
+            <div class="welcome-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5a9 9 0 0 1 18 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"></path>
+                </svg>
+            </div>
+            <h1 class="welcome-title">Central de Suporte</h1>
+            <p class="welcome-subtitle">Como podemos ajudar você hoje?</p>
+        </section>
+
+        <!-- Main Cards Grid -->
+        <div class="cards-grid" id="mainCards">
+            <!-- Card Suporte Sistema -->
+            <div class="support-card" data-section="sistema">
+                <div class="card-icon card-icon-sistema">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                </div>
+                <h2 class="card-title">Suporte Sistema</h2>
+                <p class="card-description">Problemas com sistemas FuncZ, Odoo ou outros sistemas internos</p>
+                <button class="card-btn">
+                    <span>Acessar</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Card Suporte Usuários -->
+            <div class="support-card" data-section="usuarios">
+                <div class="card-icon card-icon-usuarios">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                </div>
+                <h2 class="card-title">Suporte Usuários</h2>
+                <p class="card-description">Informações de atendimento e contatos disponíveis</p>
+                <button class="card-btn">
+                    <span>Acessar</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Card Suporte Ramais -->
+            <div class="support-card" data-section="ramais">
+                <div class="card-icon card-icon-ramais">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                    </svg>
+                </div>
+                <h2 class="card-title">Lista de Ramais</h2>
+                <p class="card-description">Buscar e visualizar todos os ramais da empresa</p>
+                <button class="card-btn">
+                    <span>Acessar</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Section: Suporte Sistema (Chatbot) -->
+        <div class="section-content" id="sistema-content" style="display: none;">
+            <div class="section-header">
+                <button class="back-btn" data-back="sistema">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    <span>Voltar</span>
+                </button>
+                <h2>Suporte Sistema</h2>
+            </div>
+
+            <div class="chatbot-container">
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Mensagens do chatbot aparecerão aqui -->
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" id="chatInput" placeholder="Digite sua resposta...">
+                    <button class="send-btn" id="sendBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
+                </div>
+                <button class="reset-chat-btn" id="resetChatBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="1 4 1 10 7 10"></polyline>
+                        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                    </svg>
+                    Reiniciar Conversa
+                </button>
+            </div>
+        </div>
+
+        <!-- Section: Suporte Usuários -->
+        <div class="section-content" id="usuarios-content" style="display: none;">
+            <div class="section-header">
+                <button class="back-btn" data-back="usuarios">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    <span>Voltar</span>
+                </button>
+                <h2>Suporte Usuários</h2>
+            </div>
+
+            <div class="info-cards-grid">
+                <!-- Card Horários -->
+                <div class="info-card">
+                    <div class="info-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </div>
+                    <h3>Horários de Atendimento</h3>
+                    <div class="info-content">
+                        <div class="info-item">
+                            <strong>Segunda a Sexta</strong>
+                            <p>08h às 12h e 14h às 18h</p>
+                        </div>
+                        <div class="info-item">
+                            <strong>Sábado</strong>
+                            <p>08h às 13h</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Contatos -->
+                <div class="info-card">
+                    <div class="info-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                        </svg>
+                    </div>
+                    <h3>Contato por Telefone</h3>
+                    <div class="info-content">
+                        <div class="info-item">
+                            <strong>Ramal FuncZ</strong>
+                            <p class="highlight-text">302 (Karolinne)</p>
+                        </div>
+                        <div class="info-item">
+                            <strong>WhatsApp</strong>
+                            <p class="highlight-text">(88) 98856-8911</p>
+                            <small>Apenas se urgente</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Email -->
+                <div class="info-card">
+                    <div class="info-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                            <polyline points="22,6 12,13 2,6"></polyline>
+                        </svg>
+                    </div>
+                    <h3>Contato por E-mail</h3>
+                    <div class="info-content">
+                        <div class="info-item">
+                            <strong>E-mail de Suporte</strong>
+                            <a href="mailto:gabriel.oliveira@grupozenir.com.br" class="highlight-text">
+                                gabriel.oliveira@grupozenir.com.br
+                            </a>
+                        </div>
+                        <div class="info-item">
+                            <small>Tempo de resposta: até 24h úteis</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Ramais -->
+        <div class="section-content" id="ramais-content" style="display: none;">
+            <div class="section-header">
+                <button class="back-btn" data-back="ramais">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    <span>Voltar</span>
+                </button>
+                <h2>Lista de Ramais</h2>
+            </div>
+
+            <div class="search-container">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                <input type="text" class="search-input" id="searchInput" placeholder="Buscar por nome, setor ou ramal...">
+            </div>
+
+            <div class="ramais-info">
+                <p class="ramais-subtitle">
+                    <strong>Unidade: Iguatu - Sede</strong><br>
+                    <small>Atualizado em: <span id="ultimaAtualizacao">Carregando...</span></small>
+                </p>
+            </div>
+
+            <div class="ramais-container" id="ramaisContainer">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Carregando ramais...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2024 Grupo Zenir - Sistema desenvolvido por Gabriel Oliveira</p>
+        </div>
+    </footer>
+
+    <script src="suporte.js"></script>
+</body>
+</html>

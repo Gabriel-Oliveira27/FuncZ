@@ -1,0 +1,597 @@
+{
+  "atualizado_em": "27/10/2025",
+  "unidades": [
+    {
+      "nome": "Iguatu - Sede",
+      "setores": [
+        {
+          "nome": "Recepção",
+          "colaboradores": [
+            {
+              "nome": "Carla",
+              "ramal": "9912"
+            },
+            {
+              "nome": "Ranielly",
+              "ramal": "9911"
+            },
+            {
+              "nome": "Marcos",
+              "ramal": "9911"
+            }
+          ]
+        },
+        {
+          "nome": "Faturamento",
+          "colaboradores": [
+            {
+              "nome": "Fran",
+              "ramal": "9931"
+            },
+            {
+              "nome": "Regilânia",
+              "ramal": "9932"
+            },
+            {
+              "nome": "Mirlene",
+              "ramal": "9933"
+            }
+          ]
+        },
+        {
+          "nome": "Depósito",
+          "colaboradores": [
+            {
+              "nome": "Depósito",
+              "ramal": "9942"
+            }
+          ]
+        },
+        {
+          "nome": "Montagem",
+          "colaboradores": [
+            {
+              "nome": "Diego",
+              "ramal": "9981"
+            },
+            {
+              "nome": "Natália",
+              "ramal": "9982"
+            },
+            {
+              "nome": "Ricardo",
+              "ramal": "9983"
+            }
+          ]
+        },
+        {
+          "nome": "Logística",
+          "colaboradores": [
+            {
+              "nome": "Klysman",
+              "ramal": "258"
+            },
+            {
+              "nome": "Lucilânio",
+              "ramal": "269"
+            },
+            {
+              "nome": "Leonardo",
+              "ramal": "267"
+            }
+          ]
+        },
+        {
+          "nome": "Entregas",
+          "colaboradores": [
+            {
+              "nome": "Adriano",
+              "ramal": "316"
+            },
+            {
+              "nome": "Ivamar",
+              "ramal": "316"
+            },
+            {
+              "nome": "Bira",
+              "ramal": "316"
+            },
+            {
+              "nome": "Clauderlanio",
+              "ramal": "316"
+            }
+          ]
+        },
+        {
+          "nome": "Assistência Técnica",
+          "colaboradores": [
+            {
+              "nome": "William",
+              "ramal": "287"
+            },
+            {
+              "nome": "Fernando",
+              "ramal": "287"
+            }
+          ]
+        },
+        {
+          "nome": "RH",
+          "colaboradores": [
+            {
+              "nome": "Ângela",
+              "ramal": "202"
+            },
+            {
+              "nome": "Efrain",
+              "ramal": "210"
+            },
+            {
+              "nome": "Ilderlane",
+              "ramal": "203"
+            },
+            {
+              "nome": "Diene",
+              "ramal": "227"
+            },
+            {
+              "nome": "Larice",
+              "ramal": "234"
+            },
+            {
+              "nome": "Janiclea",
+              "ramal": "214"
+            },
+            {
+              "nome": "Daniely",
+              "ramal": "236"
+            },
+            {
+              "nome": "Brandão",
+              "ramal": "228"
+            },
+            {
+              "nome": "Ismael",
+              "ramal": "238"
+            },
+            {
+              "nome": "Eranusa",
+              "ramal": "265"
+            },
+            {
+              "nome": "Tâmara",
+              "ramal": "262"
+            },
+            {
+              "nome": "Lucas",
+              "ramal": "212"
+            }
+          ]
+        },
+        {
+          "nome": "Diretoria",
+          "colaboradores": [
+            {
+              "nome": "Celma",
+              "ramal": "206"
+            },
+            {
+              "nome": "Naíla",
+              "ramal": "225"
+            },
+            {
+              "nome": "Neivilene",
+              "ramal": "242"
+            },
+            {
+              "nome": "Mairton",
+              "ramal": "296"
+            },
+            {
+              "nome": "Perpétua",
+              "ramal": "224"
+            },
+            {
+              "nome": "Laís",
+              "ramal": "307"
+            },
+            {
+              "nome": "Samuel",
+              "ramal": "310"
+            }
+          ]
+        },
+        {
+          "nome": "CPD / Crédito",
+          "colaboradores": [
+            {
+              "nome": "Richard",
+              "ramal": "213"
+            },
+            {
+              "nome": "Ryan",
+              "ramal": "213"
+            },
+            {
+              "nome": "Zé Leite",
+              "ramal": "311"
+            }
+          ]
+        },
+        {
+          "nome": "Auditoria",
+          "colaboradores": [
+            {
+              "nome": "Auditoria Geral",
+              "ramal": "304"
+            },
+            {
+              "nome": "Géssica",
+              "ramal": "402"
+            },
+            {
+              "nome": "Anny",
+              "ramal": "403"
+            },
+            {
+              "nome": "Julia",
+              "ramal": "270"
+            }
+          ]
+        },
+        {
+          "nome": "Contabilidade",
+          "colaboradores": [
+            {
+              "nome": "Nayara",
+              "ramal": "215"
+            },
+            {
+              "nome": "Diego",
+              "ramal": "277"
+            },
+            {
+              "nome": "Lorena",
+              "ramal": "278"
+            },
+            {
+              "nome": "Elanni",
+              "ramal": "279"
+            },
+            {
+              "nome": "Ana Ilva",
+              "ramal": "284"
+            },
+            {
+              "nome": "Wanley",
+              "ramal": "293"
+            },
+            {
+              "nome": "Ravena",
+              "ramal": "294"
+            },
+            {
+              "nome": "Aprendiz",
+              "ramal": "308"
+            }
+          ]
+        },
+        {
+          "nome": "SAC",
+          "colaboradores": [
+            {
+              "nome": "Malon",
+              "ramal": "321"
+            },
+            {
+              "nome": "Salim",
+              "ramal": "321"
+            },
+            {
+              "nome": "Hélio",
+              "ramal": "257"
+            },
+            {
+              "nome": "Rosivelt",
+              "ramal": "306"
+            },
+            {
+              "nome": "Júnior",
+              "ramal": "306"
+            },
+            {
+              "nome": "Adalciely",
+              "ramal": "221"
+            },
+            {
+              "nome": "Lívia",
+              "ramal": "230"
+            },
+            {
+              "nome": "Everton",
+              "ramal": "286"
+            },
+            {
+              "nome": "Cauã",
+              "ramal": "286"
+            },
+            {
+              "nome": "Naldo",
+              "ramal": "320"
+            },
+            {
+              "nome": "Vinícius",
+              "ramal": "318"
+            },
+            {
+              "nome": "Weslle",
+              "ramal": "205"
+            },
+            {
+              "nome": "Karolinne",
+              "ramal": "302"
+            },
+            {
+              "nome": "Glívia",
+              "ramal": "301"
+            },
+            {
+              "nome": "Enzio",
+              "ramal": "295"
+            },
+            {
+              "nome": "Gustavo",
+              "ramal": "208"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "filiais": [
+    {
+      "codigo": "02",
+      "nome": "Iguatu 2"
+    },
+    {
+      "codigo": "04",
+      "nome": "Quixadá"
+    },
+    {
+      "codigo": "05",
+      "nome": "Brejo Santo"
+    },
+    {
+      "codigo": "06",
+      "nome": "Crato"
+    },
+    {
+      "codigo": "07",
+      "nome": "Mombaça"
+    },
+    {
+      "codigo": "09",
+      "nome": "Juazeiro 1"
+    },
+    {
+      "codigo": "13",
+      "nome": "Campos Sales"
+    },
+    {
+      "codigo": "14",
+      "nome": "Tianguá 2"
+    },
+    {
+      "codigo": "16",
+      "nome": "General 2"
+    },
+    {
+      "codigo": "17",
+      "nome": "General"
+    },
+    {
+      "codigo": "21",
+      "nome": "Crateús"
+    },
+    {
+      "codigo": "23",
+      "nome": "Senador 2"
+    },
+    {
+      "codigo": "24",
+      "nome": "Acopiara"
+    },
+    {
+      "codigo": "25",
+      "nome": "Maracanaú"
+    },
+    {
+      "codigo": "26",
+      "nome": "Quixeramobim"
+    },
+    {
+      "codigo": "27",
+      "nome": "Itapipoca"
+    },
+    {
+      "codigo": "28",
+      "nome": "Iguatu 3"
+    },
+    {
+      "codigo": "29",
+      "nome": "Várzea Alegre"
+    },
+    {
+      "codigo": "30",
+      "nome": "Assaré"
+    },
+    {
+      "codigo": "31",
+      "nome": "Sobral 2"
+    },
+    {
+      "codigo": "32",
+      "nome": "Juazeiro 2"
+    },
+    {
+      "codigo": "34",
+      "nome": "Ubajara"
+    },
+    {
+      "codigo": "35",
+      "nome": "Cedro"
+    },
+    {
+      "codigo": "36",
+      "nome": "Icó"
+    },
+    {
+      "codigo": "37",
+      "nome": "Parambu"
+    },
+    {
+      "codigo": "38",
+      "nome": "Tabuleiro"
+    },
+    {
+      "codigo": "39",
+      "nome": "Tauá"
+    },
+    {
+      "codigo": "40",
+      "nome": "Montese"
+    },
+    {
+      "codigo": "41",
+      "nome": "Horizonte"
+    },
+    {
+      "codigo": "42",
+      "nome": "Limoeiro"
+    },
+    {
+      "codigo": "43",
+      "nome": "Morada Nova"
+    },
+    {
+      "codigo": "45",
+      "nome": "Maranguape"
+    },
+    {
+      "codigo": "46",
+      "nome": "Missão Velha"
+    },
+    {
+      "codigo": "47",
+      "nome": "Pacajus"
+    },
+    {
+      "codigo": "48",
+      "nome": "Sobral 3"
+    },
+    {
+      "codigo": "49",
+      "nome": "Guaraciaba"
+    },
+    {
+      "codigo": "51",
+      "nome": "Quixelô"
+    },
+    {
+      "codigo": "52",
+      "nome": "Mauriti"
+    },
+    {
+      "codigo": "53",
+      "nome": "Maracanaú 2"
+    },
+    {
+      "codigo": "54",
+      "nome": "Barbalha"
+    },
+    {
+      "codigo": "55",
+      "nome": "Aracati"
+    },
+    {
+      "codigo": "56",
+      "nome": "Messejana 1"
+    },
+    {
+      "codigo": "57",
+      "nome": "Kennedy"
+    },
+    {
+      "codigo": "58",
+      "nome": "Papicu"
+    },
+    {
+      "codigo": "59",
+      "nome": "Senador Pompeu"
+    },
+    {
+      "codigo": "60",
+      "nome": "Pedra Branca"
+    },
+    {
+      "codigo": "61",
+      "nome": "Caucaia 2"
+    },
+    {
+      "codigo": "63",
+      "nome": "Sobral 4"
+    },
+    {
+      "codigo": "65",
+      "nome": "Senador 4"
+    },
+    {
+      "codigo": "66",
+      "nome": "Iguatemi"
+    },
+    {
+      "codigo": "67",
+      "nome": "Eusébio"
+    },
+    {
+      "codigo": "68",
+      "nome": "Messejana 2"
+    },
+    {
+      "codigo": "69",
+      "nome": "Massapê"
+    },
+    {
+      "codigo": "70",
+      "nome": "São Benedito"
+    },
+    {
+      "codigo": "71",
+      "nome": "Cascavel"
+    },
+    {
+      "codigo": "72",
+      "nome": "Floriano Peixoto"
+    },
+    {
+      "codigo": "73",
+      "nome": "Aquiraz"
+    },
+    {
+      "codigo": "74",
+      "nome": "Del Paseo"
+    },
+    {
+      "codigo": "75",
+      "nome": "Jucás"
+    },
+    {
+      "codigo": "76",
+      "nome": "Trairí"
+    },
+    {
+      "codigo": "77",
+      "nome": "Camocim"
+    }
+  ]
+}
