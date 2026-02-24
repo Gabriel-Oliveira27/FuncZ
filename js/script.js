@@ -25,9 +25,7 @@ function isMobileDevice() {
 // Validação infinita - executa SEMPRE que a página carrega
 function validacaoInfinitaMobile() {
   if (isMobileDevice()) {
-    console.log(
-      "📱 Dispositivo móvel detectado - Aplicando restrições",
-    );
+    
 
     // 1. Esconder TODO o conteúdo do cartazes
     esconderConteudoDesktop();
@@ -168,7 +166,7 @@ function resetInactivityTimer() {
 
 // Função para limpar sessão e localStorage
 function limparSessao() {
-  console.log("Limpando sessão por inatividade...");
+  
   localStorage.clear();
   products = [];
   renderProducts();
@@ -235,9 +233,7 @@ function salvarCartazesLocalStorage() {
       "cartazes_salvos",
       JSON.stringify(dadosCartazes),
     );
-    console.log(
-      `✅ ${products.length} cartazes salvos no localStorage`,
-    );
+   
   } catch (error) {
     console.error("❌ Erro ao salvar cartazes:", error);
     showToast(
@@ -254,9 +250,6 @@ function carregarCartazesLocalStorage() {
     const dados = localStorage.getItem("cartazes_salvos");
     if (dados) {
       const parsed = JSON.parse(dados);
-      console.log(
-        `📦 ${parsed.totalCartazes} cartazes encontrados no localStorage`,
-      );
       return parsed;
     }
     return null;
@@ -1849,7 +1842,6 @@ function buscarProdutos(termo) {
 
 // Função para alternar agrupamento
 function alterarAgrupamento(modo) {
-  console.log("🔄 Agrupamento solicitado:", modo);
 
   modoAgrupamento = modo;
 
@@ -1931,10 +1923,7 @@ async function abrirModalBuscaTexto() {
           this.classList.add("active");
         }
 
-        console.log(
-          "🔽 Menu agrupamento:",
-          isActive ? "fechado" : "aberto",
-        );
+
       };
     };
     setupAgrupamento();
@@ -2032,15 +2021,10 @@ function renderizarProdutos() {
   );
   const empty = document.getElementById("busca-texto-empty");
 
-  console.log(
-    "🎨 Renderizando produtos. Total filtrado:",
-    produtosFiltrados.length,
-  );
-  console.log("📋 Modo de agrupamento:", modoAgrupamento);
+
 
   // Se não houver produtos, mostrar mensagem vazia
   if (produtosFiltrados.length === 0) {
-    console.log("⚠️ Nenhum produto encontrado");
     results.style.display = "none";
     empty.style.display = "block";
     return;
@@ -2142,9 +2126,6 @@ function renderizarProdutos() {
     const fim = inicio + itensPorPagina;
     const produtosPagina = produtosFiltrados.slice(inicio, fim);
 
-    console.log(
-      `📄 Página ${paginaAtual} de ${totalPaginas} - Mostrando ${produtosPagina.length} produtos`,
-    );
 
     // Renderizar produtos
     tbody.innerHTML = produtosPagina
@@ -2295,9 +2276,6 @@ document.addEventListener("DOMContentLoaded", () => {
     dadosSalvos.cartazes.length > 0
   ) {
     products = dadosSalvos.cartazes;
-    console.log(
-      `📦 ${products.length} cartazes carregados do localStorage`,
-    );
 
     // Restaurar modelo baseado na versão do JSON
     if (dadosSalvos.versao === "1.1") {
@@ -2334,7 +2312,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       modeloAtual = e.target.checked ? "cameba" : "padrao";
-      console.log(`📋 Modelo alterado para: ${modeloAtual}`);
     });
   }
 
@@ -2349,19 +2326,10 @@ document.addEventListener("DOMContentLoaded", () => {
     inputBusca.addEventListener("input", (e) => {
       const termo = e.target.value.trim();
 
-      console.log("🔍 Buscando por:", termo);
-      console.log(
-        "📦 Total de produtos:",
-        todosProdutos.length,
-      );
 
       // Usar função de busca avançada
       produtosFiltrados = buscarProdutos(termo);
 
-      console.log(
-        "✅ Produtos filtrados:",
-        produtosFiltrados.length,
-      );
 
       paginaAtual = 1;
       modoAgrupamento = "nenhum"; // Resetar agrupamento ao buscar
@@ -2394,10 +2362,7 @@ document.addEventListener("DOMContentLoaded", () => {
         this.classList.add("active");
       }
 
-      console.log(
-        "🔽 Menu agrupamento:",
-        isActive ? "fechado" : "aberto",
-      );
+
     };
 
     // Fechar ao clicar fora
@@ -2933,8 +2898,7 @@ window.renderizarProdutos = function() {
   const empty = document.getElementById("busca-texto-empty");
   const thead = document.querySelector(".busca-texto-table thead tr");
   
-  console.log("🎨 Renderizando produtos. Total filtrado:", produtosFiltrados.length);
-  console.log("🔄 Modo dois códigos:", modoDoisCodigos);
+
 
   // Adicionar/remover coluna de checkbox no header
   let thCheckbox = document.getElementById("th-checkbox");
@@ -2951,7 +2915,6 @@ window.renderizarProdutos = function() {
 
   // Se não houver produtos, mostrar mensagem vazia
   if (produtosFiltrados.length === 0) {
-    console.log("⚠️ Nenhum produto encontrado");
     results.style.display = "none";
     empty.style.display = "block";
     return;
@@ -3062,7 +3025,6 @@ window.renderizarProdutos = function() {
     const fim = inicio + itensPorPagina;
     const produtosPagina = produtosFiltrados.slice(inicio, fim);
 
-    console.log(`📄 Página ${paginaAtual} de ${totalPaginas}`);
 
     // Renderizar produtos
     tbody.innerHTML = produtosPagina.map(produto => criarLinhaProduto(produto)).join("");
@@ -3177,12 +3139,10 @@ function toggleCodigoSelecionado(codigo) {
   if (index >= 0) {
     // Remove código
     codigosSelecionados.splice(index, 1);
-    console.log("❌ Código removido:", codigo);
   } else {
     // Adiciona código (máx 2)
     if (codigosSelecionados.length < 2) {
       codigosSelecionados.push(codigo);
-      console.log("✅ Código adicionado:", codigo);
     } else {
       showToast("warning", "Limite atingido", "Você já selecionou 2 produtos");
       // Re-renderizar para desmarcar checkbox
@@ -3190,8 +3150,6 @@ function toggleCodigoSelecionado(codigo) {
       return;
     }
   }
-  
-  console.log("📋 Códigos selecionados:", codigosSelecionados);
   renderizarProdutos();
 }
 
@@ -3207,8 +3165,7 @@ function limparSelecoes() {
   
   // Esconder botão de confirmação
   esconderBotaoConfirmar();
-  
-  console.log("🧹 Seleções limpas");
+
 }
 
 function atualizarSquircles() {
@@ -3318,7 +3275,6 @@ function processarDoisCodigos() {
     return;
   }
   
-  console.log("🔄 Processando códigos:", codigosSelecionados);
   
   const produto1 = todosProdutos.find(p => p.codigo.toString() === codigosSelecionados[0]);
   const produto2 = todosProdutos.find(p => p.codigo.toString() === codigosSelecionados[1]);
@@ -3327,8 +3283,7 @@ function processarDoisCodigos() {
     showToast("error", "Erro", "Não foi possível encontrar os produtos");
     return;
   }
-  
-  console.log("✅ Produtos encontrados:", produto1, produto2);
+
   
   // Separar descrição e marca
   const partes1 = (produto1.descricao || "").split(" - ");
@@ -3387,7 +3342,6 @@ window.fecharModalBuscaTexto = function() {
 // ============================================================================
 
 async function buscarEMesclarProdutos(codigo1, codigo2) {
-  console.log(`🔍 Buscando códigos no formulário principal: ${codigo1} e ${codigo2}`);
   
   // ✅ MOSTRAR OVERLAY DE BUSCA
   mostrarOverlayBusca(
@@ -3398,7 +3352,6 @@ async function buscarEMesclarProdutos(codigo1, codigo2) {
   try {
     // ✅ CARREGAR PRODUTOS DA API SE NECESSÁRIO
     if (!window.todosProdutos || todosProdutos.length === 0) {
-      console.log("📦 Carregando produtos da API...");
       
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -3429,7 +3382,6 @@ async function buscarEMesclarProdutos(codigo1, codigo2) {
         }
       });
       
-      console.log(`✅ ${todosProdutos.length} produtos carregados`);
     }
     
     // ✅ BUSCAR PRODUTOS
@@ -3447,8 +3399,7 @@ async function buscarEMesclarProdutos(codigo1, codigo2) {
       showToast("error", "Produto não encontrado", `Código ${codigo2} não existe`);
       return false;
     }
-    
-    console.log("✅ Produtos encontrados:", produto1, produto2);
+
     
     // ✅ MOSTRAR SUCESSO
     mostrarOverlaySucesso(
@@ -3497,7 +3448,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   if (!btnBuscar || !inputCodigo) return;
   
-  console.log("🔧 Configurando busca com barra no campo principal...");
+
   
   // Remover maxlength
   inputCodigo.removeAttribute('maxlength');
@@ -3530,14 +3481,12 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
       
-      console.log("🔍 Detectada busca com barra:", codigos);
+
       // ✅ BUSCA APENAS COM A FUNÇÃO DE MESCLAR (NÃO FAZ BUSCA DUPLICADA)
       await buscarEMesclarProdutos(codigos[0], codigos[1]);
       return; // ← IMPORTANTE: Sai aqui e não continua para a busca normal
     }
     
-    // ✅ CÓDIGO ÚNICO - BUSCA NORMAL DA API
-    console.log("🔍 Busca normal de código único:", codigoValue);
     
     mostrarOverlayBusca(
       "Buscando informações",
@@ -3607,7 +3556,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
   
-  console.log("✅ Busca com barra configurada no campo principal");
 });
 
 // ============================================================================
@@ -3617,5 +3565,3 @@ window.alterarModoDoisCodigos = alterarModoDoisCodigos;
 window.toggleCodigoSelecionado = toggleCodigoSelecionado;
 window.buscarEMesclarProdutos = buscarEMesclarProdutos;
 window.limparSelecoes = limparSelecoes;
-
-console.log("✅ Patch 'Criar com dois códigos' carregado com sucesso!");

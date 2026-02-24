@@ -6,7 +6,8 @@
     <title>Gerador de Cartazes - Sistema Interno</title>
     <link rel="icon" type="image/png" href="/image/zenirlogo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- Fontes locais -->
+    <link rel="stylesheet" href="../fonts/fonts.css">
     <link rel="stylesheet" href="../css/style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -322,28 +323,6 @@
                         <p id="products-count">0 produto(s) adicionado(s)</p>
                     </div>
                     <div id="products-actions" style="display: none; gap: 10px;">
-                        <!-- ✅ SISTEMA DE TAMANHOS (3 opções) -->
-                        <div style="display: flex; gap: 8px; padding: 8px 12px; background: #f3f4f6; border-radius: 8px; align-items: center;">
-                            <span style="font-size: 14px; font-weight: 600; color: #374151; margin-right: 8px;">
-                                <i class="fa-solid fa-expand"></i> Tamanho:
-                            </span>
-                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; color: #374151;">
-                                <input type="radio" name="tamanho-cartaz" value="1" style="cursor: pointer; width: 16px; height: 16px; accent-color: #2563eb;">
-                                <span>1 (+50%)</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; color: #374151;">
-                                <input type="radio" name="tamanho-cartaz" value="2" style="cursor: pointer; width: 16px; height: 16px; accent-color: #2563eb;">
-                                <span>2 (+33%)</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; color: #374151;">
-                                <input type="radio" name="tamanho-cartaz" value="3" style="cursor: pointer; width: 16px; height: 16px; accent-color: #2563eb;">
-                                <span>3 (+25%)</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; color: #6b7280;">
-                                <input type="radio" name="tamanho-cartaz" value="normal" checked style="cursor: pointer; width: 16px; height: 16px; accent-color: #6b7280;">
-                                <span>Normal</span>
-                            </label>
-                        </div>
                         <button id="btn-limpar-todos" class="btn-secondary">
                             <i class="fa-solid fa-trash"></i>
                             Limpar todos
@@ -598,7 +577,7 @@
                     </p>
 
                     <div id="ver-json-empty" style="padding: 60px 20px; text-align: center; background: var(--gray-50); border-radius: 8px;">
-                        <i class="fa-solid fa-inbox" style="font-size: 48px; color: var(--gray-400); margin-bottom: 16px; display: block;"></i>
+                        <i class="fa-solid fa-inbox" style="font-size: 48px; color: var(--gray-400); margin-bottom: 16px; "></i>
                         <h3 style="color: var(--gray-600); margin-bottom: 8px;">Nenhum cartaz adicionado</h3>
                         <p style="color: var(--gray-500);">Adicione cartazes para visualizar e editar o JSON</p>
                     </div>
@@ -899,8 +878,6 @@
     <script src="../js/script.js"></script>
     <script src="../js/func-json.js"></script>
     <script src="../js/session-guard.js"></script>
-    <script src="../js/teste.js"></script>
-    <script src="../js/proporcao.js"></script>
             
 </body>
 </html>
