@@ -259,13 +259,18 @@ function showOdooSupport() {
       const tiInfo = `
 📞 **Ramais da T.I.:**
 
-• **Richard** - Ramal 213
-• **Ryan** - Ramal 213  
-• **Zé Leite** - Ramal 311
+• **Lívia** - Ramal 221
+• **Vinícius** - Ramal 205  
+• **Karolinne** - Ramal 230
+• **Gustavo** - Ramal 318
+• **Gabriel** - Ramal 302  
+• **Weslle** - Ramal 295
+• **Enzio** - Ramal 301  
+• **Pablo** - Ramal 208
 
 **Horário de atendimento:**
-Segunda a Sexta: 08h às 12h e 14h às 18h
-Sábado: 08h às 13h
+Segunda a Sexta: 07h às 19h
+Sábado: 08h às 14h
       `;
       addBotMessage(tiInfo);
       chatState.awaitingResponse = false;
@@ -325,7 +330,7 @@ function showContactInfo(type) {
       message = `
 📞 **Contato por Ramal**
 
-**Ramal: 302** (Karolinne)
+**Ramal: 302** (Gabriel)
 
 **Horários de atendimento:**
 • Segunda a Sexta: 08h às 12h e 14h às 18h

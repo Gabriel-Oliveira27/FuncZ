@@ -1,122 +1,200 @@
 {
-  "atualizado_em": "27/10/2025",
+  "atualizado_em": "26/02/2026",
   "unidades": [
     {
       "nome": "Iguatu - Sede",
       "setores": [
         {
-          "nome": "Recepção",
+          "nome": "Recepção - Iguatu",
           "colaboradores": [
             {
-              "nome": "Carla",
-              "ramal": "9912"
-            },
-            {
-              "nome": "Ranielly",
-              "ramal": "9911"
-            },
-            {
-              "nome": "Marcos",
-              "ramal": "9911"
+              "nome": "Yasmin",
+              "ramal": "200"
             }
           ]
         },
         {
-          "nome": "Faturamento",
+          "nome": "Diretoria - Iguatu",
           "colaboradores": [
             {
-              "nome": "Fran",
-              "ramal": "9931"
-            },
-            {
-              "nome": "Regilânia",
-              "ramal": "9932"
-            },
-            {
-              "nome": "Mirlene",
-              "ramal": "9933"
-            }
-          ]
-        },
-        {
-          "nome": "Depósito",
-          "colaboradores": [
-            {
-              "nome": "Depósito",
-              "ramal": "9942"
-            }
-          ]
-        },
-        {
-          "nome": "Montagem",
-          "colaboradores": [
-            {
-              "nome": "Diego",
-              "ramal": "9981"
-            },
-            {
-              "nome": "Natália",
-              "ramal": "9982"
-            },
-            {
-              "nome": "Ricardo",
-              "ramal": "9983"
-            }
-          ]
-        },
-        {
-          "nome": "Logística",
-          "colaboradores": [
-            {
-              "nome": "Klysman",
-              "ramal": "258"
-            },
-            {
-              "nome": "Lucilânio",
-              "ramal": "269"
+              "nome": "Alex",
+              "ramal": "241"
             },
             {
               "nome": "Leonardo",
-              "ramal": "267"
+              "ramal": "235"
+            },
+            {
+              "nome": "Maurício",
+              "ramal": "240"
             }
           ]
         },
         {
-          "nome": "Entregas",
+          "nome": "CPD/Crédito - Iguatu",
           "colaboradores": [
             {
-              "nome": "Adriano",
-              "ramal": "316"
+              "nome": "Celma",
+              "ramal": "206"
             },
             {
-              "nome": "Ivamar",
-              "ramal": "316"
+              "nome": "Naíla",
+              "ramal": "225"
             },
             {
-              "nome": "Bira",
-              "ramal": "316"
+              "nome": "Neivilene",
+              "ramal": "242"
             },
             {
-              "nome": "Clauderlanio",
-              "ramal": "316"
+              "nome": "Mairton",
+              "ramal": "296"
+            },
+            {
+              "nome": "Perpétua",
+              "ramal": "224"
+            },
+            {
+              "nome": "Laís",
+              "ramal": "307"
+            },
+            {
+              "nome": "Samuel",
+              "ramal": "310"
             }
           ]
         },
         {
-          "nome": "Assistência Técnica",
+          "nome": "SAC - Iguatu",
           "colaboradores": [
             {
-              "nome": "William",
-              "ramal": "287"
+              "nome": "Joana",
+              "ramal": "314"
             },
             {
-              "nome": "Fernando",
-              "ramal": "287"
+              "nome": "Monalisa",
+              "ramal": "297"
+            },
+            {
+              "nome": "Paula/Elaine",
+              "ramal": "298"
+            },
+            {
+              "nome": "Márcia/Lucivânia",
+              "ramal": "250"
+            },
+            {
+              "nome": "Bruna",
+              "ramal": "243"
             }
           ]
         },
         {
-          "nome": "RH",
+          "nome": "T.I - Iguatu",
+          "colaboradores": [
+            {
+              "nome": "Malon/Adalciely",
+              "ramal": "321"
+            },
+            {
+              "nome": "Hélio",
+              "ramal": "257"
+            },
+            {
+              "nome": "Rosivelt/Júnior",
+              "ramal": "306"
+            },
+            {
+              "nome": "Lívia - Suporte",
+              "ramal": "221"
+            },
+            {
+              "nome": "Vinícius - Suporte",
+              "ramal": "205"
+            },
+            {
+              "nome": "Karolinne - Suporte",
+              "ramal": "230"
+            },
+            {
+              "nome": "Gustavo - Suporte",
+              "ramal": "318"
+            },
+            {
+              "nome": "Gabriel - Suporte",
+              "ramal": "302"
+            },
+            {
+              "nome": "Weslle - Suporte",
+              "ramal": "295"
+            },
+            {
+              "nome": "Enzio - Suporte",
+              "ramal": "301"
+            },
+            {
+              "nome": "Pablo - Suporte",
+              "ramal": "208"
+            },
+            {
+              "nome": "Ewerton/Kauã - Infra",
+              "ramal": "286"
+            },
+            {
+              "nome": "Naldo - Infra",
+              "ramal": "320"
+            }
+          ]
+        },
+        {
+          "nome": "E-commerce - Iguatu",
+          "colaboradores": [
+            {
+              "nome": "Géssica",
+              "ramal": "402"
+            },
+            {
+              "nome": "Anny",
+              "ramal": "403"
+            },
+            {
+              "nome": "Júlia",
+              "ramal": "270"
+            }
+          ]
+        },
+        {
+          "nome": "Almoxarifado - Iguatu",
+          "colaboradores": [
+            {
+              "nome": "Richard/Ryan",
+              "ramal": "213"
+            },
+            {
+              "nome": "Zé Leite",
+              "ramal": "311"
+            }
+          ]
+        },
+        {
+          "nome": "Cantina - Iguatu",
+          "colaboradores": [
+            {
+              "nome": "Cantina",
+              "ramal": "216"
+            }
+          ]
+        },
+        {
+          "nome": "Auditoria",
+          "colaboradores": [
+            {
+              "nome": "Auditoria",
+              "ramal": "304"
+            }
+          ]
+        },
+        {
+          "nome": "Tesouraria - Iguatu",
           "colaboradores": [
             {
               "nome": "Ângela",
@@ -163,84 +241,26 @@
               "ramal": "262"
             },
             {
-              "nome": "Lucas",
+              "nome": "Luccas",
               "ramal": "212"
             }
           ]
         },
         {
-          "nome": "Diretoria",
+          "nome": "Contas a pagar - Iguatu",
           "colaboradores": [
             {
-              "nome": "Celma",
-              "ramal": "206"
+              "nome": "Luciano",
+              "ramal": "245"
             },
             {
-              "nome": "Naíla",
-              "ramal": "225"
-            },
-            {
-              "nome": "Neivilene",
-              "ramal": "242"
-            },
-            {
-              "nome": "Mairton",
-              "ramal": "296"
-            },
-            {
-              "nome": "Perpétua",
-              "ramal": "224"
-            },
-            {
-              "nome": "Laís",
-              "ramal": "307"
-            },
-            {
-              "nome": "Samuel",
-              "ramal": "310"
+              "nome": "Fábio",
+              "ramal": "292"
             }
           ]
         },
         {
-          "nome": "CPD / Crédito",
-          "colaboradores": [
-            {
-              "nome": "Richard",
-              "ramal": "213"
-            },
-            {
-              "nome": "Ryan",
-              "ramal": "213"
-            },
-            {
-              "nome": "Zé Leite",
-              "ramal": "311"
-            }
-          ]
-        },
-        {
-          "nome": "Auditoria",
-          "colaboradores": [
-            {
-              "nome": "Auditoria Geral",
-              "ramal": "304"
-            },
-            {
-              "nome": "Géssica",
-              "ramal": "402"
-            },
-            {
-              "nome": "Anny",
-              "ramal": "403"
-            },
-            {
-              "nome": "Julia",
-              "ramal": "270"
-            }
-          ]
-        },
-        {
-          "nome": "Contabilidade",
+          "nome": "Dpto. Pessoal - Iguatu",
           "colaboradores": [
             {
               "nome": "Nayara",
@@ -277,71 +297,539 @@
           ]
         },
         {
-          "nome": "SAC",
+          "nome": "RH - Iguatu",
           "colaboradores": [
             {
-              "nome": "Malon",
-              "ramal": "321"
-            },
-            {
-              "nome": "Salim",
-              "ramal": "321"
-            },
-            {
-              "nome": "Hélio",
-              "ramal": "257"
-            },
-            {
-              "nome": "Rosivelt",
-              "ramal": "306"
-            },
-            {
-              "nome": "Júnior",
-              "ramal": "306"
-            },
-            {
-              "nome": "Adalciely",
-              "ramal": "221"
-            },
-            {
-              "nome": "Lívia",
-              "ramal": "230"
-            },
-            {
               "nome": "Everton",
-              "ramal": "286"
+              "ramal": "255"
             },
             {
-              "nome": "Cauã",
-              "ramal": "286"
+              "nome": "Rosy",
+              "ramal": "283"
             },
             {
-              "nome": "Naldo",
-              "ramal": "320"
+              "nome": "Sabrina",
+              "ramal": "223"
+            }
+          ]
+        },
+        {
+          "nome": "Contabilidade - Iguatu",
+          "colaboradores": [
+            {
+              "nome": "Gilvanete",
+              "ramal": "254"
             },
             {
-              "nome": "Vinícius",
-              "ramal": "318"
+              "nome": "Magnalice/Cleidiane",
+              "ramal": "209"
             },
             {
-              "nome": "Weslle",
-              "ramal": "205"
+              "nome": "Soneide/Aninha",
+              "ramal": "222"
             },
             {
-              "nome": "Karolinne",
-              "ramal": "302"
+              "nome": "Lidiane",
+              "ramal": "233"
             },
             {
-              "nome": "Glívia",
-              "ramal": "301"
+              "nome": "Edgar",
+              "ramal": "211"
             },
             {
-              "nome": "Enzio",
-              "ramal": "295"
+              "nome": "Mirlis",
+              "ramal": "246"
             },
             {
-              "nome": "Gustavo",
-              "ramal": "208"
+              "nome": "Samara",
+              "ramal": "247"
+            },
+            {
+              "nome": "Diane",
+              "ramal": "244"
+            },
+            {
+              "nome": "Paulo",
+              "ramal": "220"
+            },
+            {
+              "nome": "Márcia",
+              "ramal": "319"
+            }
+          ]
+        },
+        {
+          "nome": "Jurídico - Iguatu",
+          "colaboradores": [
+            {
+              "nome": "Edglê",
+              "ramal": "312"
+            },
+            {
+              "nome": "Caio",
+              "ramal": "315"
+            }
+          ]
+        },
+        {
+          "nome": "Manutenção - Iguatu",
+          "colaboradores": [
+            {
+              "nome": "Jorge/Edmar/Eloysa/Wiliane",
+              "ramal": "285"
+            }
+          ]
+        },
+        {
+          "nome": "Seg. Trabalho - Iguatu",
+          "colaboradores": [
+            {
+              "nome": "Andressa",
+              "ramal": "280"
+            },
+            {
+              "nome": "Vládia/Ant. Neto/Letícia",
+              "ramal": "305"
+            },
+            {
+              "nome": "Dr. Mauro",
+              "ramal": "401"
+            },
+            {
+              "nome": "Diala",
+              "ramal": "201"
+            },
+            {
+              "nome": "Verônica",
+              "ramal": "299"
+            }
+          ]
+        },
+        {
+          "nome": "Seg. Patrimonial - Iguatu",
+          "colaboradores": [
+            {
+              "nome": "Portaria",
+              "ramal": "239"
+            },
+            {
+              "nome": "Edson/Naiara",
+              "ramal": "300"
+            },
+            {
+              "nome": "Monitoramento",
+              "ramal": "251"
+            }
+          ]
+        },
+        {
+          "nome": "Cameba - Iguatu",
+          "colaboradores": [
+            {
+              "nome": "Angélica/Nogueira/Uilas",
+              "ramal": "311"
+            }
+          ]
+        },
+        {
+          "nome": "Transportes - Iguatu",
+          "colaboradores": [
+            {
+              "nome": "Delano",
+              "ramal": "291"
+            },
+            {
+              "nome": "Kênio/Luiz",
+              "ramal": "237"
+            },
+            {
+              "nome": "Marcondes/Alan",
+              "ramal": "263"
+            }
+          ]
+        },
+        {
+          "nome": "Recepção - Matriz/Fortaleza",
+          "colaboradores": [
+            {
+              "nome": "Recepção/Lorena",
+              "ramal": "100"
+            }
+          ]
+        },
+        {
+          "nome": "Diretoria - Matriz/Fortaleza",
+          "colaboradores": [
+            {
+              "nome": "Alan Oliveira",
+              "ramal": "115"
+            }
+          ]
+        },
+        {
+          "nome": "Comercial - Matriz/Fortaleza",
+          "colaboradores": [
+            {
+              "nome": "Karine",
+              "ramal": "122"
+            },
+            {
+              "nome": "Isabelle",
+              "ramal": "107"
+            },
+            {
+              "nome": "Nataniel",
+              "ramal": "113"
+            },
+            {
+              "nome": "Sueli",
+              "ramal": "103"
+            },
+            {
+              "nome": "Rejane",
+              "ramal": "105"
+            },
+            {
+              "nome": "Mario",
+              "ramal": "106"
+            },
+            {
+              "nome": "Gleiciane",
+              "ramal": "123"
+            },
+            {
+              "nome": "Allan Kardec",
+              "ramal": "112"
+            },
+            {
+              "nome": "Romário",
+              "ramal": "111"
+            },
+            {
+              "nome": "Joãozinho",
+              "ramal": "116"
+            },
+            {
+              "nome": "Júlio/Bianca",
+              "ramal": "104"
+            }
+          ]
+        },
+        {
+          "nome": "Marketing - Matriz/Fortaleza",
+          "colaboradores": [
+            {
+              "nome": "Ana Hilda",
+              "ramal": "102"
+            },
+            {
+              "nome": "Lorena/Beatriz/Luiz Henrique",
+              "ramal": "109"
+            },
+            {
+              "nome": "Rafaela/Karla/André",
+              "ramal": "110"
+            }
+          ]
+        },
+        {
+          "nome": "Loja Zeflex",
+          "colaboradores": [
+            {
+              "nome": "Santos Dumont",
+              "ramal": "1011/1012"
+            },
+            {
+              "nome": "Sobral",
+              "ramal": "4881/4882"
+            }
+          ]
+        },
+        {
+          "nome": "CDZ Iguatu",
+          "colaboradores": [
+            {
+              "nome": "Recpção/Jéssica",
+              "ramal": "271"
+            },
+            {
+              "nome": "Edione",
+              "ramal": "264"
+            },
+            {
+              "nome": "Quintino",
+              "ramal": "264"
+            }
+          ]
+        },
+        {
+          "nome": "Celulares - CDZ Iguatu",
+          "colaboradores": [
+            {
+              "nome": "Moacir/Júnior",
+              "ramal": "204"
+            }
+          ]
+        },
+        {
+          "nome": "Logística - CDZ Iguatu",
+          "colaboradores": [
+            {
+              "nome": "Klysman",
+              "ramal": "258"
+            },
+            {
+              "nome": "Lucilânio",
+              "ramal": "269"
+            },
+            {
+              "nome": "Leonardo",
+              "ramal": "267"
+            }
+          ]
+        },
+        {
+          "nome": "Entregas - CDZ Iguatu",
+          "colaboradores": [
+            {
+              "nome": "Adriano/Ivamar/Bira/Claudelanio",
+              "ramal": "316"
+            }
+          ]
+        },
+        {
+          "nome": "Montagens - CDZ Iguatu",
+          "colaboradores": [
+            {
+              "nome": "Elieudo",
+              "ramal": "272"
+            },
+            {
+              "nome": "Túlio",
+              "ramal": "273"
+            }
+          ]
+        },
+        {
+          "nome": "Assistência Técnica - CDZ Iguatu",
+          "colaboradores": [
+            {
+              "nome": "William/Fernando",
+              "ramal": "287"
+            }
+          ]
+        },
+        {
+          "nome": "CDZ Fortaleza",
+          "colaboradores": [
+            {
+              "nome": "Gerência",
+              "ramal": "1911"
+            },
+            {
+              "nome": "Lucas",
+              "ramal": "1913"
+            }
+          ]
+        },
+        {
+          "nome": "Faturamento - CDZ Fortaleza",
+          "colaboradores": [
+            {
+              "nome": "Alisson",
+              "ramal": "1912"
+            },
+            {
+              "nome": "Atos",
+              "ramal": "1934"
+            },
+            {
+              "nome": "Robson",
+              "ramal": "1935"
+            },
+            {
+              "nome": "Atendentes",
+              "ramal": "1931/1932/1933"
+            }
+          ]
+        },
+        {
+          "nome": "Recebimento - CDZ Fortaleza",
+          "colaboradores": [
+            {
+              "nome": "Wagner/Marcelo",
+              "ramal": "1941"
+            }
+          ]
+        },
+        {
+          "nome": "Expedição - CDZ Fortaleza",
+          "colaboradores": [
+            {
+              "nome": "Conferentes",
+              "ramal": "1944"
+            },
+            {
+              "nome": "Fernandes/Cleigivam(celular)",
+              "ramal": "1945"
+            },
+            {
+              "nome": "Bezerra/Cícero(Linha branca)",
+              "ramal": "1943"
+            }
+          ]
+        },
+        {
+          "nome": "Assistência - CDZ Fortaleza",
+          "colaboradores": [
+            {
+              "nome": "Mirton",
+              "ramal": "1946"
+            },
+            {
+              "nome": "Augusto",
+              "ramal": "1947"
+            }
+          ]
+        },
+        {
+          "nome": "Montagem - CDZ Fortaleza",
+          "colaboradores": [
+            {
+              "nome": "João Paulo/Maurízio",
+              "ramal": "1981"
+            },
+            {
+              "nome": "Cristina",
+              "ramal": "1982"
+            },
+            {
+              "nome": "Emerson",
+              "ramal": "1983"
+            }
+          ]
+        },
+        {
+          "nome": "Portaria - CDZ Fortaleza",
+          "colaboradores": [
+            {
+              "nome": "Entrada",
+              "ramal": "1991"
+            },
+            {
+              "nome": "Saída/Monitoramento",
+              "ramal": "1933"
+            }
+          ]
+        },
+        {
+          "nome": "CDZ Sobral",
+          "colaboradores": [
+            {
+              "nome": "Claudio",
+              "ramal": "1111"
+            },
+            {
+              "nome": "Mazé",
+              "ramal": "1182"
+            }
+          ]
+        },
+        {
+          "nome": "Faturamento - CDZ Sobral",
+          "colaboradores": [
+            {
+              "nome": "Guilherme",
+              "ramal": "1131"
+            },
+            {
+              "nome": "Andreson",
+              "ramal": "1132"
+            }
+          ]
+        },
+        {
+          "nome": "Entrega - CDZ Sobral",
+          "colaboradores": [
+            {
+              "nome": "Wanglaydson",
+              "ramal": "1151"
+            },
+            {
+              "nome": "João Vitor",
+              "ramal": "1152"
+            },
+            {
+              "nome": "Jonathan (montagem)",
+              "ramal": "1181"
+            },
+            {
+              "nome": "Laércio/Thiago (Assistência)",
+              "ramal": "1183"
+            }
+          ]
+        },
+        {
+          "nome": "CDZ Juazeiro",
+          "colaboradores": [
+            {
+              "nome": "Recepção/Carla",
+              "ramal": "9912"
+            },
+            {
+              "nome": "Ranielly/Marcos",
+              "ramal": "9911"
+            }
+          ]
+        },
+        {
+          "nome": "Faturamento - CDZ Juazeiro",
+          "colaboradores": [
+            {
+              "nome": "Fran",
+              "ramal": "9931"
+            },
+            {
+              "nome": "Regilânia",
+              "ramal": "9932"
+            },
+            {
+              "nome": "Mirlene",
+              "ramal": "9933"
+            },
+            {
+              "nome": "Depósito",
+              "ramal": "9942"
+            }
+          ]
+        },
+        {
+          "nome": "Montagem - CDZ Juazeiro",
+          "colaboradores": [
+            {
+              "nome": "Diego",
+              "ramal": "9981"
+            },
+            {
+              "nome": "Natália",
+              "ramal": "9982"
+            },
+            {
+              "nome": "Ricardo",
+              "ramal": "9983"
+            }
+          ]
+        },
+        {
+          "nome": "CDZ Tauá",
+          "colaboradores": [
+            {
+              "nome": "Keciane",
+              "ramal": "1081"
+            },
+            {
+              "nome": "Emanuel",
+              "ramal": "1031"
             }
           ]
         }
