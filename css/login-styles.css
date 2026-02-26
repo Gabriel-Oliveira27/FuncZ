@@ -1,3 +1,7 @@
+/* ===== VERSÃO 4: DYNAMIC GRADIENT =====
+   Estilo: Gradiente azul dinâmico com luz que passeia + zoom 80%
+   ========================================== */
+
 /* ===== RESET & BASE ===== */
 * {
   margin: 0;
@@ -6,44 +10,75 @@
 }
 
 :root {
-  --primary: #6366f1;
-  --primary-dark: #4f46e5;
-  --primary-light: #818cf8;
+  --primary: #003da5;
+  --primary-dark: #002c7a;
+  --primary-light: #3b82f6;
   --success: #10b981;
   --error: #ef4444;
   --warning: #f59e0b;
-  --background: #f8fafc;
   --surface: #ffffff;
   --text: #1e293b;
   --text-light: #64748b;
   --border: #e2e8f0;
-  --shadow: rgba(0, 0, 0, 0.1);
-  --shadow-lg: rgba(0, 0, 0, 0.15);
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #001d5c;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
+  zoom: 0.80;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Gradiente dinâmico que se move */
+body::before {
+  content: '';
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    #60a5fa 0%,
+    #3b82f6 10%,
+    #2563eb 20%,
+    #1d4ed8 30%,
+    #003da5 40%,
+    #002c7a 50%,
+    #001d5c 60%
+  );
+  animation: gradientRotate 20s linear infinite;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@keyframes gradientRotate {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  100% { transform: translate(0, 0) rotate(360deg); }
 }
 
 /* ===== LOGIN WRAPPER ===== */
 .login-wrapper {
   width: 100%;
   max-width: 440px;
-  animation: fadeInUp 0.6s ease;
+  opacity: 0;
+  animation: fadeInUp 0.4s ease forwards;
+  position: relative;
+  z-index: 1;
 }
 
 .login-container {
   background: var(--surface);
-  border-radius: 24px;
+  border-radius: 20px;
   padding: 48px 40px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  position: relative;
 }
 
 /* ===== LOGO ===== */
@@ -55,8 +90,11 @@ body {
 .logo {
   width: 180px;
   height: auto;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px var(--shadow);
+  transition: transform 0.2s ease;
+}
+
+.logo:hover {
+  transform: scale(1.05);
 }
 
 /* ===== TÍTULOS ===== */
@@ -64,7 +102,7 @@ body {
   text-align: center;
   font-size: 28px;
   font-weight: 700;
-  color: var(--text);
+  color: var(--primary);
   margin-bottom: 8px;
 }
 
@@ -75,7 +113,7 @@ body {
   margin-bottom: 32px;
 }
 
-/* ===== ALERTA DE ERRO MODERNO ===== */
+/* ===== ALERTA DE ERRO ===== */
 .error-alert {
   display: none;
   background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
@@ -83,12 +121,12 @@ body {
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 24px;
-  animation: slideDown 0.4s ease;
 }
 
 .error-alert.show {
   display: flex;
   gap: 12px;
+  animation: slideDown 0.3s ease;
 }
 
 .error-icon {
@@ -152,31 +190,62 @@ body {
   height: 20px;
   color: var(--text-light);
   pointer-events: none;
+  transition: color 0.2s ease;
+  z-index: 1;
+}
+
+.input-wrapper:focus-within .input-icon {
+  color: var(--primary);
 }
 
 .input-wrapper input {
   width: 100%;
-  padding: 14px 16px 14px 48px;
+  padding: 14px 48px 14px 48px;
   font-size: 15px;
   border: 2px solid var(--border);
   border-radius: 12px;
   background: var(--surface);
   color: var(--text);
-  transition: all 0.3s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   font-family: inherit;
 }
 
 .input-wrapper input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 61, 165, 0.1);
 }
 
 .input-wrapper input::placeholder {
   color: #cbd5e1;
 }
 
-/* ===== BOTÃO DE LOGIN PREMIUM ===== */
+/* ===== BOTÃO TOGGLE SENHA ===== */
+.toggle-password {
+  position: absolute;
+  right: 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-light);
+  transition: color 0.2s ease;
+  z-index: 2;
+}
+
+.toggle-password:hover {
+  color: var(--primary);
+}
+
+.toggle-password .eye-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* ===== BOTÃO DE LOGIN ===== */
 .btn-login {
   position: relative;
   width: 100%;
@@ -184,19 +253,18 @@ body {
   font-size: 16px;
   font-weight: 600;
   color: white;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
   border: none;
   border-radius: 12px;
   cursor: pointer;
-  overflow: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   margin-top: 8px;
-  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 4px 16px rgba(0, 61, 165, 0.3);
 }
 
 .btn-login:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5);
+  box-shadow: 0 6px 24px rgba(0, 61, 165, 0.4);
 }
 
 .btn-login:active {
@@ -212,7 +280,7 @@ body {
 }
 
 .btn-text {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.2s ease;
 }
 
 .btn-loader {
@@ -226,13 +294,12 @@ body {
   border-top-color: white;
   border-radius: 50%;
   opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
+  transition: opacity 0.2s ease;
+  animation: spin 0.8s linear infinite;
 }
 
 .btn-login.loading .btn-loader {
   opacity: 1;
-  animation: spin 0.8s linear infinite;
 }
 
 /* ===== MODAL OVERLAY ===== */
@@ -241,16 +308,16 @@ body {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(4px);
   z-index: 1000;
   align-items: center;
   justify-content: center;
   padding: 20px;
-  animation: fadeIn 0.3s ease;
 }
 
 .modal-overlay.show {
   display: flex;
+  animation: fadeIn 0.2s ease;
 }
 
 .modal-container {
@@ -260,10 +327,12 @@ body {
   max-width: 480px;
   width: 100%;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-  animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: scaleIn 0.3s ease;
+  position: relative;
+  z-index: 1001;
 }
 
-/* ===== MODAL DE CEP MODERNO ===== */
+/* ===== MODAL DE CEP ===== */
 .cep-modal {
   max-width: 420px;
 }
@@ -280,7 +349,7 @@ body {
   padding: 16px;
   background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
   border-radius: 50%;
-  color: #2563eb;
+  color: var(--primary);
 }
 
 .modal-icon svg {
@@ -327,13 +396,12 @@ body {
   border-radius: 12px;
   color: white;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  transition: all 0.2s ease;
 }
 
 .btn-cep-confirm:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
 }
 
 .btn-cep-confirm svg {
@@ -351,72 +419,79 @@ body {
 /* ===== MODAL DE VOUCHER ===== */
 .voucher-modal {
   text-align: center;
-  max-width: 400px;
+  max-width: 440px;
+  padding: 50px 40px;
 }
 
 .voucher-icons {
   display: flex;
   gap: 16px;
   justify-content: center;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 }
 
 .voucher-icon {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   color: var(--primary);
 }
 
 .progress-ring {
-  margin: 24px auto;
+  margin: 32px auto;
+  position: relative;
+  width: 180px;
+  height: 180px;
 }
 
 .progress-svg {
-  width: 140px;
-  height: 140px;
+  width: 100%;
+  height: 100%;
   transform: rotate(-90deg);
 }
 
 .progress-bg {
   fill: none;
   stroke: #e2e8f0;
-  stroke-width: 8;
+  stroke-width: 10;
 }
 
 .progress-bar {
   fill: none;
   stroke: var(--primary);
-  stroke-width: 8;
+  stroke-width: 10;
   stroke-linecap: round;
-  stroke-dasharray: 339.292;
-  stroke-dashoffset: 339.292;
-  transition: stroke-dashoffset 0.3s ease;
+  stroke-dasharray: 502.65;
+  stroke-dashoffset: 502.65;
+  transition: stroke-dashoffset 0.5s ease;
 }
 
 .progress-text {
-  transform: rotate(90deg) translate(0, -60px);
-  font-size: 28px;
+  transform: rotate(90deg);
+  font-size: 36px;
   font-weight: 700;
   fill: var(--primary);
   text-anchor: middle;
+  dominant-baseline: middle;
 }
 
 .voucher-modal h3 {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
   color: var(--text);
   margin-bottom: 12px;
 }
 
 .voucher-modal p {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-light);
   margin-bottom: 8px;
+  line-height: 1.6;
 }
 
 .voucher-info {
   font-size: 13px;
   color: var(--text-light);
+  opacity: 0.8;
 }
 
 /* ===== MODAL DE AUTENTICAÇÃO ===== */
@@ -429,29 +504,10 @@ body {
   width: 60px;
   height: 60px;
   margin: 0 auto 24px;
-  position: relative;
-}
-
-.modern-spinner::before,
-.modern-spinner::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 3px solid transparent;
-}
-
-.modern-spinner::before {
+  border: 3px solid #e2e8f0;
   border-top-color: var(--primary);
-  border-right-color: var(--primary);
-  animation: spin 1s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
-}
-
-.modern-spinner::after {
-  inset: 8px;
-  border-top-color: var(--primary-light);
-  border-right-color: var(--primary-light);
-  animation: spin 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite reverse;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
 
 .auth-modal h3 {
@@ -485,8 +541,7 @@ body {
   padding: 16px 20px;
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
-  animation: slideInRight 0.4s ease;
+  animation: slideInRight 0.3s ease;
   position: relative;
   overflow: hidden;
 }
@@ -515,7 +570,6 @@ body {
 .toast-icon svg {
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 .toast-content {
@@ -575,7 +629,7 @@ body {
 @keyframes scaleIn {
   from {
     opacity: 0;
-    transform: scale(0.9);
+    transform: scale(0.95);
   }
   to {
     opacity: 1;
