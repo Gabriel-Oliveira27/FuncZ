@@ -1,7 +1,7 @@
 const API_URL =
   "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLic4iE63JAJ0j4KpGWfRFINeiD4uyCsMjfF_uLkUNzhOsJMzO4uiiZpWV3xzDjbduZK8kU_wWw3ZSCs6cODW2gdFnIGb6pZ0Lz0cBqMpiV-SBOJroENJHqO1XML_YRs_41KFfQOKEehUQmf-Xg6Xhh-bKiYpPxxwQhQzEMP5g0DdJHN4sgG_Fc9cdvRRU4abxlz_PzeQ_5eJ7NtCfxWuP-ET0DEzUyiWhWITlXMZKJMfwmZQg5--gKmAEGpwSr0yXi3eycr23BCGltlXGIWtYZ3I0WkWg&lib=M38uuBDbjNiNXY1lAK2DF9n3ltsPa6Ver";
 
-// Modelo selecionado (padrão ou cameba)
+
 let modeloAtual = "padrao";
 
 // ==================================================
@@ -227,6 +227,7 @@ function salvarCartazesLocalStorage() {
         garantia24: p.garantia24 || 0,
         garantia36: p.garantia36 || 0,
         modelo: p.modelo || "padrao",
+        semJuros: p.semJuros || false,
       })),
     };
     localStorage.setItem(
@@ -290,6 +291,7 @@ function gerarJSONCartazes() {
       garantia12: p.garantia12 || 0,
       garantia24: p.garantia24 || 0,
       garantia36: p.garantia36 || 0,
+      semJuros: p.semJuros || false,
     })),
   };
 
@@ -1110,6 +1112,10 @@ productForm.addEventListener("submit", (e) => {
     }
   }
 
+  // Capturar estado do checkbox "Sem juros!"
+  const semJurosCheck = document.getElementById("mostrar-sem-juros");
+  const semJuros = semJurosCheck ? semJurosCheck.checked : false;
+
   const features = [feature1, feature2, feature3].filter(
     (f) => f !== "",
   );
@@ -1167,6 +1173,7 @@ productForm.addEventListener("submit", (e) => {
     garantia24: g24Val,
     garantia36: g36Val,
     modelo: modeloAtual, // Adiciona o modelo selecionado
+    semJuros: semJuros,  // Controla exibição de "Sem juros!" no rodapé
   };
 
   products.push(product);
@@ -1199,6 +1206,11 @@ productForm.addEventListener("submit", (e) => {
   if (parcelaInputReset) parcelaInputReset.disabled = false;
   if (checkboxTaxa1xReset) checkboxTaxa1xReset.style.display = "none";
   if (habilitarTaxa1xReset) habilitarTaxa1xReset.checked = false;
+  // Resetar "Sem juros!" e esconder checkbox
+  const semJurosCheckReset = document.getElementById("mostrar-sem-juros");
+  if (semJurosCheckReset) semJurosCheckReset.checked = false;
+  const checkboxSemJurosReset = document.getElementById("checkbox-sem-juros");
+  if (checkboxSemJurosReset) checkboxSemJurosReset.style.display = "none";
 
   // Mudar para view de produtos
   navButtons[1].click();
@@ -1377,11 +1389,11 @@ function generatePosterHTML(product, isPreview = false) {
 
   // Calcular tamanho da fonte baseado no número de dígitos
   const numDigitosParcela = String(parcelaInteiro).length;
-  let fontSizeParcela = "240pt"; // Padrão para 2 dígitos
+  let fontSizeParcela = "240pt"; // Padrão para 1-2 dígitos (100%)
   if (numDigitosParcela === 3) {
-    fontSizeParcela = "210pt"; // Reduz um pouco para 3 dígitos
+    fontSizeParcela = "180pt"; // 80% de 240pt — edite este valor se o tamanho não ficar bom
   } else if (numDigitosParcela >= 4) {
-    fontSizeParcela = "180pt"; // Reduz bem mais para 4+ dígitos
+    fontSizeParcela = "150pt"; // 68% de 240pt — edite este valor se o tamanho não ficar bom
   }
 
   // Para 1x, calcular tamanho da fonte do valor à vista
@@ -1394,13 +1406,26 @@ function generatePosterHTML(product, isPreview = false) {
     fontSizeAvista = "180pt";
   }
 
+  // Determinar conteúdo da seção de pagamento (lado esquerdo do rodapé)
+  let paymentInfoSection = '';
+  if (mostrar1xComTaxa || product.metodo !== "1x") {
+    if (product.semJuros) {
+      paymentInfoSection = `<div class="poster-payment-info"><div class="poster-payment-type" style="font-family: var(--font-lato); font-weight: 400; font-size: 20pt; line-height: 1.2;">Sem juros!</div></div>`;
+    } else {
+      paymentInfoSection = `<div class="poster-payment-info"><div class="poster-payment-type">no ${tipoParcelamento}</div><div class="poster-payment-rate">${taxaTexto}</div></div>`;
+    }
+  }
+
   // Classe adicional para modelo cameba
   const modeloClass =
     product.modelo === "cameba" ? "poster-cameba" : "";
   const finalClasses = `${posterClass} ${modeloClass}`.trim();
 
+  // data-digits no elemento raiz permite CSS condicional por dígitos em filhos distintos (price-section e footer-table)
+  const digitsAttr = product.metodo !== "1x" ? numDigitosParcela : numDigitosAvista;
+
   return `
-        <div class="${finalClasses}">
+        <div class="${finalClasses}" data-digits="${digitsAttr}">
             <div class="poster-header">
                 <div class="poster-title">${product.descricao}</div>
                 ${product.subdescricao ? `<div class="poster-subtitle">${product.subdescricao}</div>` : ""}
@@ -1438,25 +1463,20 @@ function generatePosterHTML(product, isPreview = false) {
             ${validadeExtensa ? `<div class="poster-validity">${validadeExtensa}</div>` : ""}
             
             <div class="poster-footer-table">
-                <div class="poster-table-left" ${product.metodo === "1x" && !mostrar1xComTaxa ? 'style="align-items: center;"' : ''}>
-                    <div class="poster-price-line" ${product.metodo === "1x" && !mostrar1xComTaxa ? 'style="width: 100%; justify-content: center;"' : ''}>
-                        <div class="poster-table-main-text" ${product.metodo === "1x" && !mostrar1xComTaxa ? 'style="text-align: center;"' : ''}>${product.metodo === "1x" && !mostrar1xComTaxa ? '<span style="font-family: var(--font-lato); font-weight: 700;">Sem juros!</span>' : '= ' + brl(valorTotal)}</div>
-                        ${mostrar1xComTaxa ? `
-                        <div class="poster-payment-info">
-                            <div class="poster-payment-type">no ${tipoParcelamento}</div>
-                            <div class="poster-payment-rate">${taxaTexto}</div>
-                        </div>
-                        ` : product.metodo !== "1x" ? `
-                        <div class="poster-payment-info">
-                            <div class="poster-payment-type">no ${tipoParcelamento}</div>
-                            <div class="poster-payment-rate">${taxaTexto}</div>
-                        </div>
-                        ` : ''}
+                <div class="poster-table-left" ${product.metodo === "1x" && !mostrar1xComTaxa && product.semJuros ? 'style="align-items: center;"' : ''}>
+                    <div class="poster-price-line" ${product.metodo === "1x" && !mostrar1xComTaxa && product.semJuros ? 'style="width: 100%; justify-content: center;"' : ''}>
+                        ${product.metodo === "1x" && !mostrar1xComTaxa
+                          ? (product.semJuros
+                              ? `<div class="poster-table-main-text" style="font-family: var(--font-lato); font-weight: 400; font-size: 20pt; line-height: 1.2; text-align: center;">Sem juros!</div>`
+                              : '')
+                          : `<div class="poster-table-main-text">= ${brl(valorTotal)}</div>`
+                        }
+                        ${paymentInfoSection}
                     </div>
                     ${product.motivo ? `<div class="poster-table-sub-text" style="margin-top: 8px; font-weight: 700;">${product.motivo}</div>` : ""}
                 </div>
                 <div class="poster-table-right">
-                    <div class="poster-table-main-text">${brl(product.avista)} À VISTA</div>
+                    <div class="poster-table-main-text" style="font-family: var(--font-lato);">${brl(product.avista)} À VISTA</div>
                     ${product.autorizacao ? `<div class="poster-table-sub-text" style="margin-top: 8px;">${product.autorizacao}</div>` : ""}
                 </div>
             </div>
@@ -1580,8 +1600,52 @@ document
           products[i],
           false,
         );
-        clone.style.cssText =
-          "position:absolute;left:-99999px;top:0;width:210mm;height:297mm;background:#fff;margin:0;padding:0;box-sizing:border-box;";
+
+        // Verificar se é modelo cameba
+        const ehCameba = clone.querySelector('.poster-cameba') !== null;
+
+        if (!ehCameba) {
+          // Escalar conteúdo em 15%: container 15% menor → PDF mapeado para 210×297mm = zoom 1.15×
+          clone.style.cssText =
+            "position:absolute;left:-99999px;top:0;width:182.6mm;height:258.3mm;background:#fff;margin:0;padding:0;box-sizing:border-box;overflow:hidden;";
+          // Ajustar largura do poster para coincidir com o clone (garante centralização correta no PDF)
+          const posterElPDF = clone.querySelector('.poster');
+          if (posterElPDF) {
+            posterElPDF.style.width = '182.6mm';
+          }
+          const footerTableEl = clone.querySelector('.poster-footer-table');
+          if (footerTableEl) {
+            const scaleFactor = 258.3 / 297; // clone height / PDF page height
+            const posterRootEl = clone.querySelector('[data-digits]');
+            const digits = posterRootEl ? posterRootEl.getAttribute('data-digits') : null;
+            let previewTopCm;
+            if (digits === '4')      previewTopCm = 19;        
+            else if (digits === '3') previewTopCm = 20;    // +3mm
+            else if (digits === '2') previewTopCm = 21.75;   // +1cm +0.5mm
+            else if (digits === '1') previewTopCm = 22.5;    // +1cm
+            else                     previewTopCm = 20.5;           // sem regra de dígitos
+            const cloneTopCm = (previewTopCm * scaleFactor).toFixed(3);
+            footerTableEl.style.top = cloneTopCm + 'cm';
+          }
+        } else {
+          // Cameba mantém tamanho original (já ocupa quase toda a página)
+          clone.style.cssText =
+            "position:absolute;left:-99999px;top:0;width:210mm;height:297mm;background:#fff;margin:0;padding:0;box-sizing:border-box;";
+          const footerTableCameba = clone.querySelector('.poster-footer-table');
+          if (footerTableCameba) {
+            const posterRootCameba = clone.querySelector('[data-digits]');
+            const digits = posterRootCameba ? posterRootCameba.getAttribute('data-digits') : null;
+            const CAMEBA_OFFSET = 10; // +3cm em relação ao ponto anterior (era 3.5cm)
+            let previewTopCm;
+            if (digits === '4')      previewTopCm = 19      + CAMEBA_OFFSET; // 25.5cm
+            else if (digits === '3') previewTopCm = 20      + CAMEBA_OFFSET; // 26.5cm
+            else if (digits === '2') previewTopCm = 21.75   + CAMEBA_OFFSET; // 28.25cm
+            else if (digits === '1') previewTopCm = 22.5    + CAMEBA_OFFSET; // 29.0cm
+            else                     previewTopCm = 20.5    + CAMEBA_OFFSET; // fallback: 27.0cm
+            footerTableCameba.style.top = previewTopCm.toFixed(3) + 'cm';
+          }
+        }
+
         document.body.appendChild(clone);
 
         const canvas = await html2canvas(clone, {
@@ -2496,10 +2560,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const habilitarTaxa1x = document.getElementById("habilitar-taxa-1x");
 
   if (metodoSelect && jurosSelect && checkboxTaxa1x && habilitarTaxa1x && parcelaInput) {
-    // Mostrar/esconder checkbox quando selecionar 1x
+    // Mostrar/esconder checkboxes quando selecionar 1x
     metodoSelect.addEventListener("change", function() {
+      const checkboxSemJuros = document.getElementById("checkbox-sem-juros");
+      const mostrarSemJurosInput = document.getElementById("mostrar-sem-juros");
       if (this.value === "1x") {
         checkboxTaxa1x.style.display = "flex";
+        // Mostrar checkbox "Sem juros?" apenas para 1x
+        if (checkboxSemJuros) checkboxSemJuros.style.display = "flex";
         
         if (!habilitarTaxa1x.checked) {
           // Remover required e desabilitar
@@ -2512,6 +2580,9 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         checkboxTaxa1x.style.display = "none";
         habilitarTaxa1x.checked = false;
+        // Ocultar e resetar checkbox "Sem juros?" ao mudar de 1x
+        if (checkboxSemJuros) checkboxSemJuros.style.display = "none";
+        if (mostrarSemJurosInput) mostrarSemJurosInput.checked = false;
         jurosSelect.disabled = false;
         jurosSelect.setAttribute("required", "required");
         parcelaInput.disabled = false;

@@ -833,15 +833,15 @@ body {
    CHECKBOX CUSTOMIZADO (MODELO 13)
    ============================================== */
 @supports (-webkit-appearance: none) or (-moz-appearance: none) {
-  .checkbox-wrapper-13 input[type=checkbox] {
-    --active: #275EFE;
+  .checkbox-wrapper-13 input[type="checkbox"] {
+    --active: #275efe;
     --active-inner: #fff;
-    --focus: 2px rgba(39, 94, 254, .3);
-    --border: #BBC1E1;
-    --border-hover: #275EFE;
+    --focus: 2px rgba(39, 94, 254, 0.3);
+    --border: #bbc1e1;
+    --border-hover: #275efe;
     --background: #fff;
-    --disabled: #F6F8FF;
-    --disabled-inner: #E1E6F9;
+    --disabled: #f6f8ff;
+    --disabled-inner: #e1e6f9;
     -webkit-appearance: none;
     -moz-appearance: none;
     height: 21px;
@@ -853,61 +853,70 @@ body {
     cursor: pointer;
     border: 1px solid var(--bc, var(--border));
     background: var(--b, var(--background));
-    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+    transition:
+      background 0.3s,
+      border-color 0.3s,
+      box-shadow 0.2s;
   }
-  .checkbox-wrapper-13 input[type=checkbox]:after {
+  .checkbox-wrapper-13 input[type="checkbox"]:after {
     content: "";
     display: block;
     left: 0;
     top: 0;
     position: absolute;
-    transition: transform var(--d-t, 0.3s) var(--d-t-e, ease), opacity var(--d-o, 0.2s);
+    transition:
+      transform var(--d-t, 0.3s) var(--d-t-e, ease),
+      opacity var(--d-o, 0.2s);
   }
-  .checkbox-wrapper-13 input[type=checkbox]:checked {
+  .checkbox-wrapper-13 input[type="checkbox"]:checked {
     --b: var(--active);
     --bc: var(--active);
-    --d-o: .3s;
-    --d-t: .6s;
-    --d-t-e: cubic-bezier(.2, .85, .32, 1.2);
+    --d-o: 0.3s;
+    --d-t: 0.6s;
+    --d-t-e: cubic-bezier(0.2, 0.85, 0.32, 1.2);
   }
-  .checkbox-wrapper-13 input[type=checkbox]:disabled {
+  .checkbox-wrapper-13 input[type="checkbox"]:disabled {
     --b: var(--disabled);
     cursor: not-allowed;
     opacity: 0.9;
   }
-  .checkbox-wrapper-13 input[type=checkbox]:disabled:checked {
+  .checkbox-wrapper-13 input[type="checkbox"]:disabled:checked {
     --b: var(--disabled-inner);
     --bc: var(--border);
   }
-  .checkbox-wrapper-13 input[type=checkbox]:disabled + label {
+  .checkbox-wrapper-13 input[type="checkbox"]:disabled + label {
     cursor: not-allowed;
   }
-  .checkbox-wrapper-13 input[type=checkbox]:hover:not(:checked):not(:disabled) {
+  .checkbox-wrapper-13
+    input[type="checkbox"]:hover:not(:checked):not(:disabled) {
     --bc: var(--border-hover);
   }
-  .checkbox-wrapper-13 input[type=checkbox]:focus {
+  .checkbox-wrapper-13 input[type="checkbox"]:focus {
     box-shadow: 0 0 0 var(--focus);
   }
-  .checkbox-wrapper-13 input[type=checkbox]:not(.switch) {
+  .checkbox-wrapper-13 input[type="checkbox"]:not(.switch) {
     width: 21px;
   }
-  .checkbox-wrapper-13 input[type=checkbox]:not(.switch):after {
+  .checkbox-wrapper-13
+    input[type="checkbox"]:not(.switch):after {
     opacity: var(--o, 0);
   }
-  .checkbox-wrapper-13 input[type=checkbox]:not(.switch):checked {
+  .checkbox-wrapper-13
+    input[type="checkbox"]:not(.switch):checked {
     --o: 1;
   }
-  .checkbox-wrapper-13 input[type=checkbox] + label {
+  .checkbox-wrapper-13 input[type="checkbox"] + label {
     display: inline-block;
     vertical-align: middle;
     cursor: pointer;
     margin-left: 4px;
   }
 
-  .checkbox-wrapper-13 input[type=checkbox]:not(.switch) {
+  .checkbox-wrapper-13 input[type="checkbox"]:not(.switch) {
     border-radius: 7px;
   }
-  .checkbox-wrapper-13 input[type=checkbox]:not(.switch):after {
+  .checkbox-wrapper-13
+    input[type="checkbox"]:not(.switch):after {
     width: 5px;
     height: 9px;
     border: 2px solid var(--active-inner);
@@ -917,7 +926,8 @@ body {
     top: 4px;
     transform: rotate(var(--r, 20deg));
   }
-  .checkbox-wrapper-13 input[type=checkbox]:not(.switch):checked {
+  .checkbox-wrapper-13
+    input[type="checkbox"]:not(.switch):checked {
     --r: 43deg;
   }
 }
@@ -946,12 +956,16 @@ body {
   align-items: center;
 }
 
-.checkbox-taxa-inline .checkbox-wrapper-13 input[type=checkbox] {
+.checkbox-taxa-inline
+  .checkbox-wrapper-13
+  input[type="checkbox"] {
   height: 18px;
   width: 18px;
 }
 
-.checkbox-taxa-inline .checkbox-wrapper-13 input[type=checkbox]:not(.switch):after {
+.checkbox-taxa-inline
+  .checkbox-wrapper-13
+  input[type="checkbox"]:not(.switch):after {
   width: 4px;
   height: 8px;
   left: 6px;
@@ -967,16 +981,36 @@ body {
 .checkbox-fontes-wrapper {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: var(--gray-50);
-  border-radius: 6px;
-  border: 1px solid var(--gray-200);
+  gap: 10px;
+  padding: 7px 14px;
+  background: white;
+  border-radius: 8px;
+  border: 1.5px solid var(--gray-300);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.checkbox-fontes-wrapper:hover {
+  border-color: var(--primary);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
 }
 
 .checkbox-fontes-wrapper .checkbox-wrapper-13 {
   display: flex;
   align-items: center;
+  gap: 8px;
+}
+
+.checkbox-fontes-wrapper .checkbox-wrapper-13 label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-700);
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
 }
 
 /* Linha de 4 colunas: Parcelamento, Valor à vista, Taxa, Parcela */
@@ -1400,7 +1434,7 @@ input:checked + .slider:before {
 /* Nome/Subdesc/Características/Código */
 .poster-header {
   position: absolute;
-  top: 7.5cm; /* Posição unificada (carnê) */
+  top: 5cm; /* ⬆️ Subiu 15mm (era 6.5cm) */
   left: 1.1cm; /* Posição unificada (carnê) */
   right: 3cm;
 }
@@ -1448,8 +1482,8 @@ input:checked + .slider:before {
 /* Layout do preço: posições unificadas (carnê) */
 .poster-price-section {
   position: absolute;
-  left: 1.1cm; /* Posição unificada (carnê) */
-  top: 13.5cm; /* Posição unificada (carnê) */
+  left: 0.9cm; /* ⬅️ 2mm à esquerda (era 1.1cm) */
+  top: 11.7cm; /* ⬆️ Subiu 8mm (era 12.5cm) */
   transform: scale(1.2); /* Aumenta 20% (carnê) */
   transform-origin: left top;
   display: flex;
@@ -1517,14 +1551,14 @@ input:checked + .slider:before {
   transform-origin: left top; /* Alinha pelo topo */
   margin-top: -57px; /* ⭐ Sobe mais 0,5cm em TODOS (-38px - 19px = -57px) */
   padding-top: 0;
-  margin-left: -149px; /* ✅ Movido 0,2cm DIREITA (-157px + 8px = -149px) */
+  margin-left: -168px; /* ⬅️ 5mm mais perto (era -149px) */
 }
 
 /* ⭐ AJUSTES DO ,90 BASEADO NO NÚMERO DE DÍGITOS ⭐ */
 
-/* 1 dígito: ,90 vai 3cm DIREITA */
+/* 1 dígito */
 .poster-value-container[data-digits="1"] .poster-value-decimal {
-  margin-left: -42px; /* ✅ +8px para direita */
+  margin-left: -61px; /* ⬅️ 5mm mais perto (era -42px) */
 }
 
 /* 2 dígitos: ,90 vai 0,5cm DIREITA */
@@ -1533,20 +1567,26 @@ input:checked + .slider:before {
 }
 
 .poster-value-container[data-digits="2"] .poster-value-decimal {
-  margin-left: -82px; /* ✅ +8px para direita */
+  margin-left: -101px; /* ⬅️ 5mm mais perto (era -82px) */
 }
 
 .poster-value-container[data-digits="3"] .poster-value-integer {
-  font-size: 234pt;
+  /* ⬇️ Reduzido para 80% do tamanho base (80% de 240pt = 192pt) — edite este valor se precisar ajustar */
+  font-size: 192pt;
 }
-/* 3 dígitos: ,90 vai 1cm DIREITA */
+/* 3 dígitos */
 .poster-value-container[data-digits="3"] .poster-value-decimal {
-  margin-left: -122px; /* ✅ +8px para direita */
+  margin-left: -100px; /* ⬅️ 5mm mais perto (era -122px) */
 }
 
-/* 4 dígitos: usa distância padrão + fonte diminui 30% */
+/* 4 dígitos: fonte reduzida para 68% do tamanho base */
+.poster-value-container[data-digits="4"] .poster-value-integer {
+  /* ⬇️ Reduzido para 68% do tamanho base (68% de 240pt ≈ 163pt) — edite este valor se precisar ajustar */
+  font-size: 163pt;
+}
 .poster-value-container[data-digits="4"] .poster-value-decimal {
   font-size: 56pt;
+  margin-left: -135px;
 }
 
 .poster-value-container[data-digits="5"] .poster-value-decimal,
@@ -1558,7 +1598,7 @@ input:checked + .slider:before {
 .poster-validity {
   position: absolute;
   right: 1cm; /* 20% mais à esquerda (de 0.8cm para 1.0cm) */
-  top: 4.7cm; /* ⬇️ AJUSTE DE ALTURA - Movido 1,5cm para baixo (era 3.2cm, agora 4.7cm) */
+  top: 3.7cm; /* ⬆️ Subiu 10mm (era 4.7cm) */
   font-family: var(--font-lato);
   font-size: 11pt;
   font-weight: 700;
@@ -1574,12 +1614,10 @@ input:checked + .slider:before {
 /* Tabela do rodapé - centralizada na folha (posição unificada carnê) */
 .poster-footer-table {
   position: absolute;
-  top: 21.5cm; /* Posição unificada (carnê) - 1cm abaixo do valor da parcela */
-  left: 50%; /* Centralizar */
+  top: 20cm;
+  left: 50%;
   transform: translateX(-50%); /* Centralizar */
-  width: calc(
-    210mm - 6cm
-  ); /* Mantém as margens de 3cm de cada lado */
+  width: calc(100% - 2cm);
   display: grid;
   grid-template-columns: 1fr 1fr;
   border-left: none;
@@ -1785,19 +1823,68 @@ input:checked + .slider:before {
    TODO O CONTEÚDO DESCE 5CM EM RELAÇÃO AO MODELO PADRÃO
    ================================================== */
 .poster-cameba .poster-header {
-  top: 13cm !important; /* 10cm + 5cm = 15cm - Título/Nome/Características */
+  top: 10.5cm !important; /* ⬆️ Subiu 15mm (era 12cm) */
 }
 
 .poster-cameba .poster-price-section {
-  top: 18cm !important; /* 16cm + 5cm = 21cm - Preço grande (12x e R$) */
+  top: 17.7cm !important; /* ⬇️ +1.5cm (era 16.2cm) */
 }
 
 .poster-cameba .poster-validity {
-  top: 12cm !important; /* 9cm + 5cm = 14cm - Validade (canto superior direito) */
+  top: 11cm !important; /* ⬆️ Subiu 10mm (era 12cm) */
 }
 
 .poster-cameba .poster-footer-table {
-  top: 26.5cm !important; /* 23.2cm + 5cm = 28.2cm - Tabela do rodapé (termina em ~29.7cm - fim da página) */
+  top: 25cm !important;
+}
+
+/* ==================================================
+   ⭐ AJUSTES DE POSIÇÃO CONDICIONAL POR Nº DE DÍGITOS ⭐
+   data-digits é definido no elemento raiz .poster via JS.
+   Permite mover price-section E footer-table simultaneamente.
+   ================================================== */
+
+/* 1 dígito: parcela e tabela sobem 8mm do padrão */
+[data-digits="1"] .poster-price-section {
+  top: 10.9cm; /* ⬆️ 8mm acima do padrão (11.7cm) */
+}
+[data-digits="1"] .poster-footer-table {
+  top: 19.2cm;
+}
+
+/* 2 dígitos: parcela sobe 8mm + vai 1.5mm para esquerda; tabela sobe 8mm */
+[data-digits="2"] .poster-price-section {
+  top: 10.9cm; /* ⬆️ 8mm acima do padrão */
+  left: 0.75cm; /* ⬅️ 1.5mm à esquerda do padrão (0.9cm) */
+}
+[data-digits="2"] .poster-footer-table {
+  top: 19.2cm;
+}
+
+/* 3 dígitos: apenas a tabela segue a altura dos 1-2 dígitos (parcela ajustada via JS) */
+[data-digits="3"] .poster-footer-table {
+  top: 19.2cm;
+}
+
+/* 4 dígitos: apenas a tabela segue a altura dos 1-2 dígitos (parcela ajustada via JS) */
+[data-digits="4"] .poster-footer-table {
+  top: 19.2cm;
+}
+
+/* Cameba: equivalentes com !important para sobrepor a regra base de cameba */
+/* Parcela deslocada +1.5cm em relação aos valores anteriores */
+.poster-cameba[data-digits="1"] .poster-price-section {
+  top: 16.9cm !important; /* ⬇️ +1.5cm (era 15.4cm) */
+}
+.poster-cameba[data-digits="2"] .poster-price-section {
+  top: 16.9cm !important; /* ⬇️ +1.5cm (era 15.4cm) */
+  left: 0.75cm !important; /* ⬅️ 1.5mm à esquerda */
+}
+.poster-cameba[data-digits="1"] .poster-footer-table,
+.poster-cameba[data-digits="2"] .poster-footer-table,
+.poster-cameba[data-digits="3"] .poster-footer-table,
+.poster-cameba[data-digits="4"] .poster-footer-table {
+  top: 25 !important;
 }
 
 /* Modal de Tabela de Fatores */

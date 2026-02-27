@@ -46,7 +46,7 @@ function executarLimpezaCompleta() {
     const totalRemovido = produtosBackup.length;
     
     products = [];
-    saveProducts();
+    if (typeof salvarCartazesLocalStorage === 'function') salvarCartazesLocalStorage();
     renderProducts();
     
     showToast('success', 'Produtos limpos!', `${totalRemovido} produto(s) removidos`);
@@ -98,7 +98,7 @@ function mostrarToastRecuperacao(total) {
 window.recuperarProdutosCompleto = function() {
     if (produtosBackup && produtosBackup.length > 0) {
         products = JSON.parse(JSON.stringify(produtosBackup));
-        saveProducts();
+        if (typeof salvarCartazesLocalStorage === 'function') salvarCartazesLocalStorage();
         renderProducts();
         
         const toastRecuperar = document.querySelector('.toast-recuperar');
@@ -148,7 +148,8 @@ function carregarViewVerJSON() {
             autorizacao: item.autorizacao || '',
             garantia12: item.garantia12 || 0,
             garantia24: item.garantia24 || 0,
-            garantia36: item.garantia36 || 0
+            garantia36: item.garantia36 || 0,
+            semJuros: item.semJuros || false
         }))
     };
     
@@ -580,8 +581,8 @@ function confirmarImportacao(cartazes) {
         }
     });
     
-    if (typeof saveProducts === 'function') {
-        saveProducts();
+    if (typeof salvarCartazesLocalStorage === 'function') {
+        salvarCartazesLocalStorage();
     }
     if (typeof renderProducts === 'function') {
         renderProducts();
@@ -768,24 +769,10 @@ document.getElementById('btn-limpar-todos')?.addEventListener('click', () => {
     };
 });
 
-// Botão Ver JSON - navegação para view completa
-document.getElementById('btn-ver-json')?.addEventListener('click', () => {
-    esconderTodasViews();
-    desativarTodosNavButtons();
-    
-    const viewVerJSON = document.getElementById('view-ver-json');
-    if (viewVerJSON) {
-        viewVerJSON.classList.add('active');
-    }
-    
-    document.getElementById('btn-ver-json')?.classList.add('active');
-    
-    const headerSubtitle = document.getElementById('header-subtitle');
-    if (headerSubtitle) {
-        headerSubtitle.textContent = 'JSON dos Cartazes Salvos';
-    }
-    
-    carregarViewVerJSON();
+// Botão Ver JSON - abre modal com JSON dos cartazes
+document.getElementById('btn-ver-json')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    abrirModalVerJSON();
 });
 
 // Navegação entre abas (Visualizar/Editar) na View Ver JSON
@@ -926,11 +913,12 @@ document.getElementById('btn-aplicar-json-editado')?.addEventListener('click', (
             autorizacao: item.autorizacao || '',
             garantia12: item.garantia12 || 0,
             garantia24: item.garantia24 || 0,
-            garantia36: item.garantia36 || 0
+            garantia36: item.garantia36 || 0,
+            semJuros: item.semJuros || false
         }));
         
-        if (typeof saveProducts === 'function') {
-            saveProducts();
+        if (typeof salvarCartazesLocalStorage === 'function') {
+            salvarCartazesLocalStorage();
         }
         if (typeof renderProducts === 'function') {
             renderProducts();
@@ -1005,7 +993,8 @@ function abrirModalVerJSON() {
             autorizacao: item.autorizacao || '',
             garantia12: item.garantia12 || 0,
             garantia24: item.garantia24 || 0,
-            garantia36: item.garantia36 || 0
+            garantia36: item.garantia36 || 0,
+            semJuros: item.semJuros || false
         })) : []
     };
 
