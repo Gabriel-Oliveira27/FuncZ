@@ -1047,13 +1047,36 @@ productForm.addEventListener("submit", (e) => {
     return;
   }
 
-  if (!metodo || !juros) {
+  if (!metodo) {
+    showToast(
+      "warning",
+      "Campos obrigatórios",
+      "Selecione o parcelamento!",
+    );
+    return;
+  }
+
+  // Para 1x sem checkbox de taxa, juros pode ser vazio
+  if (!juros && metodo !== "1x") {
     showToast(
       "warning",
       "Campos obrigatórios",
       "Selecione parcelamento e taxa de juros!",
     );
     return;
+  }
+
+  // Para 1x COM checkbox ativo, juros é obrigatório
+  if (!juros && metodo === "1x") {
+    const habilitarTaxa1xCheck = document.getElementById("habilitar-taxa-1x");
+    if (habilitarTaxa1xCheck && habilitarTaxa1xCheck.checked) {
+      showToast(
+        "warning",
+        "Campos obrigatórios",
+        "Selecione a taxa de juros!",
+      );
+      return;
+    }
   }
 
   if (avista <= 0) {
@@ -1065,13 +1088,26 @@ productForm.addEventListener("submit", (e) => {
     return;
   }
 
-  if (parcela <= 0) {
+  if (parcela <= 0 && metodo !== "1x") {
     showToast(
       "warning",
       "Valor inválido",
       "Informe o valor da parcela!",
     );
     return;
+  }
+
+  // Para 1x COM taxa ativa, parcela é obrigatória
+  if (parcela <= 0 && metodo === "1x") {
+    const habilitarTaxa1xCheck2 = document.getElementById("habilitar-taxa-1x");
+    if (habilitarTaxa1xCheck2 && habilitarTaxa1xCheck2.checked) {
+      showToast(
+        "warning",
+        "Valor inválido",
+        "Informe o valor da parcela!",
+      );
+      return;
+    }
   }
 
   const features = [feature1, feature2, feature3].filter(
@@ -1101,6 +1137,19 @@ productForm.addEventListener("submit", (e) => {
     }
   }
 
+  // Para 1x sem taxa: parcela recebe o valor à vista
+  let parcelaFinal = parcela;
+  let jurosFinal = juros;
+  if (metodo === "1x") {
+    const habilitarTaxa1xCheckFinal = document.getElementById("habilitar-taxa-1x");
+    const taxa1xAtivaFinal = habilitarTaxa1xCheckFinal && habilitarTaxa1xCheckFinal.checked;
+    if (!taxa1xAtivaFinal) {
+      // 1x sem taxa: valor à vista é o preço grande, parcela = avista, juros vazio
+      parcelaFinal = avista;
+      jurosFinal = "";
+    }
+  }
+
   const product = {
     id: Date.now(),
     codigo,
@@ -1108,9 +1157,9 @@ productForm.addEventListener("submit", (e) => {
     subdescricao,
     features,
     metodo,
-    juros,
+    juros: jurosFinal,
     avista,
-    parcela,
+    parcela: parcelaFinal,
     motivo,
     validade,
     autorizacao,
@@ -1137,6 +1186,19 @@ productForm.addEventListener("submit", (e) => {
   g24.disabled = true;
   g36.disabled = true;
   extrasContainer.style.display = "none";
+
+  // Resetar campos de 1x (juros e parcela voltam a ficar habilitados)
+  const jurosSelectReset = document.getElementById("juros");
+  const parcelaInputReset = document.getElementById("parcela");
+  const checkboxTaxa1xReset = document.getElementById("checkbox-taxa-1x");
+  const habilitarTaxa1xReset = document.getElementById("habilitar-taxa-1x");
+  if (jurosSelectReset) {
+    jurosSelectReset.disabled = false;
+    jurosSelectReset.setAttribute("required", "required");
+  }
+  if (parcelaInputReset) parcelaInputReset.disabled = false;
+  if (checkboxTaxa1xReset) checkboxTaxa1xReset.style.display = "none";
+  if (habilitarTaxa1xReset) habilitarTaxa1xReset.checked = false;
 
   // Mudar para view de produtos
   navButtons[1].click();
@@ -1301,6 +1363,13 @@ function generatePosterHTML(product, isPreview = false) {
     taxaTexto = "Sem juros no cartão!";
   }
 
+  // Lógica especial para 1x
+  let mostrar1xComTaxa = false;
+  if (product.metodo === "1x" && product.juros && product.juros !== "") {
+    // Se for 1x E tiver taxa selecionada (checkbox ativo)
+    mostrar1xComTaxa = true;
+  }
+
   // Validade por extenso
   const validadeExtensa = product.validade
     ? formatDateExtended(product.validade)
@@ -1369,13 +1438,20 @@ function generatePosterHTML(product, isPreview = false) {
             ${validadeExtensa ? `<div class="poster-validity">${validadeExtensa}</div>` : ""}
             
             <div class="poster-footer-table">
-                <div class="poster-table-left">
-                    <div class="poster-price-line">
-                        <div class="poster-table-main-text">= ${brl(valorTotal)}</div>
+                <div class="poster-table-left" ${product.metodo === "1x" && !mostrar1xComTaxa ? 'style="align-items: center;"' : ''}>
+                    <div class="poster-price-line" ${product.metodo === "1x" && !mostrar1xComTaxa ? 'style="width: 100%; justify-content: center;"' : ''}>
+                        <div class="poster-table-main-text" ${product.metodo === "1x" && !mostrar1xComTaxa ? 'style="text-align: center;"' : ''}>${product.metodo === "1x" && !mostrar1xComTaxa ? '<span style="font-family: var(--font-lato); font-weight: 700;">Sem juros!</span>' : '= ' + brl(valorTotal)}</div>
+                        ${mostrar1xComTaxa ? `
                         <div class="poster-payment-info">
                             <div class="poster-payment-type">no ${tipoParcelamento}</div>
                             <div class="poster-payment-rate">${taxaTexto}</div>
                         </div>
+                        ` : product.metodo !== "1x" ? `
+                        <div class="poster-payment-info">
+                            <div class="poster-payment-type">no ${tipoParcelamento}</div>
+                            <div class="poster-payment-rate">${taxaTexto}</div>
+                        </div>
+                        ` : ''}
                     </div>
                     ${product.motivo ? `<div class="poster-table-sub-text" style="margin-top: 8px; font-weight: 700;">${product.motivo}</div>` : ""}
                 </div>
@@ -2408,6 +2484,153 @@ document.addEventListener("DOMContentLoaded", () => {
         fecharModalFator();
       }
     });
+  }
+
+  // ==================================================
+  // LÓGICA DO CHECKBOX PARA PARCELAMENTO 1X
+  // ==================================================
+  const metodoSelect = document.getElementById("metodo");
+  const jurosSelect = document.getElementById("juros");
+  const parcelaInput = document.getElementById("parcela");
+  const checkboxTaxa1x = document.getElementById("checkbox-taxa-1x");
+  const habilitarTaxa1x = document.getElementById("habilitar-taxa-1x");
+
+  if (metodoSelect && jurosSelect && checkboxTaxa1x && habilitarTaxa1x && parcelaInput) {
+    // Mostrar/esconder checkbox quando selecionar 1x
+    metodoSelect.addEventListener("change", function() {
+      if (this.value === "1x") {
+        checkboxTaxa1x.style.display = "flex";
+        
+        if (!habilitarTaxa1x.checked) {
+          // Remover required e desabilitar
+          jurosSelect.removeAttribute("required");
+          jurosSelect.value = "";
+          jurosSelect.disabled = true;
+          parcelaInput.value = "";
+          parcelaInput.disabled = true;
+        }
+      } else {
+        checkboxTaxa1x.style.display = "none";
+        habilitarTaxa1x.checked = false;
+        jurosSelect.disabled = false;
+        jurosSelect.setAttribute("required", "required");
+        parcelaInput.disabled = false;
+      }
+    });
+
+    // Habilitar/desabilitar taxa ao marcar/desmarcar checkbox
+    habilitarTaxa1x.addEventListener("change", function() {
+      if (metodoSelect.value === "1x") {
+        if (this.checked) {
+          // Habilitar taxa e parcela
+          jurosSelect.disabled = false;
+          jurosSelect.setAttribute("required", "required");
+          parcelaInput.disabled = false;
+        } else {
+          // Desabilitar taxa e parcela
+          jurosSelect.removeAttribute("required");
+          jurosSelect.value = "";
+          jurosSelect.disabled = true;
+          parcelaInput.value = "";
+          parcelaInput.disabled = true;
+          recalcularParcela();
+        }
+      }
+    });
+  }
+
+  // ==================================================
+  // SISTEMA DE FONTES (LOCAIS OU CLOUDFLARE)
+  // PADRÃO: Fontes locais (MARCADO) | DESMARCADO: Fontes Cloudflare
+  // ==================================================
+  const checkboxFontesCloudflare = document.getElementById('usar-fontes-cloudflare');
+  const FONT_PREFERENCE_KEY = 'cartazes-usar-fontes-locais';
+
+  if (checkboxFontesCloudflare) {
+    // Carregar preferência salva (checkbox MARCADO = fontes locais, DESMARCADO = Cloudflare)
+    const fonteSalva = localStorage.getItem(FONT_PREFERENCE_KEY);
+    if (fonteSalva === 'false') {
+      // Usuário escolheu Cloudflare anteriormente → desmarcar checkbox
+      checkboxFontesCloudflare.checked = false;
+      aplicarFontesCloudflare();
+    }
+    // Se fonteSalva é null ou 'true', mantém checked (fontes locais = padrão)
+
+    // Detectar falha de fontes locais
+    function detectarFalhaFontesLocais() {
+      const testDiv = document.createElement('div');
+      testDiv.style.fontFamily = 'Lato, sans-serif';
+      testDiv.style.position = 'absolute';
+      testDiv.style.visibility = 'hidden';
+      testDiv.textContent = 'Test';
+      document.body.appendChild(testDiv);
+
+      const usandoLato = window.getComputedStyle(testDiv).fontFamily.includes('Lato');
+      document.body.removeChild(testDiv);
+
+      // Se fontes locais falharam E checkbox está marcado (local), desmarcar e usar Cloudflare
+      if (!usandoLato && checkboxFontesCloudflare.checked) {
+        console.warn('⚠️ Fontes locais não carregadas. Alternando para Cloudflare...');
+        checkboxFontesCloudflare.checked = false;
+        aplicarFontesCloudflare();
+        localStorage.setItem(FONT_PREFERENCE_KEY, 'false');
+      }
+    }
+
+    setTimeout(detectarFalhaFontesLocais, 1000);
+
+    checkboxFontesCloudflare.addEventListener('change', function() {
+      if (this.checked) {
+        // MARCADO = Usar fontes locais
+        removerFontesCloudflare();
+        localStorage.setItem(FONT_PREFERENCE_KEY, 'true');
+        showToast('success', 'Fontes alteradas', 'Usando fontes locais (importadas)');
+      } else {
+        // DESMARCADO = Usar Cloudflare
+        aplicarFontesCloudflare();
+        localStorage.setItem(FONT_PREFERENCE_KEY, 'false');
+        showToast('success', 'Fontes alteradas', 'Usando fontes do Cloudflare');
+      }
+      
+      if (products.length > 0) {
+        renderProducts();
+      }
+    });
+  }
+
+  function aplicarFontesCloudflare() {
+    // Desabilitar fontes locais
+    const linkLocal = document.querySelector('link[href="../fonts/fonts.css"]');
+    if (linkLocal) {
+      linkLocal.disabled = true;
+    }
+
+    // Adicionar Google Fonts
+    if (!document.querySelector('link[href*="fonts.googleapis.com"]')) {
+      const linkGoogleFonts = document.createElement('link');
+      linkGoogleFonts.rel = 'stylesheet';
+      linkGoogleFonts.href = 'https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap';
+      linkGoogleFonts.id = 'google-fonts-link';
+      document.head.appendChild(linkGoogleFonts);
+
+      const linkImpact = document.createElement('link');
+      linkImpact.rel = 'stylesheet';
+      linkImpact.href = 'https://fonts.cdnfonts.com/css/impact';
+      linkImpact.id = 'impact-font-link';
+      document.head.appendChild(linkImpact);
+    }
+  }
+
+  function removerFontesCloudflare() {
+    // Remover Google Fonts
+    const linksGoogle = document.querySelectorAll('link[href*="fonts.googleapis.com"], link[href*="cdnfonts.com"]');
+    linksGoogle.forEach(link => link.remove());
+
+    // Reabilitar fontes locais
+    const linkLocal = document.querySelector('link[href="../fonts/fonts.css"]');
+    if (linkLocal) {
+      linkLocal.disabled = false;
+    }
   }
 });
 

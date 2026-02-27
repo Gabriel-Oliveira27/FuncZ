@@ -145,7 +145,7 @@
                     <span>Voltar ao início</span>
                 </button>
                 
-                <p>v5.2.1 • Sistema cartazes</p>
+                <p>v5.4.2 • Sistema cartazes</p>
                 <p>© 2025–2026 Gabriel Oliveira</p>
                 <p>Todos os direitos reservados.</p>
  
@@ -192,12 +192,22 @@
                         <!-- Características (metade do tamanho) -->
                         <div class="form-group">
                             <label>Características (separadas por " | ")</label>
-                            <div class="features-input-compact">
-                                <input type="text" id="feature-1" placeholder="Ex: QLED">
-                                <span class="separator">|</span>
-                                <input type="text" id="feature-2" placeholder="Google TV">
-                                <span class="separator">|</span>
-                                <input type="text" id="feature-3" placeholder="Bluetooth">
+                            <div style="display: flex; gap: 16px; align-items: flex-end;">
+                                <div class="features-input-compact" style="flex: 1;">
+                                    <input type="text" id="feature-1" placeholder="Ex: QLED">
+                                    <span class="separator">|</span>
+                                    <input type="text" id="feature-2" placeholder="Google TV">
+                                    <span class="separator">|</span>
+                                    <input type="text" id="feature-3" placeholder="Bluetooth">
+                                </div>
+                                
+                                <!-- Checkbox para habilitar taxa em parcelamento 1x -->
+                                <div id="checkbox-taxa-1x" class="checkbox-taxa-inline" style="display: none;">
+                                    <div class="checkbox-wrapper-13">
+                                        <input id="habilitar-taxa-1x" type="checkbox">
+                                        <label for="habilitar-taxa-1x">Aplicar taxa em 1x</label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -323,6 +333,14 @@
                         <p id="products-count">0 produto(s) adicionado(s)</p>
                     </div>
                     <div id="products-actions" style="display: none; gap: 10px;">
+                        <!-- Checkbox para alternar entre fontes locais e Cloudflare -->
+                        <div class="checkbox-fontes-wrapper">
+                            <div class="checkbox-wrapper-13">
+                                <input id="usar-fontes-cloudflare" type="checkbox" checked>
+                                <label for="usar-fontes-cloudflare">Usar fontes locais</label>
+                            </div>
+                        </div>
+                        
                         <button id="btn-limpar-todos" class="btn-secondary">
                             <i class="fa-solid fa-trash"></i>
                             Limpar todos

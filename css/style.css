@@ -20,10 +20,13 @@
   --gray-700: #374151;
   --gray-800: #1f2937;
   --gray-900: #111827;
-  
+
   /* Fontes locais - Import from /fonts/fonts.css */
-  --font-lato: 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-  --font-impact: 'Impact', 'Arial Black', 'Arial Narrow Bold', sans-serif;
+  --font-lato:
+    "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Arial, sans-serif;
+  --font-impact:
+    "Impact", "Arial Black", "Arial Narrow Bold", sans-serif;
 }
 
 body {
@@ -826,6 +829,156 @@ body {
   transform: none;
 }
 
+/* ==============================================
+   CHECKBOX CUSTOMIZADO (MODELO 13)
+   ============================================== */
+@supports (-webkit-appearance: none) or (-moz-appearance: none) {
+  .checkbox-wrapper-13 input[type=checkbox] {
+    --active: #275EFE;
+    --active-inner: #fff;
+    --focus: 2px rgba(39, 94, 254, .3);
+    --border: #BBC1E1;
+    --border-hover: #275EFE;
+    --background: #fff;
+    --disabled: #F6F8FF;
+    --disabled-inner: #E1E6F9;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    height: 21px;
+    outline: none;
+    display: inline-block;
+    vertical-align: top;
+    position: relative;
+    margin: 0;
+    cursor: pointer;
+    border: 1px solid var(--bc, var(--border));
+    background: var(--b, var(--background));
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+  }
+  .checkbox-wrapper-13 input[type=checkbox]:after {
+    content: "";
+    display: block;
+    left: 0;
+    top: 0;
+    position: absolute;
+    transition: transform var(--d-t, 0.3s) var(--d-t-e, ease), opacity var(--d-o, 0.2s);
+  }
+  .checkbox-wrapper-13 input[type=checkbox]:checked {
+    --b: var(--active);
+    --bc: var(--active);
+    --d-o: .3s;
+    --d-t: .6s;
+    --d-t-e: cubic-bezier(.2, .85, .32, 1.2);
+  }
+  .checkbox-wrapper-13 input[type=checkbox]:disabled {
+    --b: var(--disabled);
+    cursor: not-allowed;
+    opacity: 0.9;
+  }
+  .checkbox-wrapper-13 input[type=checkbox]:disabled:checked {
+    --b: var(--disabled-inner);
+    --bc: var(--border);
+  }
+  .checkbox-wrapper-13 input[type=checkbox]:disabled + label {
+    cursor: not-allowed;
+  }
+  .checkbox-wrapper-13 input[type=checkbox]:hover:not(:checked):not(:disabled) {
+    --bc: var(--border-hover);
+  }
+  .checkbox-wrapper-13 input[type=checkbox]:focus {
+    box-shadow: 0 0 0 var(--focus);
+  }
+  .checkbox-wrapper-13 input[type=checkbox]:not(.switch) {
+    width: 21px;
+  }
+  .checkbox-wrapper-13 input[type=checkbox]:not(.switch):after {
+    opacity: var(--o, 0);
+  }
+  .checkbox-wrapper-13 input[type=checkbox]:not(.switch):checked {
+    --o: 1;
+  }
+  .checkbox-wrapper-13 input[type=checkbox] + label {
+    display: inline-block;
+    vertical-align: middle;
+    cursor: pointer;
+    margin-left: 4px;
+  }
+
+  .checkbox-wrapper-13 input[type=checkbox]:not(.switch) {
+    border-radius: 7px;
+  }
+  .checkbox-wrapper-13 input[type=checkbox]:not(.switch):after {
+    width: 5px;
+    height: 9px;
+    border: 2px solid var(--active-inner);
+    border-top: 0;
+    border-left: 0;
+    left: 7px;
+    top: 4px;
+    transform: rotate(var(--r, 20deg));
+  }
+  .checkbox-wrapper-13 input[type=checkbox]:not(.switch):checked {
+    --r: 43deg;
+  }
+}
+
+.checkbox-wrapper-13 * {
+  box-sizing: inherit;
+}
+.checkbox-wrapper-13 *:before,
+.checkbox-wrapper-13 *:after {
+  box-sizing: inherit;
+}
+
+/* Wrapper para checkbox de taxa 1x (inline, menor) */
+.checkbox-taxa-inline {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--gray-50);
+  border-radius: 6px;
+  border: 1px solid var(--gray-200);
+  white-space: nowrap;
+}
+
+.checkbox-taxa-inline .checkbox-wrapper-13 {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-taxa-inline .checkbox-wrapper-13 input[type=checkbox] {
+  height: 18px;
+  width: 18px;
+}
+
+.checkbox-taxa-inline .checkbox-wrapper-13 input[type=checkbox]:not(.switch):after {
+  width: 4px;
+  height: 8px;
+  left: 6px;
+  top: 3px;
+}
+
+.checkbox-taxa-inline .checkbox-wrapper-13 label {
+  font-size: 13px;
+  margin-left: 6px;
+}
+
+/* Wrapper para checkbox de fontes (no header de produtos) */
+.checkbox-fontes-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--gray-50);
+  border-radius: 6px;
+  border: 1px solid var(--gray-200);
+}
+
+.checkbox-fontes-wrapper .checkbox-wrapper-13 {
+  display: flex;
+  align-items: center;
+}
+
 /* Linha de 4 colunas: Parcelamento, Valor à vista, Taxa, Parcela */
 .form-row-4cols {
   display: grid;
@@ -1240,41 +1393,15 @@ input:checked + .slider:before {
   background: #fff;
   overflow: hidden;
   page-break-after: always;
+  font-family: var(--font-lato);
 }
 
-/* ⭐ LAYOUT ESPECIAL PARA CARNÊ ⭐ */
-.poster-carne .poster-header {
-  top: 7.5cm !important; /* Desce 2cm (era 5.5cm, agora 7.5cm) */
-  left: 1.1cm !important; /* Move 1.45cm para ESQUERDA (2.55cm - 1.45cm = 1.10cm) */
-}
-
-.poster-carne .poster-price-section {
-  top: 13.5cm !important; /* Desce 2cm (era 11.5cm, agora 13.5cm) */
-  left: 1.1cm !important; /* Move 1.45cm para ESQUERDA (2.55cm - 1.45cm = 1.10cm) */
-  transform: scale(1.2); /* Aumenta 20% */
-  transform-origin: left top;
-}
-
-.poster-carne .poster-validity {
-  top: 6.7cm !important; /* Desce 2cm (era 4.7cm, agora 6.7cm) */
-  right: 2.45cm !important; /* Move 1.45cm para ESQUERDA (1.0cm + 1.45cm = 2.45cm no right) */
-}
-
-/* Tabela fica 1cm abaixo do valor da parcela */
-.poster-carne .poster-footer-table {
-  top: 21.5cm !important; /* 1cm abaixo do valor da parcela (considerando altura + escala) */
-}
-
-/* Parcela vai mais 0,2cm para DIREITA (além do 0,5cm do container) */
-.poster-carne .poster-value-container {
-  margin-left: 0.2cm;
-}
-
-/* Nome/Subdesc/Características/Código: 4cm de cima, 15% mais à esquerda */
+/* ⭐ POSIÇÕES UNIFICADAS - CARNÊ E CARTÃO AGORA USAM AS MESMAS POSIÇÕES ⭐ */
+/* Nome/Subdesc/Características/Código */
 .poster-header {
   position: absolute;
-  top: 5.5cm; /* ⬇️ AJUSTE DE ALTURA - Movido 1,5cm para baixo (era 4cm, agora 5.5cm) */
-  left: 2.55cm; /* Reduzido 15% de 3cm = 2.55cm */
+  top: 7.5cm; /* Posição unificada (carnê) */
+  left: 1.1cm; /* Posição unificada (carnê) */
   right: 3cm;
 }
 
@@ -1318,11 +1445,13 @@ input:checked + .slider:before {
   line-height: 1.1;
 }
 
-/* Layout do preço: 12x e R$ alinhados 15% mais à esquerda */
+/* Layout do preço: posições unificadas (carnê) */
 .poster-price-section {
   position: absolute;
-  left: 2.55cm; /* Reduzido 15% de 3cm = 2.55cm */
-  top: 11.5cm; /* ⬇️ AJUSTE: Desceu 1,5cm (era 10cm, agora 11.5cm) */
+  left: 1.1cm; /* Posição unificada (carnê) */
+  top: 13.5cm; /* Posição unificada (carnê) */
+  transform: scale(1.2); /* Aumenta 20% (carnê) */
+  transform-origin: left top;
   display: flex;
   align-items: flex-start;
   gap: 15px;
@@ -1359,6 +1488,7 @@ input:checked + .slider:before {
   display: flex;
   align-items: flex-start; /* Alinha tudo no topo */
   gap: 0; /* Ajuste aqui - gap zerado para não empurrar o ,90 */
+  margin-left: 0.2cm; /* Posição unificada (carnê) - Parcela vai mais 0,2cm para DIREITA */
 }
 
 /* Parte inteira: grande e esticada (+20% = 238pt) */
@@ -1441,10 +1571,10 @@ input:checked + .slider:before {
   transform-origin: right center; /* Origem à direita */
 }
 
-/* Tabela do rodapé - centralizada na folha */
+/* Tabela do rodapé - centralizada na folha (posição unificada carnê) */
 .poster-footer-table {
   position: absolute;
-  top: 18cm;
+  top: 21.5cm; /* Posição unificada (carnê) - 1cm abaixo do valor da parcela */
   left: 50%; /* Centralizar */
   transform: translateX(-50%); /* Centralizar */
   width: calc(

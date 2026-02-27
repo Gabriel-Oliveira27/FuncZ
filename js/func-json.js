@@ -970,6 +970,96 @@ document.getElementById('btn-gerar-json')?.addEventListener('click', () => {
 });
 
 // ==================================================
+// FUNÇÕES DO MODAL VER JSON (fecharModalVerJSON + copiarJSON)
+// ==================================================
+
+function fecharModalVerJSON() {
+    const modal = document.getElementById('modal-ver-json');
+    if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+    }
+}
+
+function abrirModalVerJSON() {
+    const modal = document.getElementById('modal-ver-json');
+    if (!modal) return;
+
+    // Montar dados JSON
+    const dados = {
+        versao: '1.0',
+        origem: 'desktop',
+        dataGeracao: new Date().toISOString(),
+        totalCartazes: typeof products !== 'undefined' ? products.length : 0,
+        cartazes: typeof products !== 'undefined' ? products.map(item => ({
+            codigo: item.codigo,
+            descricao: item.descricao,
+            subdescricao: item.subdescricao || '',
+            features: item.features || [],
+            metodo: item.metodo,
+            avista: item.avista,
+            juros: item.juros,
+            parcela: item.parcela || 0,
+            motivo: item.motivo || '',
+            validade: item.validade || '',
+            autorizacao: item.autorizacao || '',
+            garantia12: item.garantia12 || 0,
+            garantia24: item.garantia24 || 0,
+            garantia36: item.garantia36 || 0
+        })) : []
+    };
+
+    const jsonFormatado = JSON.stringify(dados, null, 2);
+
+    // Atualizar contagem
+    const jsonCount = document.getElementById('json-count');
+    if (jsonCount) jsonCount.textContent = dados.totalCartazes;
+
+    // Atualizar o pre com o JSON
+    const jsonDisplay = document.getElementById('json-display');
+    if (jsonDisplay) jsonDisplay.textContent = jsonFormatado;
+
+    // Mostrar modal
+    modal.style.display = 'flex';
+    modal.classList.add('active');
+}
+
+function copiarJSON() {
+    const jsonDisplay = document.getElementById('json-display');
+    if (!jsonDisplay || !jsonDisplay.textContent) {
+        if (typeof showToast === 'function') {
+            showToast('warning', 'Nada para copiar', 'O JSON está vazio.');
+        }
+        return;
+    }
+
+    navigator.clipboard.writeText(jsonDisplay.textContent).then(() => {
+        if (typeof showToast === 'function') {
+            showToast('success', 'JSON copiado!', 'O conteúdo foi copiado para a área de transferência.');
+        }
+    }).catch(() => {
+        // Fallback para navegadores sem suporte a clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = jsonDisplay.textContent;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            if (typeof showToast === 'function') {
+                showToast('success', 'JSON copiado!', 'O conteúdo foi copiado para a área de transferência.');
+            }
+        } catch (err) {
+            if (typeof showToast === 'function') {
+                showToast('error', 'Erro ao copiar', 'Não foi possível copiar o JSON.');
+            }
+        }
+        document.body.removeChild(textArea);
+    });
+}
+
+// ==================================================
 // SEÇÃO 7: SISTEMA DE AUTENTICAÇÃO E PERMISSÕES
 // ==================================================
 
