@@ -1,533 +1,394 @@
-// ==================================================
-// VARIÁVEIS GLOBAIS
-// ==================================================
-console.log('Mobile script carregado!');
+// ═══════════════════════════════════════════════════════════════════
+// MOBILE.JS v3.0 — Self-contained, sem dependência do mobile-patch
+// ═══════════════════════════════════════════════════════════════════
+'use strict';
 
-const API_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLic4iE63JAJ0j4KpGWfRFINeiD4uyCsMjfF_uLkUNzhOsJMzO4uiiZpWV3xzDjbduZK8kU_wWw3ZSCs6cODW2gdFnIGb6pZ0Lz0cBqMpiV-SBOJroENJHqO1XML_YRs_41KFfQOKEehUQmf-Xg6Xhh-bKiYpPxxwQhQzEMP5g0DdJHN4sgG_Fc9cdvRRU4abxlz_PzeQ_5eJ7NtCfxWuP-ET0DEzUyiWhWITlXMZKJMfwmZQg5--gKmAEGpwSr0yXi3eycr23BCGltlXGIWtYZ3I0WkWg&lib=M38uuBDbjNiNXY1lAK2DF9n3ltsPa6Ver";
+// ────────────────────────────────────────────────────────────────
+// CONSTANTES
+// ────────────────────────────────────────────────────────────────
+const API_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLic4iE63JAJ0j4KpGWfRFINeiD4uyCsMjfF_uLkUNzhOsJMzO4uiiZpWV3xzDjbduZK8kU_wWw3ZSCs6cODW2gdFnIGb6pZ0Lz0cBqMpiV-SBOJroENJHqO1XML_YRs_41KFfQOKEehUQmf-Xg6Xhh-bKiYpPxxwQhQzEMP5g0DdJHN4sgG_Fc9cdvRRU4abxlz_PzeQ_5eJ7NtCfxWuP-ET0DEzUyiWhWITlXMZKJMfwmZQg5--gKmAEGpwSr0yXi3eycr23BCGltlXGIWtYZ3I0WkWg&lib=M38uuBDbjNiNXY1lAK2DF9n3ltsPa6Ver';
+const WORKER_URL = 'https://json-cartazes.gab-oliveirab27.workers.dev/json';
+window.MOBILE_V3 = true; // sinaliza para mobile-patch.js não interferir
 
-let carrinho = [];
-let produtosCache = [];
-
-// Exportar variáveis globais para o window (acessível pelo patch)
-window.carrinho = carrinho;
-window.produtosCache = produtosCache;
-
-// Fatores de cálculo
 const FATORES = {
-    carne: {
-        1: 1.0690, 2: 0.5523, 3: 0.3804, 4: 0.2946, 5: 0.2432, 6: 0.2091,
-        7: 0.1849, 8: 0.1668, 9: 0.1528, 10: 0.1417, 11: 0.1327, 12: 0.1252
-    },
-    cartao: {
-        1: 1.0292, 2: 0.5220, 3: 0.3530, 4: 0.2685, 5: 0.2179, 6: 0.1841,
-        7: 0.1600, 8: 0.1420, 9: 0.1280, 10: 0.1168, 11: 0.1076, 12: 0.1000
-    }
+    carne:  { 1:1.0690,2:0.5523,3:0.3804,4:0.2946,5:0.2432,6:0.2091,7:0.1849,8:0.1668,9:0.1528,10:0.1417,11:0.1327,12:0.1252 },
+    cartao: { 1:1.0292,2:0.5220,3:0.3530,4:0.2685,5:0.2179,6:0.1841,7:0.1600,8:0.1420,9:0.1280,10:0.1168,11:0.1076,12:0.1000 }
 };
 
-// Carregar carrinho do localStorage
-function carregarCarrinho() {
-    const dados = localStorage.getItem('carrinho_mobile');
-    if (dados) {
-        carrinho = JSON.parse(dados);
-        window.carrinho = carrinho; // Atualizar referência global
-        atualizarCarrinho();
-    }
+// ────────────────────────────────────────────────────────────────
+// ESTADO GLOBAL
+// ────────────────────────────────────────────────────────────────
+let carrinho      = [];
+let produtosCache = [];
+let currentTabIndex = 0;
+let avistaOriginal  = 0;
+let parcelaCalculada = false;
+
+// Expor para compatibilidade com mobile-patch.js legado
+window.carrinho      = carrinho;
+window.produtosCache = produtosCache;
+
+// ════════════════════════════════════════════════════════════════
+// 1. UTILITÁRIOS — Formatação
+// ════════════════════════════════════════════════════════════════
+function brl(n) {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(+n || 0);
+}
+function formatarMoeda(v) { return brl(v); }
+
+function parseCurrency(val) {
+    if (typeof val === 'number') return val;
+    if (!val) return 0;
+    const limpo = String(val).replace(/[R$\s\u00A0]/g,'').replace(/\./g,'').replace(',','.');
+    const n = parseFloat(limpo);
+    return isNaN(n) ? 0 : n;
 }
 
-// Salvar carrinho no localStorage
-function salvarCarrinho() {
-    window.carrinho = carrinho; // Atualizar referência global
-    localStorage.setItem('carrinho_mobile', JSON.stringify(carrinho));
-    atualizarCarrinho();
+function formatCurrency(val) {
+    const n = typeof val === 'string' ? parseCurrency(val) : val;
+    return n.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
 }
 
-// ==================================================
-// NAVEGAÇÃO ENTRE ABAS
-// ==================================================
-const tabs = document.querySelectorAll('.tab-item');
-const tabContents = document.querySelectorAll('.tab-content');
-
-tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-        const targetTab = tab.dataset.tab;
-        
-        // Remover active de todas as tabs
-        tabs.forEach(t => t.classList.remove('active'));
-        tabContents.forEach(tc => tc.classList.remove('active'));
-        
-        // Adicionar active na tab clicada
-        tab.classList.add('active');
-        document.getElementById(`tab-${targetTab}`).classList.add('active');
-    });
-});
-
-// ==================================================
-// TOAST NOTIFICATIONS
-// ==================================================
-function showToast(type, title, message) {
-    const container = document.getElementById('toast-container');
-    
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.innerHTML = `
-        <div class="toast-icon">
-            <i class="fa-solid fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'info'}-circle"></i>
-        </div>
-        <div class="toast-content">
-            <div class="toast-title">${title}</div>
-            <div class="toast-message">${message}</div>
-        </div>
-    `;
-    
-    container.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.style.animation = 'slideDown 0.3s ease-out reverse';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+function limparValor(val) {
+    return parseFloat(String(val).replace(/[^\d,]/g,'').replace(',','.')) || 0;
 }
 
-// ==================================================
-// FORMATAÇÃO DE VALORES
-// ==================================================
-function formatarMoeda(valor) {
-    return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
-function limparValor(valor) {
-    return parseFloat(valor.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
-}
-
-// Converter string de moeda para número
-function parseCurrency(valor) {
-    if (typeof valor === 'number') return valor;
-    if (!valor) return 0;
-    // Remove R$, pontos de milhar e converte vírgula em ponto
-    return parseFloat(String(valor).replace(/[R$\s]/g, '').replace(/\./g, '').replace(',', '.')) || 0;
-}
-
-// Formatar número para string de moeda (sem R$, apenas formatado)
-function formatCurrency(valor) {
-    if (typeof valor === 'string') {
-        valor = parseCurrency(valor);
-    }
-    return valor.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-}
-
-// Função de arredondamento para 90 centavos (EXATAMENTE como no desktop)
 function arredondar90(valor) {
     const num = Number(valor);
     if (!isFinite(num) || num <= 0) return 0;
     const centavos = Math.floor(num * 100);
     const k = Math.floor((centavos - 90) / 100);
-    const resultCentavos = Math.max(0, k * 100 + 90);
-    return resultCentavos / 100;
+    return Math.max(0, k * 100 + 90) / 100;
 }
 
-function aplicarMascaraMoeda(input) {
-    input.addEventListener('input', function(e) {
-        let valor = e.target.value.replace(/\D/g, '');
-        valor = (valor / 100).toFixed(2);
-        e.target.value = valor.replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    });
+function formatarMilhar(n) {
+    return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
-// Aplicar máscara aos campos de moeda
-document.addEventListener('DOMContentLoaded', () => {
-    const camposMoeda = document.querySelectorAll('#avista, #parcela, #calc-valor');
-    camposMoeda.forEach(campo => aplicarMascaraMoeda(campo));
-    
-    carregarCarrinho();
-    
-    // Event listener do botão de busca
-    const btnBuscar = document.getElementById('btn-buscar');
-    if (btnBuscar) {
-        btnBuscar.addEventListener('click', async () => {
-            const codigo = document.getElementById('codigo').value.trim();
-            
-            // Se tiver código, busca direto
-            if (codigo) {
-                await window.buscarProdutoPorCodigo(codigo);
-                return;
-            }
-            
-            // Se não tiver código, abre modal de busca
-            abrirModalBusca();
-        });
-    }
-});
-
-// ==================================================
-// BUSCAR PRODUTO - MODAL DE BUSCA
-// ==================================================
-window.buscarProdutoPorCodigo = buscarProdutoPorCodigo;
-
-async function buscarProdutoPorCodigo(codigo) {
-    showToast('info', 'Buscando...', `Procurando produto código ${codigo}...`);
-    
-    try {
-        const resposta = await fetch(API_URL);
-        if (!resposta.ok) throw new Error("Erro ao acessar a API");
-        
-        const dados = await resposta.json();
-        let encontrado = false;
-        let primeiroItem = null;
-
-        // Buscar nas mesmas abas do desktop: Gabriel, Júlia, Giovana
-        ['Gabriel', 'Júlia', 'Giovana'].forEach(nome => {
-            if (dados[nome]) {
-                dados[nome].forEach(item => {
-                    if (item.Código == codigo) {
-                        encontrado = true;
-                        if (!primeiroItem) primeiroItem = item;
-                    }
-                });
-            }
-        });
-
-        if (encontrado && primeiroItem) {
-            // Produto encontrado - preencher formulário
-            const partes = (primeiroItem.Descrição || "").split(" - ");
-            document.getElementById("descricao").value = (partes[0] || "").trim();
-            document.getElementById("subdescricao").value = (partes[1] || "").trim();
-
-            // CORRIGIDO: Preencher valor à vista SEM aplicar máscara duplicada
-            const avistaValor = parseCurrency(primeiroItem["Total à vista"]);
-            const avistaInput = document.getElementById("avista");
-            // Remover event listener temporariamente para não aplicar máscara
-            const novoInput = avistaInput.cloneNode(true);
-            avistaInput.parentNode.replaceChild(novoInput, avistaInput);
-            novoInput.value = formatCurrency(avistaValor);
-            // Reaplicar máscara
-            aplicarMascaraMoeda(novoInput);
-
-            // Recalcular parcela
-            calcularParcela();
-            
-            showToast('success', 'Produto encontrado!', 'Dados preenchidos automaticamente');
-        } else {
-            showToast('warning', 'Produto não encontrado', 'Código não cadastrado. Preencha manualmente');
-        }
-    } catch (error) {
-        console.error('Erro ao buscar produto:', error);
-        showToast('error', 'Erro na conexão', 'Verifique sua internet e tente novamente');
-    }
+function formatDate(s) {
+    if (!s) return '';
+    const [y,m,d] = s.split('-');
+    return `${d}/${m}/${y}`;
 }
 
-async function abrirModalBusca() {
-    const modal = document.getElementById('modal-busca');
-    const loading = document.getElementById('busca-loading');
-    const results = document.getElementById('busca-results');
-    const empty = document.getElementById('busca-empty');
-    const inputBusca = document.getElementById('busca-input');
-    
-    modal.style.display = 'flex';
-    loading.style.display = 'block';
-    results.innerHTML = '';
-    empty.style.display = 'none';
-    inputBusca.value = '';
-    
-    // Carregar produtos se ainda não foram carregados
-    if (produtosCache.length === 0) {
-        try {
-            const resposta = await fetch(API_URL);
-            if (!resposta.ok) throw new Error("Erro ao acessar a API");
-            
-            const dados = await resposta.json();
-            
-            // Carregar produtos das mesmas abas do desktop
-            ['Gabriel', 'Júlia', 'Giovana'].forEach(nome => {
-                if (dados[nome]) {
-                    dados[nome].forEach(item => {
-                        produtosCache.push({
-                            codigo: item.Código,
-                            descricao: item.Descrição,
-                            avista: item["Total à vista"],
-                            garantia12: item["Tot. G.E 12"] || null,
-                            garantia24: item["Tot. G.E 24"] || null,
-                            garantia36: item["Tot. G.E 36"] || null
-                        });
-                    });
-                }
-            });
-        } catch (error) {
-            console.error('Erro ao carregar produtos:', error);
-            showToast('error', 'Erro', 'Não foi possível carregar a lista de produtos');
-        }
-    }
-    
-    loading.style.display = 'none';
-    renderizarResultadosBusca(produtosCache);
-    
-    // Busca em tempo real
-    inputBusca.addEventListener('input', (e) => {
-        const termo = e.target.value.toLowerCase().trim();
-        
-        if (!termo) {
-            renderizarResultadosBusca(produtosCache);
-            return;
-        }
-        
-        const resultados = produtosCache.filter(p => 
-            p.codigo.toLowerCase().includes(termo) ||
-            p.descricao.toLowerCase().includes(termo) ||
-            (p.marca && p.marca.toLowerCase().includes(termo))
-        );
-        
-        renderizarResultadosBusca(resultados);
-    });
+function formatDateExtended(s) {
+    if (!s) return '';
+    const [y,m,d] = s.split('-');
+    const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+    return `Oferta válida até ${parseInt(d)} de ${meses[parseInt(m)-1]} de ${y}`;
 }
 
-function renderizarResultadosBusca(produtos) {
-    const results = document.getElementById('busca-results');
-    const empty = document.getElementById('busca-empty');
-    
-    if (produtos.length === 0) {
-        results.innerHTML = '';
-        empty.style.display = 'block';
-        return;
-    }
-    
-    empty.style.display = 'none';
-    results.innerHTML = produtos.slice(0, 50).map(p => `
-        <div class="busca-item" onclick="selecionarProduto('${p.codigo}')">
-            <div class="busca-item-code">${p.codigo}</div>
-            <div class="busca-item-nome">${p.descricao}</div>
-            ${p.marca ? `<div class="busca-item-marca">${p.marca}</div>` : ''}
+// Expor globalmente
+window.limparValor = limparValor;
+window.parseCurrency = parseCurrency;
+window.formatCurrency = formatCurrency;
+
+// ════════════════════════════════════════════════════════════════
+// 2. TOAST — Notificações
+// ════════════════════════════════════════════════════════════════
+const TOAST_ICONS = {
+    success: 'fa-circle-check',
+    error:   'fa-circle-xmark',
+    warning: 'fa-triangle-exclamation',
+    info:    'fa-circle-info'
+};
+
+function showToast(type, title, message, duration = 3500) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
+        <div class="toast-icon-wrap"><i class="fa-solid ${TOAST_ICONS[type] || TOAST_ICONS.info}"></i></div>
+        <div class="toast-body">
+            <div class="toast-title">${title}</div>
+            <div class="toast-message">${message}</div>
         </div>
-    `).join('');
-}
+        <div class="toast-progress" style="animation-duration:${duration}ms"></div>`;
 
-function selecionarProduto(codigo) {
-    const produto = produtosCache.find(p => p.codigo === codigo);
-    if (produto) {
-        preencherFormulario(produto);
-        fecharModalBusca();
-        showToast('success', 'Produto selecionado', 'Informações carregadas');
-    }
-}
+    container.appendChild(toast);
 
-// Tornar função global
-window.selecionarProduto = selecionarProduto;
-
-function preencherFormulario(produto) {
-    // Preencher código
-    document.getElementById('codigo').value = produto.codigo || '';
-    
-    // Separar descrição e subdescricao (marca)
-    const partes = (produto.descricao || "").split(" - ");
-    document.getElementById('descricao').value = (partes[0] || "").trim();
-    document.getElementById('subdescricao').value = (partes[1] || "").trim();
-    
-    // CORRIGIDO: Preencher preço à vista SEM aplicar máscara duplicada
-    if (produto.avista) {
-        const avistaValor = parseCurrency(produto.avista);
-        const avistaInput = document.getElementById('avista');
-        // Remover event listener temporariamente para não aplicar máscara
-        const novoInput = avistaInput.cloneNode(true);
-        avistaInput.parentNode.replaceChild(novoInput, avistaInput);
-        novoInput.value = formatCurrency(avistaValor);
-        // Reaplicar máscara
-        aplicarMascaraMoeda(novoInput);
-    }
-    
-    // Recalcular parcela
-    calcularParcela();
-}
-
-function fecharModalBusca() {
-    document.getElementById('modal-busca').style.display = 'none';
-}
-
-// ==================================================
-// CAMPOS EXTRAS CONDICIONAIS (PREÇO VIRADO E CARTÃO)
-// ==================================================
-const jurosSelect = document.getElementById('juros');
-const extrasContainer = document.getElementById('extra-campos');
-const campoMotivo = document.getElementById('campo-motivo');
-const campoValidade = document.getElementById('campo-validade');
-const campoAutorizacao = document.getElementById('campo-autorizacao');
-
-jurosSelect.addEventListener('change', () => {
-    const juros = jurosSelect.value;
-    
-    // Esconder todos primeiro
-    extrasContainer.style.display = 'none';
-    campoMotivo.style.display = 'none';
-    campoValidade.style.display = 'none';
-    campoAutorizacao.style.display = 'none';
-    
-    if (juros === 'carne') {
-        // Carnê: nenhum campo extra
-        extrasContainer.style.display = 'none';
-    } else if (juros === 'cartao') {
-        // Cartão: mostra APENAS validade
-        extrasContainer.style.display = 'block';
-        campoValidade.style.display = 'block';
-    } else if (juros === 'virado') {
-        // Preço virado: mostra motivo + autorização
-        extrasContainer.style.display = 'block';
-        campoMotivo.style.display = 'block';
-        campoAutorizacao.style.display = 'block';
-    }
-    
-    // Recalcular parcela ao mudar taxa
-    recalcularParcela();
-});
-
-// ==================================================
-// CÁLCULO AUTOMÁTICO DA PARCELA
-// ==================================================
-function recalcularParcela() {
-    const metodo = document.getElementById('metodo').value;
-    const juros = document.getElementById('juros').value;
-    const avistaInput = document.getElementById('avista');
-    const parcelaInput = document.getElementById('parcela');
-    
-    if (!metodo || !juros || !avistaInput.value) {
-        return;
-    }
-    
-    const avista = limparValor(avistaInput.value);
-    const numParcelas = parseInt(metodo.replace('x', ''));
-    
-    // Se for preço virado, não calcula
-    if (juros === 'virado') {
-        parcelaInput.value = '';
-        return;
-    }
-    
-    // Determinar tipo de taxa
-    const tipoTaxa = (juros === 'carne') ? 'carne' : 'cartao';
-    
-    if (FATORES[tipoTaxa] && FATORES[tipoTaxa][numParcelas]) {
-        const fator = FATORES[tipoTaxa][numParcelas];
-        
-        // Cálculo correto: valor à vista * fator = valor da parcela
-        let parcela = avista * fator;
-        
-        // Arredondar para 90 centavos
-        // Ex: 123.45 -> 123.90, 199.99 -> 199.90
-        parcela = arredondar90(parcela);
-        
-        // Formatar e exibir
-        parcelaInput.value = parcela.toFixed(2).replace('.', ',');
-    }
-}
-
-// Alias para compatibilidade
-const calcularParcela = recalcularParcela;
-
-// Eventos para recálculo automático
-document.getElementById('metodo').addEventListener('change', recalcularParcela);
-document.getElementById('avista').addEventListener('input', recalcularParcela);
-
-// ==================================================
-// ADICIONAR AO CARRINHO
-// ==================================================
-document.getElementById('mobile-form')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    const codigo = document.getElementById('codigo').value.trim();
-    const descricao = document.getElementById('descricao').value.trim();
-    const subdescricao = document.getElementById('subdescricao').value.trim();
-    const feature1 = document.getElementById('feature-1').value.trim();
-    const feature2 = document.getElementById('feature-2').value.trim();
-    const feature3 = document.getElementById('feature-3').value.trim();
-    const metodo = document.getElementById('metodo').value;
-    const avista = document.getElementById('avista').value.trim();
-    const juros = document.getElementById('juros').value;
-    const parcela = document.getElementById('parcela').value.trim();
-    
-    // Campos extras
-    const motivo = document.getElementById('motivo').value.trim();
-    const validade = document.getElementById('validade').value.trim();
-    const autorizacao = document.getElementById('autorizacao').value.trim();
-    
-    if (!codigo || !descricao || !metodo || !avista || !juros) {
-        showToast('error', 'Campos obrigatórios', 'Preencha todos os campos obrigatórios');
-        return;
-    }
-    
-    const features = [feature1, feature2, feature3].filter(f => f.length > 0);
-    
-    const item = {
-        id: Date.now(),
-        codigo,
-        descricao,
-        subdescricao,
-        features,
-        metodo,
-        avista: limparValor(avista),
-        juros,
-        parcela: parcela ? limparValor(parcela) : null,
-        motivo,
-        validade,
-        autorizacao
+    const dismiss = () => {
+        if (toast.dataset.dismissing) return;
+        toast.dataset.dismissing = '1';
+        toast.classList.add('leaving');
+        setTimeout(() => toast.remove(), 280);
     };
-    
-    carrinho.push(item);
-    salvarCarrinho();
-    
-    // Limpar formulário
-    document.getElementById('mobile-form').reset();
-    
-    // Esconder campos extras
-    extrasContainer.style.display = 'none';
-    
-    showToast('success', 'Adicionado!', 'Cartaz adicionado ao JSON');
-    
-    // Mudar para aba do JSON
-    document.querySelector('[data-tab="json"]').click();
+    const t = setTimeout(dismiss, duration);
+    toast.addEventListener('click', () => { clearTimeout(t); dismiss(); });
+}
+
+// Alias compat
+window.showToast = showToast;
+function showToastEnhanced(type, title, message) { showToast(type, title, message); }
+window.showToastEnhanced = showToastEnhanced;
+
+// ════════════════════════════════════════════════════════════════
+// 3. TEMA — Claro / Escuro
+// ════════════════════════════════════════════════════════════════
+function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.querySelectorAll('.theme-icon').forEach(ic => {
+        ic.className = `fa-solid ${theme === 'dark' ? 'fa-sun' : 'fa-moon'} theme-icon`;
+    });
+    const lbl = document.getElementById('drawer-theme-label');
+    if (lbl) lbl.textContent = theme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro';
+}
+
+function toggleTheme() {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    localStorage.setItem('mobile-theme', next);
+    showToast('info', `Tema ${next === 'dark' ? 'escuro' : 'claro'} ativado`, 'Preferência salva automaticamente', 2000);
+}
+
+function initTheme() {
+    applyTheme(localStorage.getItem('mobile-theme') || 'light');
+}
+
+// ════════════════════════════════════════════════════════════════
+// 4. DRAWER LATERAL
+// ════════════════════════════════════════════════════════════════
+function openDrawer() {
+    document.getElementById('side-drawer').classList.add('open');
+    document.getElementById('drawer-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+function closeDrawer() {
+    document.getElementById('side-drawer').classList.remove('open');
+    document.getElementById('drawer-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+function initDrawer() {
+    const hamburger = document.getElementById('btn-hamburger');
+    const overlay   = document.getElementById('drawer-overlay');
+    const btnCalc   = document.getElementById('drawer-btn-calc');
+    const btnTheme  = document.getElementById('drawer-btn-theme');
+    const btnHelp   = document.getElementById('drawer-btn-help');
+    const btnThemeH = document.getElementById('btn-theme');
+
+    hamburger?.addEventListener('click', openDrawer);
+    overlay?.addEventListener('click', closeDrawer);
+
+    btnCalc?.addEventListener('click', () => {
+        closeDrawer();
+        setTimeout(() => switchToTab('calculadora'), 160);
+    });
+    btnTheme?.addEventListener('click', () => {
+        toggleTheme();
+        // não fecha o drawer
+    });
+    btnHelp?.addEventListener('click', () => {
+        closeDrawer();
+        setTimeout(() => abrirModal('modal-help'), 200);
+    });
+    btnThemeH?.addEventListener('click', toggleTheme);
+
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+}
+
+// ════════════════════════════════════════════════════════════════
+// 5. NAVEGAÇÃO — Bottom Nav Circular (expande/retrai)
+// ════════════════════════════════════════════════════════════════
+const TAB_ORDER = ['criar-cartaz', 'calculadora', 'json'];
+
+function switchToTab(tabId, skipAnim) {
+    const newIdx = TAB_ORDER.indexOf(tabId);
+    if (newIdx === -1 || newIdx === currentTabIndex) return;
+
+    const dir = newIdx > currentTabIndex ? 'right' : 'left';
+
+    // Desativa todos
+    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(tc => {
+        tc.classList.remove('active', 'slide-in-right', 'slide-in-left');
+    });
+
+    // Ativa novo botão nav
+    const navBtn = document.querySelector(`.tab-item[data-tab="${tabId}"]`);
+    navBtn?.classList.add('active');
+
+    // Ativa e anima conteúdo
+    const content = document.getElementById(`tab-${tabId}`);
+    if (content) {
+        content.classList.add('active');
+        if (!skipAnim) {
+            const cls = `slide-in-${dir}`;
+            content.classList.add(cls);
+            content.addEventListener('animationend', () => content.classList.remove(cls), { once: true });
+        }
+    }
+
+    currentTabIndex = newIdx;
+
+    // Scroll para o topo do conteúdo
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function initNav() {
+    document.querySelectorAll('.tab-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tab = btn.dataset.tab;
+            if (tab) switchToTab(tab);
+        });
+    });
+}
+
+// ════════════════════════════════════════════════════════════════
+// 6. SEARCH OVERLAY — 3 fases: loading → success/error
+// ════════════════════════════════════════════════════════════════
+const SOV = {
+    el:       null,
+    iconWrap: null,
+    title:    null,
+    sub:      null,
+    product:  null,
+
+    init() {
+        this.el       = document.getElementById('search-overlay');
+        this.iconWrap = document.getElementById('sov-icon-wrap');
+        this.title    = document.getElementById('sov-title');
+        this.sub      = document.getElementById('sov-sub');
+        this.product  = document.getElementById('sov-product');
+    },
+
+    show(state, title, sub, productName) {
+        if (!this.el) return;
+        // Reset
+        this.iconWrap.className = `sov-icon-wrap ${state}`;
+        this.iconWrap.innerHTML = state === 'loading'
+            ? '<div class="sov-spinner"></div>'
+            : `<i class="fa-solid ${state === 'success' ? 'fa-circle-check' : 'fa-circle-xmark'}"></i>`;
+
+        this.title.textContent = title;
+        this.sub.textContent   = sub;
+
+        if (productName) {
+            this.product.textContent = productName;
+            this.product.style.display = 'block';
+        } else {
+            this.product.style.display = 'none';
+        }
+
+        this.el.classList.add('active');
+    },
+
+    hide(delay = 0) {
+        if (!this.el) return;
+        setTimeout(() => {
+            this.el.classList.remove('active');
+        }, delay);
+    }
+};
+
+// ════════════════════════════════════════════════════════════════
+// 7. MODAIS
+// ════════════════════════════════════════════════════════════════
+function abrirModal(id) {
+    const m = document.getElementById(id);
+    if (m) m.style.display = 'flex';
+}
+
+window.fecharModalBusca = function() {
+    document.getElementById('modal-busca').style.display = 'none';
+};
+window.fecharModalJSONViewer = function() {
+    document.getElementById('modal-json-viewer').style.display = 'none';
+};
+window.fecharModalHelp = function() {
+    document.getElementById('modal-help').style.display = 'none';
+};
+
+// Fechar modal ao clicar no overlay
+document.addEventListener('click', e => {
+    if (e.target.classList.contains('modal-overlay')) {
+        e.target.style.display = 'none';
+    }
 });
 
-// ==================================================
-// ATUALIZAR CARRINHO
-// ==================================================
+// ════════════════════════════════════════════════════════════════
+// 8. MÁSCARAS DE MOEDA
+// ════════════════════════════════════════════════════════════════
+function aplicarMascaraMoeda(input) {
+    if (!input || input._maskApplied) return;
+    input._maskApplied = true;
+    input.addEventListener('input', e => {
+        let val = e.target.value.replace(/\D/g, '');
+        val = (val / 100).toFixed(2);
+        e.target.value = val.replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    });
+}
+
+function preencherInputMoeda(input, valor) {
+    // Preenche sem disparar o event listener
+    if (!input) return;
+    input.value = formatCurrency(valor);
+}
+
+// ════════════════════════════════════════════════════════════════
+// 9. CARRINHO — Persistência
+// ════════════════════════════════════════════════════════════════
+function carregarCarrinho() {
+    try {
+        const raw = localStorage.getItem('carrinho_mobile');
+        if (raw) {
+            carrinho = JSON.parse(raw);
+            window.carrinho = carrinho;
+        }
+    } catch(e) { carrinho = []; }
+    atualizarCarrinho();
+}
+
+function salvarCarrinho() {
+    window.carrinho = carrinho;
+    try { localStorage.setItem('carrinho_mobile', JSON.stringify(carrinho)); } catch(e) {}
+    atualizarCarrinho();
+}
+
 function atualizarCarrinho() {
-    const count = carrinho.length;
-    document.getElementById('cart-count').textContent = count;
-    document.getElementById('cart-total').textContent = count;
-    
-    const jsonActions = document.getElementById('json-actions');
-    if (count > 0) {
-        jsonActions.style.display = 'flex';
-    } else {
-        jsonActions.style.display = 'none';
-    }
-    
+    const count   = carrinho.length;
+    const badge   = document.getElementById('cart-count');
+    const total   = document.getElementById('cart-total');
+    const actions = document.getElementById('json-actions');
+
+    if (badge) { badge.textContent = count; badge.style.display = count > 0 ? 'flex' : 'none'; }
+    if (total) total.textContent = count;
+    if (actions) actions.style.display = count > 0 ? 'flex' : 'none';
+
     renderizarCarrinho();
 }
 
 function renderizarCarrinho() {
     const container = document.getElementById('cart-list');
-    
+    if (!container) return;
+
     if (carrinho.length === 0) {
         container.innerHTML = `
             <div class="empty-cart">
-                <i class="fa-solid fa-file-code"></i>
+                <i class="fa-solid fa-layer-group"></i>
                 <h3>JSON vazio</h3>
-                <p>Adicione cartazes e preencha o JSON</p>
-            </div>
-        `;
+                <p>Adicione cartazes usando a aba Criar Cartaz</p>
+            </div>`;
         return;
     }
-    
+
     container.innerHTML = carrinho.map(item => `
         <div class="cart-item">
             <div class="cart-item-header">
-                <div class="cart-item-code">${item.codigo}</div>
-                <button class="cart-item-remove" onclick="removerItem(${item.id})">
+                <span class="cart-item-code">${item.codigo}</span>
+                <button class="cart-item-remove" onclick="removerItem(${item.id})" aria-label="Remover">
                     <i class="fa-solid fa-trash"></i>
                 </button>
             </div>
             <div class="cart-item-title">${item.descricao}</div>
             ${item.subdescricao ? `<div class="cart-item-subtitle">${item.subdescricao}</div>` : ''}
-            ${item.features.length > 0 ? `
+            ${item.features?.length ? `
                 <div class="cart-item-features">
                     ${item.features.map(f => `<span class="cart-item-feature">${f}</span>`).join('')}
-                </div>
-            ` : ''}
+                </div>` : ''}
             <div class="cart-item-footer">
                 <div class="cart-item-info">
                     <span class="cart-item-label">Parcelamento</span>
@@ -535,754 +396,837 @@ function renderizarCarrinho() {
                 </div>
                 <div class="cart-item-info">
                     <span class="cart-item-label">À vista</span>
-                    <span class="cart-item-value">${formatarMoeda(item.avista)}</span>
+                    <span class="cart-item-value">${brl(item.avista)}</span>
                 </div>
                 <div class="cart-item-info">
                     <span class="cart-item-label">Taxa</span>
-                    <span class="cart-item-value">${item.juros === 'carne' ? 'Carnê' : item.juros === 'cartao' ? 'Cartão' : 'Virado'}</span>
+                    <span class="cart-item-value">${item.juros === 'carne' ? 'Carnê' : item.juros === 'cartao' ? 'Cartão' : item.juros === 'virado' ? 'Virado' : 'S/ juros'}</span>
                 </div>
                 ${item.parcela ? `
-                    <div class="cart-item-info">
-                        <span class="cart-item-label">Parcela</span>
-                        <span class="cart-item-value">${formatarMoeda(item.parcela)}</span>
-                    </div>
-                ` : ''}
+                <div class="cart-item-info">
+                    <span class="cart-item-label">Parcela</span>
+                    <span class="cart-item-value">${brl(item.parcela)}</span>
+                </div>` : ''}
             </div>
-        </div>
-    `).join('');
+        </div>`).join('');
 }
 
 function removerItem(id) {
-    carrinho = carrinho.filter(item => item.id !== id);
+    const item = carrinho.find(i => i.id === id);
+    carrinho = carrinho.filter(i => i.id !== id);
     salvarCarrinho();
-    showToast('success', 'Removido', 'Item removido do JSON');
+    showToast('success', 'Removido', item ? `"${item.descricao.substring(0,28)}" removido` : 'Item removido');
+}
+window.removerItem = removerItem;
+
+// ════════════════════════════════════════════════════════════════
+// 10. BUSCA DE PRODUTO — API + Modal texto
+// ════════════════════════════════════════════════════════════════
+async function fetchAPI() {
+    const controller = new AbortController();
+    const tid = setTimeout(() => controller.abort(), 12000);
+    try {
+        const resp = await fetch(API_URL, { signal: controller.signal, cache: 'no-cache' });
+        clearTimeout(tid);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        return await resp.json();
+    } catch(e) {
+        clearTimeout(tid);
+        throw e;
+    }
 }
 
-// ==================================================
-// AÇÕES DO JSON
-// ==================================================
-
-// Função para fazer upload do JSON para o Worker
-async function uploadJsonToWorker(payload) {
-    const endpoint = 'https://json-cartazes.gab-oliveirab27.workers.dev/json';
-  
-    console.log('[uploadJsonToWorker] POST ->', endpoint);
-    // opcional: limitar ou sanitizar payload aqui
-  
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
-  
-    // pega texto cru sempre (pra debug caso não seja JSON)
-    const text = await res.text();
-    let parsed;
-    try { parsed = JSON.parse(text); } catch { parsed = null; }
-  
-    console.log('[uploadJsonToWorker] resposta HTTP', res.status, res.statusText);
-    console.log('[uploadJsonToWorker] body recebido:', parsed !== null ? parsed : text);
-  
-    if (!res.ok) {
-      // tenta extrair mensagem de erro do corpo
-      const errMsg = (parsed && parsed.error) ? parsed.error : (text || `${res.status} ${res.statusText}`);
-      throw new Error(errMsg);
-    }
-  
-    return parsed !== null ? parsed : { raw: text };
-}
-
-// Tornar funções globais para o patch ter acesso
-window.uploadJsonToWorker = uploadJsonToWorker;
-window.gerarJSON = gerarJSON;
-window.limparValor = limparValor;
-window.carrinho = carrinho;
-
-// Botão Enviar JSON (Upload para Worker do Cloudflare)
-document.getElementById('btn-enviar-json')?.addEventListener('click', async () => {
-    if (carrinho.length === 0) {
-        showToast('warning', 'Carrinho vazio', 'Adicione cartazes antes de enviar');
-        return;
-    }
-  
-    // ler sessão com try/catch
-    let authSession = null;
-    try {
-        const raw = localStorage.getItem('authSession');
-        if (!raw) throw new Error('authSession não encontrada no localStorage');
-        authSession = JSON.parse(raw);
-    } catch (err) {
-        console.error('Erro lendo authSession:', err);
-        showToast('error', 'Sessão inválida', 'authSession não encontrada ou inválida');
-        return;
-    }
-  
-    // tentar várias chaves possíveis (compatibilidade)
-    const user = (authSession.user || authSession.username || authSession.email || '').toString().trim();
-    const filial = (authSession.filial || authSession.branch || authSession.store || '').toString().trim();
-  
-    if (!user || !filial) {
-        console.error('authSession disponível, mas faltam user/filial:', authSession);
-        showToast('error', 'Sessão incompleta', 'Usuário ou filial ausente em authSession');
-        return;
-    }
-  
-    // montar payload conforme a GAS espera
-    const payload = {
-        user: user,
-        filial: filial,
-        data: gerarJSON()
-    };
-  
-    // LOG para debug — verifique Network > Request Payload no DevTools
-    console.log('Payload enviado para o Worker:', payload);
-  
-    try {
-        showToast('info', 'Enviando...', 'Fazendo upload do JSON para o servidor');
-  
-        const resultado = await uploadJsonToWorker(payload);
-  
-        // resultado deve ser { success: true, fileName: '...' } (conforme a GAS)
-        console.log('Resposta do servidor:', resultado);
-        if (resultado && resultado.success) {
-            showToast('success', 'Enviado com sucesso!', `Arquivo salvo: ${resultado.fileName}`);
-        } else if (resultado && resultado.error) {
-            showToast('error', 'Erro no servidor', resultado.error);
-        } else {
-            showToast('success', 'Resposta recebida', JSON.stringify(resultado));
+function buscarNaDados(dados, codigo) {
+    let encontrado = null;
+    ['Gabriel', 'Júlia', 'Giovana'].forEach(aba => {
+        if (dados[aba] && !encontrado) {
+            const item = dados[aba].find(i => String(i.Código) === String(codigo));
+            if (item) encontrado = item;
         }
-    } catch (err) {
-        console.error('Erro ao enviar JSON:', err);
-        showToast('error', 'Erro no envio', err.message || 'Não foi possível enviar o JSON ao servidor');
-    }
-});
+    });
+    return encontrado;
+}
 
-// Botão Ver/Copiar JSON
-document.getElementById('btn-ver-copiar-json')?.addEventListener('click', () => {
-    const jsonData = gerarJSON();
-    const jsonString = JSON.stringify(jsonData, null, 2);
-    
-    document.getElementById('json-viewer-content').textContent = jsonString;
-    document.getElementById('modal-json-viewer').style.display = 'flex';
-    
-    showToast('info', 'Ver/Copiar JSON', 'Você pode copiar o JSON para a área de transferência');
-});
-
-// Botão Limpar Tudo
-document.getElementById('btn-limpar-json')?.addEventListener('click', () => {
-    if (confirm('Deseja realmente limpar todos os cartazes do JSON?')) {
-        carrinho = [];
-        salvarCarrinho();
-        showToast('success', 'Limpo!', 'Todos os cartazes foram removidos');
-    }
-});
-
-// Botão Copiar do Modal
-document.getElementById('btn-copiar-json-modal')?.addEventListener('click', () => {
-    const jsonString = document.getElementById('json-viewer-content').textContent;
-    
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(jsonString).then(() => {
-            showToast('success', 'Copiado!', 'JSON copiado para área de transferência');
-            fecharModalJSONViewer();
+function carregarProdutosNoCache(dados) {
+    if (produtosCache.length > 0) return;
+    ['Gabriel', 'Júlia', 'Giovana'].forEach(aba => {
+        if (!dados[aba]) return;
+        dados[aba].forEach(item => {
+            produtosCache.push({
+                codigo:     String(item.Código),
+                descricao:  item.Descrição || '',
+                avista:     item['Total à vista'],
+                garantia12: item['Tot. G.E 12'] || null,
+                garantia24: item['Tot. G.E 24'] || null,
+                garantia36: item['Tot. G.E 36'] || null
+            });
         });
-    } else {
-        // Fallback para navegadores antigos
-        const textarea = document.createElement('textarea');
-        textarea.value = jsonString;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        showToast('success', 'Copiado!', 'JSON copiado para área de transferência');
-        fecharModalJSONViewer();
+    });
+    window.produtosCache = produtosCache;
+}
+
+async function buscarProdutoPorCodigo(codigo) {
+    SOV.show('loading', 'Buscando produto', `Procurando código ${codigo}...`);
+
+    try {
+        const dados = await fetchAPI();
+        carregarProdutosNoCache(dados);
+        const item = buscarNaDados(dados, codigo);
+
+        if (item) {
+            const nome = (item.Descrição || '').split(' - ')[0].trim();
+            SOV.show('success', 'Produto encontrado!', 'Preenchendo campos...', nome);
+            await sleep(800);
+            preencherFormularioDeAPI(item);
+            SOV.hide(400);
+            showToast('success', 'Produto encontrado', `Dados de "${nome.substring(0,30)}" preenchidos`);
+        } else {
+            SOV.show('error', 'Não encontrado', `Código ${codigo} não está na base de dados`);
+            await sleep(1600);
+            SOV.hide();
+            showToast('warning', 'Produto não encontrado', 'Preencha os dados manualmente');
+        }
+    } catch (e) {
+        const isTimeout = e.name === 'AbortError';
+        SOV.show('error',
+            isTimeout ? 'Tempo esgotado' : 'Erro de conexão',
+            isTimeout ? 'O servidor demorou demais. Tente novamente.' : 'Verifique sua internet.');
+        await sleep(1800);
+        SOV.hide();
+        showToast('error', 'Erro na busca', isTimeout ? 'Servidor demorou. Tente novamente.' : 'Verifique sua conexão.');
     }
-});
+}
+window.buscarProdutoPorCodigo = buscarProdutoPorCodigo;
 
-function gerarJSON() {
-    return {
-        versao: '1.0',
-        origem: 'mobile',
-        dataGeracao: new Date().toISOString(),
-        totalCartazes: carrinho.length,
-        cartazes: carrinho.map(item => ({
-            codigo: item.codigo,
-            descricao: item.descricao,
-            subdescricao: item.subdescricao || '',
-            features: item.features,
-            metodo: item.metodo,
-            avista: item.avista,
-            juros: item.juros,
-            parcela: item.parcela || 0,
-            motivo: item.motivo || '',
-            validade: item.validade || '',
-            autorizacao: item.autorizacao || '',
-            garantia12: 0,
-            garantia24: 0,
-            garantia36: 0
-        }))
-    };
+function preencherFormularioDeAPI(item) {
+    const partes = (item.Descrição || '').split(' - ');
+    document.getElementById('descricao').value    = (partes[0] || '').trim().toUpperCase();
+    document.getElementById('subdescricao').value = (partes[1] || '').trim().toUpperCase();
+
+    const avista = parseCurrency(item['Total à vista']);
+    const avistaEl = document.getElementById('avista');
+    preencherInputMoeda(avistaEl, avista);
+
+    // Garantias
+    if (item['Tot. G.E 12']) preencherInputMoeda(document.getElementById('garantia12'), parseCurrency(item['Tot. G.E 12']));
+    if (item['Tot. G.E 24']) preencherInputMoeda(document.getElementById('garantia24'), parseCurrency(item['Tot. G.E 24']));
+    if (item['Tot. G.E 36']) preencherInputMoeda(document.getElementById('garantia36'), parseCurrency(item['Tot. G.E 36']));
+
+    avistaOriginal = avista;
+    recalcularParcela();
 }
 
-function fecharModalJSONViewer() {
-    document.getElementById('modal-json-viewer').style.display = 'none';
+function preencherFormulario(produto) {
+    document.getElementById('codigo').value = produto.codigo || '';
+    const partes = (produto.descricao || '').split(' - ');
+    document.getElementById('descricao').value    = (partes[0] || '').trim().toUpperCase();
+    document.getElementById('subdescricao').value = (partes[1] || '').trim().toUpperCase();
+
+    if (produto.avista) {
+        const v = parseCurrency(produto.avista);
+        preencherInputMoeda(document.getElementById('avista'), v);
+        avistaOriginal = v;
+    }
+    if (produto.garantia12) preencherInputMoeda(document.getElementById('garantia12'), parseCurrency(produto.garantia12));
+    if (produto.garantia24) preencherInputMoeda(document.getElementById('garantia24'), parseCurrency(produto.garantia24));
+    if (produto.garantia36) preencherInputMoeda(document.getElementById('garantia36'), parseCurrency(produto.garantia36));
+
+    recalcularParcela();
 }
 
-// ==================================================
-// CALCULADORA DE FATOR
-// ==================================================
-document.getElementById('calculator-form')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    const valorInput = document.getElementById('calc-valor').value.trim();
-    const tipo = document.getElementById('calc-tipo').value;
-    
-    if (!valorInput || !tipo) {
-        showToast('error', 'Campos obrigatórios', 'Preencha todos os campos');
+// Modal de busca por texto
+async function abrirModalBusca() {
+    abrirModal('modal-busca');
+
+    const loading = document.getElementById('busca-loading');
+    const results = document.getElementById('busca-results');
+    const empty   = document.getElementById('busca-empty');
+    const count   = document.getElementById('busca-count');
+
+    loading.style.display = 'block';
+    results.innerHTML = '';
+    empty.style.display = 'none';
+    count.style.display = 'none';
+
+    if (produtosCache.length === 0) {
+        try {
+            const dados = await fetchAPI();
+            carregarProdutosNoCache(dados);
+        } catch(e) {
+            loading.style.display = 'none';
+            showToast('error', 'Erro', 'Não foi possível carregar os produtos');
+            return;
+        }
+    }
+
+    loading.style.display = 'none';
+    renderizarResultados(produtosCache);
+
+    // Campo de busca — recriar para limpar listeners antigos
+    const oldInput = document.getElementById('busca-input');
+    const newInput = oldInput.cloneNode(true);
+    oldInput.parentNode.replaceChild(newInput, oldInput);
+    newInput.value = '';
+    newInput.focus();
+
+    const clearBtn = document.getElementById('busca-clear');
+
+    newInput.addEventListener('input', () => {
+        const q = newInput.value.toLowerCase().trim();
+        clearBtn.style.display = q ? 'block' : 'none';
+        if (!q) { renderizarResultados(produtosCache); return; }
+        const res = produtosCache.filter(p =>
+            p.codigo.toLowerCase().includes(q) ||
+            p.descricao.toLowerCase().includes(q)
+        );
+        renderizarResultados(res);
+    });
+
+    clearBtn?.addEventListener('click', () => {
+        newInput.value = '';
+        clearBtn.style.display = 'none';
+        renderizarResultados(produtosCache);
+        newInput.focus();
+    });
+}
+
+function renderizarResultados(lista) {
+    const results = document.getElementById('busca-results');
+    const empty   = document.getElementById('busca-empty');
+    const count   = document.getElementById('busca-count');
+
+    if (!lista.length) {
+        results.innerHTML = '';
+        empty.style.display = 'block';
+        count.style.display = 'none';
         return;
     }
-    
-    const valor = limparValor(valorInput);
-    const resultDiv = document.getElementById('calc-result');
-    const tbody = document.getElementById('result-tbody');
-    
-    document.getElementById('result-valor').textContent = formatarMoeda(valor);
-    document.getElementById('result-tipo').textContent = tipo === 'carne' ? 'Carnê' : 'Cartão';
-    
-    const tabelaFator = FATORES[tipo];
-    tbody.innerHTML = '';
-    
-    // EXATAMENTE como no desktop: valor à vista * fator = valor da parcela
-    for (let parcelas = 1; parcelas <= 12; parcelas++) {
-        const fator = tabelaFator[parcelas];
-        const valorParcela = valor * fator; // valor da PARCELA, não do total
-        const totalPrazo = valorParcela * parcelas; // total a prazo
-        
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${parcelas}x</td>
-            <td>${fator.toFixed(4)}</td>
-            <td>${formatarMoeda(valorParcela)}</td>
-        `;
-        tbody.appendChild(tr);
-    }
-    
-    resultDiv.style.display = 'block';
-    
-    // Scroll suave até o resultado
-    setTimeout(() => {
-        resultDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
-    
-    showToast('success', 'Calculado!', 'Tabela de fatores gerada');
-});
 
-// ==================================================
-// MODAL DE AJUDA
-// ==================================================
-document.getElementById('btn-help-float')?.addEventListener('click', () => {
-    document.getElementById('modal-help').style.display = 'flex';
-});
+    empty.style.display = 'none';
+    const slice = lista.slice(0, 60);
+    count.textContent = `${lista.length} produto(s) encontrado(s)`;
+    count.style.display = 'block';
 
-function fecharModalHelp() {
-    document.getElementById('modal-help').style.display = 'none';
+    results.innerHTML = slice.map(p => `
+        <div class="busca-item" onclick="selecionarProduto('${p.codigo}')">
+            <div class="busca-item-code">${p.codigo}</div>
+            <div class="busca-item-nome">${p.descricao}</div>
+            ${p.marca ? `<div class="busca-item-marca">${p.marca}</div>` : ''}
+        </div>`).join('');
 }
 
-// ==================================================
-// INICIALIZAÇÃO
-// ==================================================
-console.log('Sistema mobile inicializado!');
+function selecionarProduto(codigo) {
+    const p = produtosCache.find(x => x.codigo === codigo);
+    if (!p) return;
+    document.getElementById('codigo').value = p.codigo;
+    preencherFormulario(p);
+    fecharModalBusca();
+    showToast('success', 'Produto selecionado', `"${p.descricao.substring(0,30)}" carregado no formulário`);
+}
+window.selecionarProduto = selecionarProduto;
 
-// ==================================================
-// 1. SKELETON LOADING AO BUSCAR PRODUTO
-// ==================================================
+// ════════════════════════════════════════════════════════════════
+// 11. CAMPOS EXTRAS CONDICIONAIS & RECALCULAR PARCELA
+// ════════════════════════════════════════════════════════════════
+function setupFormCondicional() {
+    const metodoSel  = document.getElementById('metodo');
+    const jurosEl    = document.getElementById('juros');
+    const avistaEl   = document.getElementById('avista');
+    const parcelaEl  = document.getElementById('parcela');
 
-function mostrarSkeletonLoading() {
-    const skeleton = document.createElement('div');
-    skeleton.id = 'skeleton-overlay';
-    skeleton.className = 'skeleton-overlay';
-    skeleton.innerHTML = `
-        <div class="skeleton-content">
-            <div class="skeleton-status">
-                <div class="skeleton-icon">
-                    <i class="fa-solid fa-search"></i>
-                </div>
-                <div class="skeleton-text" id="skeleton-text">Buscando produto...</div>
-            </div>
-            <div class="skeleton-form">
-                <div class="skeleton-field">
-                    <div class="skeleton-label"></div>
-                    <div class="skeleton-input"></div>
-                </div>
-                <div class="skeleton-field">
-                    <div class="skeleton-label"></div>
-                    <div class="skeleton-input"></div>
-                </div>
-                <div class="skeleton-field">
-                    <div class="skeleton-label"></div>
-                    <div class="skeleton-input short"></div>
-                </div>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(skeleton);
-    
-    // Animação de textos
-    const textos = [
-        'Buscando produto...',
-        'Olhando cada linha...',
-        'Encontrei!',
-        'Tudo pronto.'
-    ];
-    
-    let currentIndex = 0;
-    const textElement = document.getElementById('skeleton-text');
-    
-    const intervalo = setInterval(() => {
-        currentIndex++;
-        if (currentIndex < textos.length) {
-            textElement.style.animation = 'none';
-            setTimeout(() => {
-                textElement.textContent = textos[currentIndex];
-                textElement.style.animation = 'fadeInOut 0.8s ease-in-out';
-            }, 50);
-        } else {
-            clearInterval(intervalo);
+    const grupoJuros     = document.getElementById('grupo-juros');
+    const grupoParcela   = document.getElementById('form-group-parcela');
+    const grupoSemJuros  = document.getElementById('grupo-sem-juros');
+    const extraCampos    = document.getElementById('extra-campos');
+    const campoMotivo    = document.getElementById('campo-motivo');
+    const campoValidade  = document.getElementById('campo-validade');
+    const campoAut       = document.getElementById('campo-autorizacao');
+    const parcelaLabel   = document.getElementById('parcela-label');
+
+    const grupoAvista = document.getElementById('grupo-avista');
+
+    function onMetodoChange() {
+        const m = metodoSel.value;
+
+        // Esconde tudo e vai reabilitando conforme necessário
+        grupoJuros.style.display    = 'none';
+        grupoParcela.style.display  = 'none';
+        grupoSemJuros.style.display = 'none';
+        avistaEl.removeAttribute('readonly');
+        avistaEl.removeAttribute('disabled');
+        extraCampos.style.display   = 'none';
+        campoMotivo.style.display   = 'none';
+        campoValidade.style.display = 'none';
+        campoAut.style.display      = 'none';
+
+        if (m === '1x') {
+            // Só mostra avista, sem taxa, sem parcela
+            grupoAvista.style.display = 'flex';
+        } else if (m === '3x' || m === '5x' || m === '10x') {
+            // Sem juros: usuário digita parcela, avista é calculado
+            grupoAvista.style.display   = 'flex';
+            grupoParcela.style.display  = 'block';
+            grupoSemJuros.style.display = 'block';
+            if (parcelaLabel) parcelaLabel.textContent = 'Valor da parcela *';
+            // Ava-vista fica readonly e é calculado
+            avistaEl.setAttribute('readonly', 'true');
+        } else if (m === '12x') {
+            // Com juros: calcular pelo fator
+            grupoJuros.style.display   = 'block';
+            grupoParcela.style.display = 'block';
+            if (parcelaLabel) parcelaLabel.textContent = 'Valor da parcela (calculado)';
         }
-    }, currentIndex === 2 ? 400 : 1200); // "Encontrei!" aparece mais rápido
-    
-    return skeleton;
-}
 
-function esconderSkeletonLoading() {
-    const skeleton = document.getElementById('skeleton-overlay');
-    if (skeleton) {
-        skeleton.style.animation = 'fadeIn 0.2s ease-out reverse';
-        setTimeout(() => skeleton.remove(), 200);
+        recalcularParcela();
     }
-}
 
-// ==================================================
-// 2. VALIDAÇÃO INTELIGENTE DE CAMPOS
-// ==================================================
+    function onJurosChange() {
+        const j = jurosEl.value;
+        // Campos extras por tipo de juros
+        extraCampos.style.display   = 'none';
+        campoMotivo.style.display   = 'none';
+        campoValidade.style.display = 'none';
+        campoAut.style.display      = 'none';
 
-function validarCamposObrigatorios() {
-    const campos = [
-        { id: 'codigo', nome: 'Código do produto', tipo: 'text' },
-        { id: 'descricao', nome: 'Descrição', tipo: 'text' },
-        { id: 'metodo', nome: 'Parcelamento', tipo: 'select' },
-        { id: 'avista', nome: 'Valor à vista', tipo: 'currency' },
-        { id: 'juros', nome: 'Taxa de juros', tipo: 'select' }
-    ];
-    
-    let primeiroErro = null;
-    let todosValidos = true;
-    
-    // Limpar erros anteriores
-    document.querySelectorAll('.form-group').forEach(group => {
-        group.classList.remove('error');
+        if (j === 'cartao') {
+            extraCampos.style.display  = 'block';
+            campoValidade.style.display = 'block';
+        } else if (j === 'virado') {
+            extraCampos.style.display = 'block';
+            campoMotivo.style.display = 'block';
+            campoAut.style.display    = 'block';
+        }
+        recalcularParcela();
+    }
+
+    metodoSel?.addEventListener('change', onMetodoChange);
+    jurosEl?.addEventListener('change', onJurosChange);
+    avistaEl?.addEventListener('input', () => {
+        if (!avistaEl.hasAttribute('disabled')) recalcularParcela();
+        detectarInconsistencia();
     });
-    
-    for (const campo of campos) {
-        const elemento = document.getElementById(campo.id);
-        const formGroup = elemento.closest('.form-group');
-        
-        let valor = elemento.value.trim();
-        let erroMsg = '';
-        
-        // Validar campo vazio
-        if (!valor) {
-            erroMsg = `Campo obrigatório: ${campo.nome}`;
-        }
-        // Validar valor de moeda
-        else if (campo.tipo === 'currency') {
-            const valorNumerico = limparValor(valor);
-            if (valorNumerico <= 0) {
-                erroMsg = `${campo.nome} deve ser maior que zero`;
+    parcelaEl?.addEventListener('input', () => {
+        const m = metodoSel.value;
+        if (m === '3x' || m === '5x' || m === '10x') {
+            // Calcula avista a partir da parcela
+            const parcela = limparValor(parcelaEl.value);
+            const n = parseInt(m);
+            if (parcela > 0) {
+                const avista = parcela * n;
+                preencherInputMoeda(avistaEl, avista);
             }
         }
-        
-        if (erroMsg) {
-            todosValidos = false;
-            mostrarErroCampo(formGroup, erroMsg);
-            
-            if (!primeiroErro) {
-                primeiroErro = formGroup;
-            }
-        }
-    }
-    
-    // Validar campos extras condicionais
-    const juros = document.getElementById('juros').value;
-    
-    if (juros === 'cartao') {
-        const validade = document.getElementById('validade');
-        if (validade && !validade.value) {
-            const formGroup = validade.closest('.form-group');
-            mostrarErroCampo(formGroup, 'Validade da oferta é obrigatória para Cartão');
-            todosValidos = false;
-            if (!primeiroErro) primeiroErro = formGroup;
-        }
-    }
-    
-    if (juros === 'virado') {
-        const motivo = document.getElementById('motivo');
-        const autorizacao = document.getElementById('autorizacao');
-        
-        if (motivo && !motivo.value.trim()) {
-            const formGroup = motivo.closest('.form-group');
-            mostrarErroCampo(formGroup, 'Motivo é obrigatório para Preço Virado');
-            todosValidos = false;
-            if (!primeiroErro) primeiroErro = formGroup;
-        }
-        
-        if (autorizacao && !autorizacao.value.trim()) {
-            const formGroup = autorizacao.closest('.form-group');
-            mostrarErroCampo(formGroup, 'Autorização é obrigatória para Preço Virado');
-            todosValidos = false;
-            if (!primeiroErro) primeiroErro = formGroup;
-        }
-    }
-    
-    // Scroll e foco no primeiro erro
-    if (primeiroErro) {
-        primeiroErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setTimeout(() => {
-            const input = primeiroErro.querySelector('input, select');
-            if (input) input.focus();
-        }, 500);
-    }
-    
-    return todosValidos;
+    });
 }
 
-function mostrarErroCampo(formGroup, mensagem) {
-    formGroup.classList.add('error');
-    
-    // Remove mensagem de erro existente
-    const erroExistente = formGroup.querySelector('.field-error-message');
-    if (erroExistente) {
-        erroExistente.remove();
+function recalcularParcela() {
+    const m = document.getElementById('metodo')?.value;
+    const j = document.getElementById('juros')?.value;
+    const avistaEl  = document.getElementById('avista');
+    const parcelaEl = document.getElementById('parcela');
+    if (!m || !avistaEl || !parcelaEl) return;
+
+    if (m === '1x') { parcelaEl.value = ''; return; }
+    if (m === '3x' || m === '5x' || m === '10x') {
+        // Parcela é input do usuário — avista calculado
+        return;
     }
-    
-    // Adiciona nova mensagem de erro
-    const erroElement = document.createElement('div');
-    erroElement.className = 'field-error-message';
-    erroElement.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${mensagem}`;
-    formGroup.appendChild(erroElement);
+    if (m === '12x') {
+        if (!j) return;
+        const avista = limparValor(avistaEl.value);
+        if (avista <= 0) return;
+        if (j === 'virado') { parcelaEl.value = ''; return; }
+        const tipo = j === 'carne' ? 'carne' : 'cartao';
+        const fator = FATORES[tipo]?.[12];
+        if (!fator) return;
+        const p = arredondar90(avista * fator);
+        preencherInputMoeda(parcelaEl, p);
+        parcelaCalculada = true;
+        avistaOriginal   = avista;
+    }
 }
+window.recalcularParcela = recalcularParcela;
 
-// ==================================================
-// 3. DETECÇÃO DE INCONSISTÊNCIA DE PARCELA
-// ==================================================
-
-function detectarInconsistenciaParcela() {
-    const avistaInput = document.getElementById('avista');
-    const avistaAtual = limparValor(avistaInput.value);
-    
-    // Se o valor à vista mudou desde o último cálculo
-    if (avistaOriginal > 0 && avistaAtual !== avistaOriginal && parcelaCalculada) {
-        mostrarAlertaParcela();
+function detectarInconsistencia() {
+    const avistaEl = document.getElementById('avista');
+    if (!avistaEl) return;
+    const atual = limparValor(avistaEl.value);
+    const warn  = document.getElementById('parcela-warning');
+    if (!warn) return;
+    if (avistaOriginal > 0 && atual !== avistaOriginal && parcelaCalculada) {
+        warn.classList.add('active');
     } else {
-        esconderAlertaParcela();
-    }
-}
-
-function mostrarAlertaParcela() {
-    const warning = document.getElementById('parcela-warning');
-    if (warning) {
-        warning.classList.add('active');
-    }
-}
-
-function esconderAlertaParcela() {
-    const warning = document.getElementById('parcela-warning');
-    if (warning) {
-        warning.classList.remove('active');
+        warn.classList.remove('active');
     }
 }
 
 window.recalcularParcelaManual = function() {
     recalcularParcela();
-    esconderAlertaParcela();
-    
-    const avistaInput = document.getElementById('avista');
-    avistaOriginal = limparValor(avistaInput.value);
-    parcelaCalculada = true;
-    
-    showToastEnhanced('success', 'Recalculado!', 'Parcela atualizada com o novo valor');
+    const w = document.getElementById('parcela-warning');
+    if (w) w.classList.remove('active');
+    const av = document.getElementById('avista');
+    if (av) avistaOriginal = limparValor(av.value);
+    showToast('success', 'Recalculado!', 'Parcela atualizada com o novo valor à vista');
 };
 
-// Monitor de mudanças no campo à vista
-document.getElementById('avista')?.addEventListener('input', function() {
-    detectarInconsistenciaParcela();
-});
+// ════════════════════════════════════════════════════════════════
+// 12. GARANTIA ESTENDIDA — Colapsável
+// ════════════════════════════════════════════════════════════════
+function setupGarantia() {
+    const btnToggle = document.getElementById('btn-garantia-toggle');
+    const fields    = document.getElementById('garantia-fields');
+    const arrow     = document.getElementById('garantia-arrow');
+    const g12 = document.getElementById('garantia12');
+    const g24 = document.getElementById('garantia24');
+    const g36 = document.getElementById('garantia36');
 
-// Atualizar avistaOriginal após cálculo
-const recalcularParcelaOriginal = window.recalcularParcela;
-window.recalcularParcela = function() {
-    recalcularParcelaOriginal();
-    
-    const avistaInput = document.getElementById('avista');
-    avistaOriginal = limparValor(avistaInput.value);
-    parcelaCalculada = true;
-    esconderAlertaParcela();
-};
+    btnToggle?.addEventListener('click', () => {
+        const open = fields.style.display !== 'none';
+        fields.style.display = open ? 'none' : 'block';
+        arrow?.classList.toggle('open', !open);
+    });
 
-// ==================================================
-// 4. TOAST EVOLUÍDO
-// ==================================================
+    g12?.addEventListener('input', () => {
+        const v = limparValor(g12.value);
+        if (v > 0) {
+            g24.disabled = false;
+        } else {
+            g24.value = ''; g24.disabled = true;
+            g36.value = ''; g36.disabled = true;
+        }
+    });
 
-function showToastEnhanced(type, title, message, action = null) {
-    const container = document.getElementById('toast-container');
-    
-    const toast = document.createElement('div');
-    toast.className = `toast enhanced ${type}`;
-    
-    let actionHtml = '';
-    if (action) {
-        actionHtml = `<div class="toast-action" onclick="${action.onClick}">${action.text} <i class="fa-solid fa-arrow-right"></i></div>`;
+    g24?.addEventListener('input', () => {
+        const v = limparValor(g24.value);
+        if (v > 0) { g36.disabled = false; }
+        else { g36.value = ''; g36.disabled = true; }
+    });
+}
+
+// ════════════════════════════════════════════════════════════════
+// 13. FORMULÁRIO — Adicionar Cartaz
+// ════════════════════════════════════════════════════════════════
+function setupFormSubmit() {
+    document.getElementById('mobile-form')?.addEventListener('submit', e => {
+        e.preventDefault();
+
+        const codigo      = document.getElementById('codigo').value.trim();
+        const descricao   = document.getElementById('descricao').value.trim().toUpperCase();
+        const subdescricao= document.getElementById('subdescricao').value.trim().toUpperCase();
+        const f1 = document.getElementById('feature-1').value.trim();
+        const f2 = document.getElementById('feature-2').value.trim();
+        const f3 = document.getElementById('feature-3').value.trim();
+        const metodo  = document.getElementById('metodo').value;
+        const juros   = document.getElementById('juros').value;
+        const semJuros = document.getElementById('chk-sem-juros')?.checked || false;
+        const motivo  = document.getElementById('motivo').value.trim();
+        const validade= document.getElementById('validade').value.trim();
+        const autorizacao = document.getElementById('autorizacao').value.trim();
+
+        const g12 = limparValor(document.getElementById('garantia12').value);
+        const g24 = limparValor(document.getElementById('garantia24').value);
+        const g36 = limparValor(document.getElementById('garantia36').value);
+
+        // Validações
+        if (!codigo) { showToast('warning', 'Código obrigatório', 'Preencha o código do produto'); return; }
+        if (!descricao) { showToast('warning', 'Descrição obrigatória', 'Preencha a descrição do produto'); return; }
+        if (!metodo) { showToast('warning', 'Parcelamento obrigatório', 'Selecione o parcelamento'); return; }
+
+        const avistaRaw   = document.getElementById('avista').value;
+        const parcelaRaw  = document.getElementById('parcela').value;
+        let avista  = limparValor(avistaRaw);
+        let parcela = limparValor(parcelaRaw);
+
+        if (avista <= 0) { showToast('warning', 'Valor inválido', 'Informe o valor à vista'); return; }
+
+        if (metodo !== '1x') {
+            if (!juros && metodo === '12x') { showToast('warning', 'Taxa obrigatória', 'Selecione a taxa de juros para 12x'); return; }
+        }
+
+        const features = [f1, f2, f3].filter(Boolean);
+
+        // Para 1x: parcela = avista
+        let jurosFinal = juros;
+        if (metodo === '1x') {
+            parcela    = avista;
+            jurosFinal = '';
+        }
+
+        // Para 3x/5x/10x: avista é calculado a partir da parcela
+        if (metodo === '3x' || metodo === '5x' || metodo === '10x') {
+            if (parcela <= 0) { showToast('warning', 'Parcela obrigatória', `Informe o valor da parcela para ${metodo}`); return; }
+            avista = parcela * parseInt(metodo);
+            jurosFinal = '';
+        }
+
+        const item = {
+            id: Date.now(),
+            codigo, descricao, subdescricao, features,
+            metodo, juros: jurosFinal, avista, parcela,
+            motivo, validade, autorizacao,
+            garantia12: g12, garantia24: g24, garantia36: g36,
+            modelo: 'padrao',
+            semJuros
+        };
+
+        carrinho.push(item);
+        salvarCarrinho();
+
+        // Reset form
+        document.getElementById('mobile-form').reset();
+        document.getElementById('grupo-juros').style.display    = 'none';
+        document.getElementById('form-group-parcela').style.display = 'none';
+        document.getElementById('grupo-sem-juros').style.display = 'none';
+        document.getElementById('extra-campos').style.display   = 'none';
+        document.getElementById('campo-motivo').style.display   = 'none';
+        document.getElementById('campo-validade').style.display = 'none';
+        document.getElementById('campo-autorizacao').style.display = 'none';
+        document.getElementById('garantia-fields').style.display = 'none';
+        document.getElementById('garantia-arrow')?.classList.remove('open');
+        document.getElementById('garantia24').disabled = true;
+        document.getElementById('garantia36').disabled = true;
+        avistaOriginal = 0; parcelaCalculada = false;
+
+        showToast('success', 'Cartaz adicionado!', `"${descricao.substring(0,28)}" adicionado ao JSON`);
+        switchToTab('json');
+    });
+}
+
+// ════════════════════════════════════════════════════════════════
+// 14. CALCULADORA DE FATOR
+// ════════════════════════════════════════════════════════════════
+function setupCalculadora() {
+    document.getElementById('calculator-form')?.addEventListener('submit', e => {
+        e.preventDefault();
+        const valStr = document.getElementById('calc-valor').value.trim();
+        const tipo   = document.getElementById('calc-tipo').value;
+
+        if (!valStr || !tipo) { showToast('error', 'Preencha todos os campos', ''); return; }
+
+        const valor  = limparValor(valStr);
+        if (valor <= 0) { showToast('error', 'Valor inválido', 'Informe um valor maior que zero'); return; }
+
+        document.getElementById('result-valor').textContent = brl(valor);
+        document.getElementById('result-tipo').textContent  = tipo === 'carne' ? 'Carnê' : 'Cartão';
+
+        const tbody = document.getElementById('result-tbody');
+        tbody.innerHTML = '';
+
+        for (let n = 1; n <= 12; n++) {
+            const fator   = FATORES[tipo][n];
+            const parcela = valor * fator;
+            const total   = parcela * n;
+            const arred   = arredondar90(parcela);
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${n}x</td>
+                <td>${fator.toFixed(4)}</td>
+                <td class="highlight">${brl(arred)}</td>
+                <td>${brl(total)}</td>`;
+            tbody.appendChild(tr);
+        }
+
+        document.getElementById('calc-result').style.display = 'block';
+        setTimeout(() => document.getElementById('calc-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
+    });
+}
+
+// ════════════════════════════════════════════════════════════════
+// 15. ENVIO JSON — Console visual
+// ════════════════════════════════════════════════════════════════
+function gerarJSON() {
+    return {
+        versao:        '1.0',
+        origem:        'mobile',
+        dataGeracao:   new Date().toISOString(),
+        totalCartazes: carrinho.length,
+        cartazes: carrinho.map(item => ({
+            id:          item.id,
+            codigo:      item.codigo,
+            descricao:   item.descricao,
+            subdescricao:item.subdescricao || '',
+            features:    item.features,
+            metodo:      item.metodo,
+            juros:       item.juros || '',
+            avista:      item.avista,
+            parcela:     item.parcela || 0,
+            motivo:      item.motivo || '',
+            validade:    item.validade || '',
+            autorizacao: item.autorizacao || '',
+            garantia12:  item.garantia12 || 0,
+            garantia24:  item.garantia24 || 0,
+            garantia36:  item.garantia36 || 0,
+            modelo:      item.modelo || 'padrao',
+            semJuros:    item.semJuros || false
+        }))
+    };
+}
+window.gerarJSON = gerarJSON;
+
+async function uploadJsonToWorker(payload) {
+    const controller = new AbortController();
+    const tid = setTimeout(function() { controller.abort(); }, 18000);
+    let res;
+    try {
+        res = await fetch(WORKER_URL, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(payload),
+            signal:  controller.signal
+        });
+    } finally {
+        clearTimeout(tid);
     }
-    
-    toast.innerHTML = `
-        <div class="toast-icon">
-            <i class="fa-solid fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : type === 'warning' ? 'exclamation-triangle' : 'info'}-circle"></i>
-        </div>
-        <div class="toast-content">
-            <div class="toast-title">${title}</div>
-            <div class="toast-message">${message}${actionHtml}</div>
-        </div>
-    `;
-    
-    container.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.style.animation = 'slideDown 0.3s ease-out reverse';
-        setTimeout(() => toast.remove(), 300);
-    }, action ? 5000 : 3500);
+    const text = await res.text();
+    let parsed = null;
+    try { parsed = JSON.parse(text); } catch(parseErr) { /* body não é JSON */ }
+    if (!res.ok) {
+        const errMsg = (parsed && parsed.error) ? parsed.error : (text ? text.substring(0, 200) : ('HTTP ' + res.status));
+        throw new Error(errMsg);
+    }
+    return (parsed !== null && parsed !== undefined) ? parsed : { raw: text };
 }
+window.uploadJsonToWorker = uploadJsonToWorker;
 
-// ==================================================
-// 5. TELA DE CONSOLE PARA ENVIO
-// ==================================================
-
-function mostrarConsoleEnvio() {
-    const console = document.createElement('div');
-    console.id = 'console-overlay';
-    console.className = 'console-overlay';
-    console.innerHTML = `
-        <div class="console-container">
-            <div class="console-header">
-                <div class="console-dot red"></div>
-                <div class="console-dot yellow"></div>
-                <div class="console-dot green"></div>
-                <div class="console-title">terminal ~ /mobile</div>
-            </div>
-            <div class="console-body" id="console-body">
-                <div class="console-line" style="animation-delay: 0s;">
-                    <span class="console-prompt">></span>
-                    <span class="console-text">Enviando cartazes...</span>
-                    <span class="console-cursor"></span>
-                </div>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(console);
-    return console;
-}
-
-function atualizarConsole(texto, tipo = 'normal', delay = 0) {
+// Console visual
+function consoleLog(text, type = 'normal') {
     const body = document.getElementById('console-body');
     if (!body) return;
-    
-    // Limpar conteúdo anterior
-    body.innerHTML = '';
-    
     const line = document.createElement('div');
     line.className = 'console-line';
-    line.style.animationDelay = `${delay}s`;
-    
-    const className = tipo === 'success' ? 'console-success' : tipo === 'error' ? 'console-error' : '';
-    
     line.innerHTML = `
-        <span class="console-prompt">></span>
-        <span class="console-text ${className}">${texto}</span>
-        ${tipo === 'normal' ? '<span class="console-cursor"></span>' : ''}
-    `;
-    
+        <span class="console-prompt">›</span>
+        <span class="console-text ${type === 'error' ? 'error' : type === 'success' ? 'success' : ''}">${text}</span>
+        ${type === 'normal' ? '<span class="console-cursor"></span>' : ''}`;
     body.appendChild(line);
+    body.scrollTop = body.scrollHeight;
 }
 
-function mostrarOpcoesConsole(sucesso) {
+function consoleClear() {
     const body = document.getElementById('console-body');
-    const container = body.closest('.console-container');
-    
-    const actions = document.createElement('div');
-    actions.className = 'console-actions';
-    
+    if (body) body.innerHTML = '';
+}
+
+function consoleShowActions(sucesso) {
+    const actions = document.getElementById('console-actions');
+    if (!actions) return;
+    actions.style.display = 'flex';
     if (sucesso) {
-        actions.innerHTML = `
-            <button class="primary" onclick="fecharConsole()">
-                <i class="fa-solid fa-check"></i> OK
-            </button>
-        `;
+        actions.innerHTML = `<button class="primary" onclick="fecharConsole()"><i class="fa-solid fa-check"></i> Concluído</button>`;
     } else {
         actions.innerHTML = `
-            <button onclick="tentarEnviarNovamente()">
-                <i class="fa-solid fa-rotate-right"></i> Tentar Novamente
-            </button>
-            <button onclick="verCopiarJSON()">
-                <i class="fa-solid fa-eye"></i> Ver/Copiar JSON
-            </button>
-        `;
-    }
-    
-    container.appendChild(actions);
-}
-
-function fecharConsole() {
-    const console = document.getElementById('console-overlay');
-    if (console) {
-        console.style.animation = 'fadeIn 0.3s ease-out reverse';
-        setTimeout(() => console.remove(), 300);
+            <button onclick="tentarEnviarNovamente()"><i class="fa-solid fa-rotate-right"></i> Tentar novamente</button>
+            <button onclick="verCopiarJSON()"><i class="fa-solid fa-eye"></i> Ver JSON</button>`;
     }
 }
 
+function abrirConsole() {
+    const el = document.getElementById('console-overlay');
+    if (el) { el.style.display = 'flex'; consoleClear(); }
+}
+
+window.fecharConsole = function() {
+    const el = document.getElementById('console-overlay');
+    if (el) el.style.display = 'none';
+};
 window.tentarEnviarNovamente = function() {
     fecharConsole();
-    document.getElementById('btn-enviar-json')?.click();
+    setTimeout(() => document.getElementById('btn-enviar-json')?.click(), 100);
 };
-
 window.verCopiarJSON = function() {
     fecharConsole();
     document.getElementById('btn-ver-copiar-json')?.click();
 };
 
-// ==================================================
-// 6. INTEGRAÇÃO COM FUNÇÕES EXISTENTES
-// ==================================================
-
-// Aguardar o DOM estar completamente pronto
-setTimeout(() => {
-    // Substituir buscarProdutoPorCodigo com skeleton loading
-    const buscarProdutoPorCodigoOriginal = window.buscarProdutoPorCodigo;
-    
-    if (!buscarProdutoPorCodigoOriginal) {
-        console.error('❌ Função buscarProdutoPorCodigo não encontrada!');
-        return;
-    }
-    
-    window.buscarProdutoPorCodigo = async function(codigo) {
-        const skeleton = mostrarSkeletonLoading();
-        
-        try {
-            await new Promise(resolve => setTimeout(resolve, 2400)); // Tempo para animação completa
-            await buscarProdutoPorCodigoOriginal(codigo);
-        } finally {
-            esconderSkeletonLoading();
-        }
-    };
-    
-    console.log('✅ Função de busca interceptada com sucesso!');
-}, 100);
-
-// NÃO substituir o formulário - deixar o original funcionar
-// O formulário já tem validação básica e adiciona ao carrinho corretamente
-
-// Substituir envio de JSON com console
-const btnEnviar = document.getElementById('btn-enviar-json');
-if (btnEnviar) {
-    const novoBtnEnviar = btnEnviar.cloneNode(true);
-    btnEnviar.parentNode.replaceChild(novoBtnEnviar, btnEnviar);
-    
-    novoBtnEnviar.addEventListener('click', async () => {
-        // Acessar carrinho do window
-        const carrinhoAtual = window.carrinho || [];
-        
-        if (carrinhoAtual.length === 0) {
-            showToastEnhanced('warning', 'Carrinho vazio', 'Adicione cartazes antes de enviar');
+function setupAcoesJSON() {
+    // ── Enviar JSON ──
+    document.getElementById('btn-enviar-json')?.addEventListener('click', async () => {
+        if (carrinho.length === 0) {
+            showToast('warning', 'JSON vazio', 'Adicione cartazes antes de enviar');
             return;
         }
-        
-        // Ler authSession
-        let authSession = null;
+
+        // ── Lê e valida authSession com null-safety total ──
+        let user   = '';
+        let filial = '';
         try {
             const raw = localStorage.getItem('authSession');
             if (!raw) throw new Error('authSession não encontrada no localStorage');
-            authSession = JSON.parse(raw);
-        } catch (err) {
-            console.error('Erro lendo authSession:', err);
-            showToastEnhanced('error', 'Sessão inválida', 'authSession não encontrada ou inválida');
+            const sess = JSON.parse(raw);
+            if (!sess || typeof sess !== 'object') throw new Error('authSession inválida (não é objeto)');
+            user   = String(sess.user   || sess.username || sess.email  || '').trim();
+            filial = String(sess.filial || sess.branch   || sess.store  || '').trim();
+        } catch(sessErr) {
+            console.error('[Envio] authSession error:', sessErr);
+            showToast('error', 'Sessão inválida', 'Faça login novamente. (' + sessErr.message + ')');
             return;
         }
-        
-        // Extrair user e filial
-        const user = (authSession.user || authSession.username || authSession.email || '').toString().trim();
-        const filial = (authSession.filial || authSession.branch || authSession.store || '').toString().trim();
-        
+
         if (!user || !filial) {
-            console.error('authSession disponível, mas faltam user/filial:', authSession);
-            showToastEnhanced('error', 'Sessão incompleta', 'Usuário ou filial ausente em authSession');
+            showToast('error', 'Sessão incompleta',
+                'user: "' + (user || 'VAZIO') + '" | filial: "' + (filial || 'VAZIO') + '"');
             return;
         }
-        
-        const consoleEl = mostrarConsoleEnvio();
-        
-        // Montar payload correto
-        const payload = {
-            user: user,
-            filial: filial,
-            data: window.gerarJSON()
-        };
-        
-        console.log('Payload enviado para o Worker:', payload);
-        
+
+        // ── Abre console e prepara payload ──
+        abrirConsole();
+        const actionsEl = document.getElementById('console-actions');
+        if (actionsEl) actionsEl.style.display = 'none';
+        consoleClear();
+        consoleLog('Preparando envio...');
+
+        const payload = { user: user, filial: filial, data: gerarJSON() };
+
+        await sleep(500);
+        consoleLog('Enviando ' + carrinho.length + ' cartaz(es) → ' + WORKER_URL.split('/')[2] + '...');
+
+        await sleep(350);
+        consoleLog('Aguardando resposta do servidor...');
+
         try {
-            // Aguardar 1.5s para mostrar "Enviando..."
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
-            atualizarConsole('Aguardando resposta do êxito...', 'normal');
-            
-            // Fazer upload real
-            const resultado = await window.uploadJsonToWorker(payload);
-            
-            // Aguardar mais um pouco
-            await new Promise(resolve => setTimeout(resolve, 800));
-            
-            // Mostrar sucesso
-            atualizarConsole('Tudo certo.', 'success');
-            
-            await new Promise(resolve => setTimeout(resolve, 1200));
-            
-            mostrarOpcoesConsole(true);
-            
-            if (resultado && resultado.success) {
-                showToastEnhanced('success', 'Enviado!', `Arquivo salvo: ${resultado.fileName}`);
-            } else {
-                showToastEnhanced('success', 'Enviado!', `${carrinhoAtual.length} cartaz(es) enviado(s) com sucesso`);
-            }
-            
-        } catch (error) {
-            console.error('Erro ao enviar:', error);
-            
-            atualizarConsole(`Erro: ${error.message}`, 'error');
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            mostrarOpcoesConsole(false);
-            
-            showToastEnhanced('error', 'Erro no envio', error.message || 'Não foi possível enviar o JSON');
+            const resultado = await uploadJsonToWorker(payload);
+            await sleep(450);
+            consoleClear();
+            consoleLog('Upload concluído com sucesso!', 'success');
+            const fileName = resultado && resultado.fileName ? resultado.fileName : null;
+            if (fileName) consoleLog('Arquivo: ' + fileName, 'success');
+            consoleLog('Cartazes enviados: ' + carrinho.length, 'success');
+            await sleep(500);
+            consoleShowActions(true);
+            showToast('success', 'Enviado com sucesso!', carrinho.length + ' cartaz(es) enviados');
+        } catch (err) {
+            await sleep(350);
+            consoleClear();
+            const isTimeout = err.name === 'AbortError';
+            const msg = isTimeout
+                ? 'Tempo esgotado — servidor demorou demais'
+                : (err.message || 'Erro desconhecido no envio');
+            consoleLog('ERRO: ' + msg, 'error');
+            consoleLog('Verifique sua conexão e tente novamente', 'error');
+            await sleep(350);
+            consoleShowActions(false);
+            showToast('error', 'Falha no envio', msg);
+        }
+    });
+
+    // ── Ver / Copiar ──
+    document.getElementById('btn-ver-copiar-json')?.addEventListener('click', () => {
+        const json = JSON.stringify(gerarJSON(), null, 2);
+        document.getElementById('json-viewer-content').textContent = json;
+        abrirModal('modal-json-viewer');
+    });
+
+    // ── Limpar ──
+    document.getElementById('btn-limpar-json')?.addEventListener('click', () => {
+        if (!confirm('Deseja realmente limpar todos os cartazes?')) return;
+        carrinho = [];
+        salvarCarrinho();
+        showToast('success', 'Limpo!', 'Todos os cartazes foram removidos');
+    });
+
+    // ── Copiar do modal ──
+    document.getElementById('btn-copiar-json-modal')?.addEventListener('click', () => {
+        const text = document.getElementById('json-viewer-content').textContent;
+        const copiar = () => {
+            showToast('success', 'Copiado!', 'JSON copiado para a área de transferência');
+            fecharModalJSONViewer();
+        };
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).then(copiar).catch(function() { copiarFallback(text, copiar); });
+        } else {
+            copiarFallback(text, copiar);
         }
     });
 }
 
-// ==================================================
-// 7. INICIALIZAÇÃO DO PATCH
-// ==================================================
+function copiarFallback(text, cb) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); cb(); } catch(copyErr) { /* silencioso */ }
+    document.body.removeChild(ta);
+}
 
-console.log('✅ Patch Mobile aplicado com sucesso!');
-console.log('🎨 Skeleton loading: ativado');
-console.log('✔️ Validação inteligente: ativada');
-console.log('⚠️ Detecção de inconsistência: ativada');
-console.log('💬 Toast evoluído: ativado');
+// ════════════════════════════════════════════════════════════════
+// 16. DESCRIÇÃO — Contador de caracteres
+// ════════════════════════════════════════════════════════════════
+function setupDescricaoCheck() {
+    const desc  = document.getElementById('descricao');
+    const erro  = document.getElementById('descricao-erro');
+    desc?.addEventListener('input', () => {
+        if (desc.value.length > 35) {
+            erro.style.display = 'block';
+            desc.style.borderColor = 'var(--danger)';
+        } else {
+            erro.style.display = 'none';
+            desc.style.borderColor = '';
+        }
+    });
+}
+
+// ════════════════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════════════════
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ════════════════════════════════════════════════════════════════
+// INICIALIZAÇÃO — DOMContentLoaded
+// ════════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+    // Tema
+    initTheme();
+
+    // Drawer
+    initDrawer();
+
+    // Navegação
+    initNav();
+
+    // Search overlay
+    SOV.init();
+
+    // Carrinho
+    carregarCarrinho();
+
+    // Máscaras de moeda
+    ['avista','parcela','calc-valor','garantia12','garantia24','garantia36'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) aplicarMascaraMoeda(el);
+    });
+
+    // Botão buscar
+    document.getElementById('btn-buscar')?.addEventListener('click', async () => {
+        const cod = document.getElementById('codigo').value.trim();
+        if (cod) {
+            await buscarProdutoPorCodigo(cod);
+        } else {
+            await abrirModalBusca();
+        }
+    });
+
+    // Enter no campo código
+    document.getElementById('codigo')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btn-buscar')?.click(); }
+    });
+
+    // Formulário condicional
+    setupFormCondicional();
+
+    // Garantia estendida
+    setupGarantia();
+
+    // Submit
+    setupFormSubmit();
+
+    // Calculadora
+    setupCalculadora();
+
+    // Ações JSON
+    setupAcoesJSON();
+
+    // Descrição check
+    setupDescricaoCheck();
+
+});

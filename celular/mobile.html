@@ -1,365 +1,494 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cartazes Mobile - Sistema Gabriel</title>
+    <title>Cartazes</title>
     <link rel="icon" type="image/png" href="../image/zenirlogo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="mobile.css">
 </head>
 <body>
-    <!-- Header com logo e título -->
-    <header class="mobile-header">
-        <div class="header-content">
-            <div class="header-logo">
-                <img src="../image/logo.png" alt="Logo" width="40">
-            </div>
-            <div class="header-text">
-                <h1>Cartazes Mobile</h1>
-                <p>Sistema Gabriel</p>
-            </div>
+
+<!-- ══════════════════════════════════════════════════
+     DRAWER OVERLAY
+══════════════════════════════════════════════════ -->
+<div id="drawer-overlay" class="drawer-overlay"></div>
+
+<!-- ══════════════════════════════════════════════════
+     SIDE DRAWER
+══════════════════════════════════════════════════ -->
+<nav id="side-drawer" class="side-drawer">
+    <div class="drawer-header">
+        <img src="../image/zenirlogo.png" alt="Logo" width="40" height="40">
+        <div class="drawer-header-text">
+            <span class="drawer-title">Cartazes</span>
+            <span class="drawer-subtitle">Sistema Mobile</span>
         </div>
-    </header>
+    </div>
 
-    <!-- Tabs de navegação -->
-    <nav class="mobile-tabs">
-        <button class="tab-item active" data-tab="criar-cartaz">
-            <i class="fa-solid fa-file-invoice"></i>
-            <span>Criar Cartaz</span>
-        </button>
-        <button class="tab-item" data-tab="calculadora">
-            <i class="fa-solid fa-calculator"></i>
-            <span>Calculadora</span>
-        </button>
-        <button class="tab-item" data-tab="json">
-            <i class="fa-solid fa-file-code"></i>
-            <span>JSON</span>
-            <span class="cart-badge" id="cart-count">0</span>
-        </button>
-    </nav>
+    <ul class="drawer-menu">
+        <li>
+            <a href="../pages/selectsetor.html" class="drawer-item">
+                <div class="drawer-item-icon"><i class="fa-solid fa-house"></i></div>
+                <span class="drawer-item-text">Home</span>
+                <i class="fa-solid fa-chevron-right drawer-arrow"></i>
+            </a>
+        </li>
+        <li>
+            <button class="drawer-item" id="drawer-btn-calc">
+                <div class="drawer-item-icon"><i class="fa-solid fa-calculator"></i></div>
+                <span class="drawer-item-text">Calculadora de fator</span>
+                <i class="fa-solid fa-chevron-right drawer-arrow"></i>
+            </button>
+        </li>
+        <li>
+            <button class="drawer-item" id="drawer-btn-theme">
+                <div class="drawer-item-icon"><i class="fa-solid fa-moon theme-icon"></i></div>
+                <span class="drawer-item-text" id="drawer-theme-label">Mudar para tema escuro</span>
+                <i class="fa-solid fa-chevron-right drawer-arrow"></i>
+            </button>
+        </li>
+        <li>
+            <button class="drawer-item" id="drawer-btn-help">
+                <div class="drawer-item-icon"><i class="fa-solid fa-circle-question"></i></div>
+                <span class="drawer-item-text">Como funciona?</span>
+                <i class="fa-solid fa-chevron-right drawer-arrow"></i>
+            </button>
+        </li>
+    </ul>
 
-    <!-- Conteúdo das abas -->
-    <main class="mobile-content">
-        
-        <!-- Aba: Criar Cartaz -->
-        <section id="tab-criar-cartaz" class="tab-content active">
-            <div class="content-card">
-                <h2 class="card-title">
-                    <i class="fa-solid fa-plus-circle"></i>
-                    Adicionar Cartaz
-                </h2>
-                
-                <form id="mobile-form" class="mobile-form">
-                    <!-- Código do produto -->
-                    <div class="form-group">
-                        <label for="codigo">Código do Produto *</label>
-                        <div class="input-with-button">
-                            <input type="text" id="codigo" placeholder="Ex: 110049" maxlength="11" required>
-                            <button type="button" id="btn-buscar" class="btn-icon">
-                                <i class="fa-solid fa-magnifying-glass"></i>
-                            </button>
-                        </div>
-                    </div>
+    <div class="drawer-footer">Sistema de Cartazes · v2.0</div>
+</nav>
 
-                    <!-- Descrição -->
-                    <div class="form-group">
-                        <label for="descricao">Descrição *</label>
-                        <input type="text" id="descricao" placeholder="Ex: TV TOSHIBA 75POL." maxlength="35" required>
-                    </div>
-
-                    <!-- Sub descrição -->
-                    <div class="form-group">
-                        <label for="subdescricao">Sub descrição</label>
-                        <input type="text" id="subdescricao" placeholder="Ex: 75C450NS GOOGLE">
-                    </div>
-
-                    <!-- Características -->
-                    <div class="form-group">
-                        <label>Características</label>
-                        <div class="features-grid">
-                            <input type="text" id="feature-1" placeholder="Ex: QLED">
-                            <input type="text" id="feature-2" placeholder="Google TV">
-                            <input type="text" id="feature-3" placeholder="Bluetooth">
-                        </div>
-                    </div>
-
-                    <!-- Parcelamento -->
-                    <div class="form-group">
-                        <label for="metodo">Parcelamento *</label>
-                        <select id="metodo" required>
-                            <option value="">Selecione...</option>
-                            <option value="1x">1x</option>
-                            <option value="3x">3x</option>
-                            <option value="5x">5x</option>
-                            <option value="10x">10x</option>
-                            <option value="12x">12x</option>
-                        </select>
-                    </div>
-
-                    <!-- Valor à vista -->
-                    <div class="form-group">
-                        <label for="avista">Valor à vista *</label>
-                        <div class="input-currency">
-                            <span>R$</span>
-                            <input type="text" id="avista" placeholder="0,00" required>
-                        </div>
-                    </div>
-
-                    <!-- Taxa de juros -->
-                    <div class="form-group">
-                        <label for="juros">Taxa de juros *</label>
-                        <select id="juros" required>
-                            <option value="">Selecione...</option>
-                            <option value="carne">Carnê</option>
-                            <option value="cartao">Cartão</option>
-                            <option value="virado">Preço virado</option>
-                        </select>
-                    </div>
-
-                    <!-- Valor da parcela -->
-                    <div class="form-group" id="form-group-parcela">
-                        <label for="parcela">Valor da parcela</label>
-                        <div class="input-currency">
-                            <span>R$</span>
-                            <input type="text" id="parcela" placeholder="0,00">
-                        </div>
-                        <!-- Alerta de inconsistência -->
-                        <div class="parcela-warning" id="parcela-warning">
-                            <i class="fa-solid fa-triangle-exclamation"></i>
-                            <span>O valor à vista mudou. Recalcule a parcela.</span>
-                            <button type="button" onclick="recalcularParcelaManual()">Recalcular</button>
-                        </div>
-                    </div>
-
-                    <!-- Campos extras condicionais (Motivo, Validade, Autorização) -->
-                    <div id="extra-campos" style="display: none;">
-                        <div class="form-group" id="campo-motivo" style="display: none;">
-                            <label for="motivo">Motivo</label>
-                            <input type="text" id="motivo" placeholder="Ex: BLACK FRIDAY 2024">
-                        </div>
-
-                        <div class="form-group" id="campo-validade" style="display: none;">
-                            <label for="validade">Validade da oferta</label>
-                            <input type="date" id="validade">
-                        </div>
-
-                        <div class="form-group" id="campo-autorizacao" style="display: none;">
-                            <label for="autorizacao">Autorização</label>
-                            <input type="text" id="autorizacao" placeholder="Ex: REJANE/ALLAN KARDEC">
-                        </div>
-                    </div>
-
-                    <!-- Botão de adicionar -->
-                    <button type="submit" class="btn-primary">
-                        <i class="fa-solid fa-plus"></i>
-                        Adicionar Cartaz
-                    </button>
-                </form>
-            </div>
-        </section>
-
-        <!-- Aba: Calculadora de Fator -->
-        <section id="tab-calculadora" class="tab-content">
-            <div class="content-card">
-                <h2 class="card-title">
-                    <i class="fa-solid fa-calculator"></i>
-                    Calculadora de Fator
-                </h2>
-                <p class="card-description">
-                    Insira o valor à vista e selecione o tipo de taxa para calcular todas as parcelas automaticamente.
-                </p>
-
-                <form id="calculator-form" class="mobile-form">
-                    <!-- Valor à vista -->
-                    <div class="form-group">
-                        <label for="calc-valor">Valor à vista *</label>
-                        <div class="input-currency">
-                            <span>R$</span>
-                            <input type="text" id="calc-valor" placeholder="0,00" required>
-                        </div>
-                    </div>
-
-                    <!-- Tipo de taxa -->
-                    <div class="form-group">
-                        <label for="calc-tipo">Tipo de taxa *</label>
-                        <select id="calc-tipo" required>
-                            <option value="">Selecione...</option>
-                            <option value="carne">Carnê</option>
-                            <option value="cartao">Cartão</option>
-                        </select>
-                    </div>
-
-                    <!-- Botão calcular -->
-                    <button type="submit" class="btn-primary">
-                        <i class="fa-solid fa-calculator"></i>
-                        Calcular Tabela
-                    </button>
-                </form>
-
-                <!-- Resultado da calculadora -->
-                <div id="calc-result" class="calc-result" style="display: none;">
-                    <h3 class="result-title">Resultado do Cálculo</h3>
-                    <div class="result-info">
-                        <div class="info-row">
-                            <span>Valor à Vista:</span>
-                            <strong id="result-valor">R$ 0,00</strong>
-                        </div>
-                        <div class="info-row">
-                            <span>Tipo de Taxa:</span>
-                            <strong id="result-tipo">-</strong>
-                        </div>
-                    </div>
-                    <div class="result-table-wrapper">
-                        <table class="result-table">
-                            <thead>
-                                <tr>
-                                    <th>Parcelas</th>
-                                    <th>Fator</th>
-                                    <th>Valor Parcela</th>
-                                </tr>
-                            </thead>
-                            <tbody id="result-tbody">
-                                <!-- Resultados inseridos via JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Aba: JSON de Cartazes -->
-        <section id="tab-json" class="tab-content">
-            <div class="content-card">
-                <div class="cart-header">
-                    <div>
-                        <h2 class="card-title">
-                            <i class="fa-solid fa-file-code"></i>
-                            JSON de Cartazes
-                        </h2>
-                        <p class="cart-count-text">
-                            <span id="cart-total">0</span> cartaz(es) no JSON
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Lista de itens no carrinho -->
-                <div id="cart-list" class="cart-list">
-                    <div class="empty-cart">
-                        <i class="fa-solid fa-file-code"></i>
-                        <h3>JSON vazio</h3>
-                        <p>Adicione cartazes e preencha o JSON</p>
-                    </div>
-                </div>
-
-                <!-- Botões de ação -->
-                <div id="json-actions" class="json-actions" style="display: none;">
-                    <button id="btn-enviar-json" class="btn-primary">
-                        <i class="fa-solid fa-cloud-arrow-up"></i>
-                        Enviar JSON
-                    </button>
-                    <button id="btn-ver-copiar-json" class="btn-secondary">
-                        <i class="fa-solid fa-eye"></i>
-                        Ver/Copiar JSON
-                    </button>
-                    <button id="btn-limpar-json" class="btn-secondary">
-                        <i class="fa-solid fa-trash"></i>
-                        Limpar Tudo
-                    </button>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- Botão Flutuante de Ajuda -->
-    <button id="btn-help-float" class="help-float-btn">
-        <i class="fa-solid fa-question"></i>
+<!-- ══════════════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════════════ -->
+<header class="mobile-header">
+    <button id="btn-hamburger" class="header-btn" aria-label="Menu">
+        <i class="fa-solid fa-bars"></i>
     </button>
+    <div class="header-brand">
+        <img src="../image/zenirlogo.png" alt="Logo" width="32" height="32">
+        <span>Cartazes</span>
+    </div>
+    <button id="btn-theme" class="header-btn" aria-label="Tema">
+        <i class="fa-solid fa-moon theme-icon"></i>
+    </button>
+</header>
 
-    <!-- Toast Container -->
-    <div id="toast-container" class="toast-container"></div>
+<!-- ══════════════════════════════════════════════════
+     CONTEÚDO PRINCIPAL
+══════════════════════════════════════════════════ -->
+<main class="mobile-content">
 
-    <!-- Modal de Busca de Produtos -->
-    <div id="modal-busca" class="modal-overlay" style="display: none;">
-        <div class="modal-busca-dialog">
-            <div class="modal-header">
-                <h3>
-                    <i class="fa-solid fa-search"></i>
-                    Buscar Produto
-                </h3>
-                <button class="modal-close" onclick="fecharModalBusca()">&times;</button>
-            </div>
-            <div class="modal-body">
+    <!-- ─── ABA: CRIAR CARTAZ ─── -->
+    <section id="tab-criar-cartaz" class="tab-content active">
+        <div class="content-card">
+            <h2 class="card-title">
+                <i class="fa-solid fa-file-invoice"></i> Adicionar Cartaz
+            </h2>
+
+            <form id="mobile-form" class="mobile-form" novalidate>
+
+                <!-- Código -->
                 <div class="form-group">
-                    <label>Digite o nome, código ou marca</label>
-                    <input type="text" id="busca-input" placeholder="Ex: TV Samsung, 110049, LG..." class="busca-input">
+                    <label for="codigo">Código do Produto *</label>
+                    <div class="input-with-button">
+                        <input type="text" id="codigo" placeholder="Ex: 110049" maxlength="11" inputmode="numeric" autocomplete="off">
+                        <button type="button" id="btn-buscar" class="btn-icon" aria-label="Buscar">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </button>
+                    </div>
                 </div>
-                <div id="busca-loading" class="busca-loading" style="display: none;">
-                    <i class="fa-solid fa-spinner fa-spin"></i>
-                    <p>Buscando produtos...</p>
-                </div>
-                <div id="busca-results" class="busca-results"></div>
-                <div id="busca-empty" class="busca-empty" style="display: none;">
-                    <i class="fa-solid fa-box-open"></i>
-                    <p>Nenhum produto encontrado</p>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Modal de Visualização do JSON -->
-    <div id="modal-json-viewer" class="modal-overlay" style="display: none;">
-        <div class="modal-busca-dialog">
-            <div class="modal-header">
-                <h3>
-                    <i class="fa-solid fa-code"></i>
-                    JSON dos Cartazes
-                </h3>
-                <button class="modal-close" onclick="fecharModalJSONViewer()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <pre id="json-viewer-content" class="json-viewer"></pre>
-                <button id="btn-copiar-json-modal" class="btn-primary" style="margin-top: 16px; width: 100%;">
-                    <i class="fa-solid fa-copy"></i>
-                    Copiar JSON
+                <!-- Descrição -->
+                <div class="form-group">
+                    <label for="descricao">Descrição *</label>
+                    <input type="text" id="descricao" placeholder="Ex: TV TOSHIBA 75POL." maxlength="35" autocomplete="off">
+                    <span id="descricao-erro" class="field-hint error-hint" style="display:none">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Máximo 35 caracteres
+                    </span>
+                </div>
+
+                <!-- Sub descrição -->
+                <div class="form-group">
+                    <label for="subdescricao">Sub descrição</label>
+                    <input type="text" id="subdescricao" placeholder="Ex: 75C450NS GOOGLE" autocomplete="off">
+                </div>
+
+                <!-- Características -->
+                <div class="form-group">
+                    <label>Características</label>
+                    <div class="features-grid">
+                        <input type="text" id="feature-1" placeholder="Ex: QLED">
+                        <input type="text" id="feature-2" placeholder="Google TV">
+                        <input type="text" id="feature-3" placeholder="Bluetooth">
+                    </div>
+                </div>
+
+                <!-- Parcelamento -->
+                <div class="form-group">
+                    <label for="metodo">Parcelamento *</label>
+                    <select id="metodo">
+                        <option value="">Selecione...</option>
+                        <option value="1x">1x — à vista</option>
+                        <option value="3x">3x — sem juros</option>
+                        <option value="5x">5x — sem juros</option>
+                        <option value="10x">10x — sem juros</option>
+                        <option value="12x">12x — com juros</option>
+                    </select>
+                </div>
+
+                <!-- Valor à vista -->
+                <div class="form-group" id="grupo-avista">
+                    <label for="avista">Valor à vista *</label>
+                    <div class="input-currency">
+                        <span class="currency-prefix">R$</span>
+                        <input type="text" id="avista" placeholder="0,00" inputmode="decimal">
+                    </div>
+                </div>
+
+                <!-- Taxa de juros (condicional) -->
+                <div class="form-group" id="grupo-juros" style="display:none">
+                    <label for="juros">Taxa de juros *</label>
+                    <select id="juros">
+                        <option value="">Selecione...</option>
+                        <option value="carne">Carnê (6,9% a.m.)</option>
+                        <option value="cartao">Cartão (2,92% a.m.)</option>
+                        <option value="virado">Preço Virado</option>
+                    </select>
+                </div>
+
+                <!-- Valor da parcela -->
+                <div class="form-group" id="form-group-parcela" style="display:none">
+                    <label for="parcela" id="parcela-label">Valor da parcela</label>
+                    <div class="input-currency">
+                        <span class="currency-prefix">R$</span>
+                        <input type="text" id="parcela" placeholder="0,00" inputmode="decimal">
+                    </div>
+                    <div class="parcela-warning" id="parcela-warning">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>Valor à vista mudou. Recalcule.</span>
+                        <button type="button" onclick="recalcularParcelaManual()">Recalcular</button>
+                    </div>
+                </div>
+
+                <!-- Toggle: Sem juros! (para 3x/5x/10x) -->
+                <div class="form-group toggle-group" id="grupo-sem-juros" style="display:none">
+                    <label class="toggle-label" for="chk-sem-juros">
+                        <div class="toggle-info">
+                            <span class="toggle-name">Exibir "Sem juros!" no cartaz</span>
+                            <span class="toggle-desc">Substitui a taxa de juros pelo texto</span>
+                        </div>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="chk-sem-juros">
+                            <span class="toggle-knob"></span>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Campos extras condicionais -->
+                <div id="extra-campos" style="display:none">
+                    <div class="form-group" id="campo-motivo" style="display:none">
+                        <label for="motivo">Motivo</label>
+                        <input type="text" id="motivo" placeholder="Ex: BLACK FRIDAY 2024">
+                    </div>
+                    <div class="form-group" id="campo-validade" style="display:none">
+                        <label for="validade">Validade da oferta</label>
+                        <input type="date" id="validade">
+                    </div>
+                    <div class="form-group" id="campo-autorizacao" style="display:none">
+                        <label for="autorizacao">Autorização</label>
+                        <input type="text" id="autorizacao" placeholder="Ex: REJANE/ALLAN KARDEC">
+                    </div>
+                </div>
+
+                <!-- Seção: Garantia Estendida (colapsável) -->
+                <div class="form-group">
+                    <button type="button" class="btn-collapse" id="btn-garantia-toggle">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Garantia Estendida</span>
+                        <i class="fa-solid fa-chevron-down collapse-arrow" id="garantia-arrow"></i>
+                    </button>
+                    <div id="garantia-fields" class="collapse-body" style="display:none">
+                        <div class="features-grid" style="margin-top:12px">
+                            <div class="input-currency">
+                                <span class="currency-prefix">R$</span>
+                                <input type="text" id="garantia12" placeholder="G.E. 12m" inputmode="decimal">
+                            </div>
+                            <div class="input-currency">
+                                <span class="currency-prefix">R$</span>
+                                <input type="text" id="garantia24" placeholder="G.E. 24m" inputmode="decimal" disabled>
+                            </div>
+                            <div class="input-currency">
+                                <span class="currency-prefix">R$</span>
+                                <input type="text" id="garantia36" placeholder="G.E. 36m" inputmode="decimal" disabled>
+                            </div>
+                        </div>
+                        <span class="field-hint">Preencha G.E. 12m primeiro para habilitar os demais</span>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <button type="submit" class="btn-primary btn-full">
+                    <i class="fa-solid fa-plus"></i>
+                    Adicionar Cartaz
                 </button>
-            </div>
+            </form>
         </div>
-    </div>
+    </section>
 
-    <!-- Modal de Ajuda -->
-    <div id="modal-help" class="modal-overlay" style="display: none;">
-        <div class="modal-dialog">
-            <div class="modal-header">
-                <h3>
-                    <i class="fa-solid fa-info-circle"></i>
-                    Como usar
-                </h3>
-                <button class="modal-close" onclick="fecharModalHelp()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p style="margin-bottom: 16px;">
-                    <strong>Funciona da mesma maneira que no computador!</strong>
-                </p>
-                <p>
-                    A diferença é que aqui você cria os cartazes e depois faz o <strong>upload do arquivo JSON</strong> no sistema de computador.
-                </p>
-                <p style="margin-top: 16px;">
-                    Já no computador você pode baixar o JSON e gerar todos os cartazes de uma só vez diretamente na impressora.
-                </p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-primary" onclick="fecharModalHelp()" style="width: 100%;">
-                    <i class="fa-solid fa-check"></i>
-                    Entendi
+    <!-- ─── ABA: CALCULADORA ─── -->
+    <section id="tab-calculadora" class="tab-content">
+        <div class="content-card">
+            <h2 class="card-title">
+                <i class="fa-solid fa-calculator"></i> Calculadora de Fator
+            </h2>
+            <p class="card-description">
+                Insira o valor à vista e selecione o tipo de taxa para ver todas as parcelas.
+            </p>
+
+            <form id="calculator-form" class="mobile-form" novalidate>
+                <div class="form-group">
+                    <label for="calc-valor">Valor à vista *</label>
+                    <div class="input-currency">
+                        <span class="currency-prefix">R$</span>
+                        <input type="text" id="calc-valor" placeholder="0,00" inputmode="decimal">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="calc-tipo">Tipo de taxa *</label>
+                    <select id="calc-tipo">
+                        <option value="">Selecione...</option>
+                        <option value="carne">Carnê (6,9% a.m.)</option>
+                        <option value="cartao">Cartão (2,92% a.m.)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary btn-full">
+                    <i class="fa-solid fa-calculator"></i>
+                    Calcular Tabela
                 </button>
+            </form>
+
+            <div id="calc-result" class="calc-result" style="display:none">
+                <h3 class="result-title"><i class="fa-solid fa-table-list"></i> Resultado</h3>
+                <div class="result-info">
+                    <div class="info-row">
+                        <span>Valor à Vista</span>
+                        <strong id="result-valor">R$ 0,00</strong>
+                    </div>
+                    <div class="info-row">
+                        <span>Tipo de Taxa</span>
+                        <strong id="result-tipo">—</strong>
+                    </div>
+                </div>
+                <div class="result-table-wrapper">
+                    <table class="result-table">
+                        <thead>
+                            <tr>
+                                <th>Parcelas</th>
+                                <th>Fator</th>
+                                <th>Valor</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="result-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── ABA: JSON ─── -->
+    <section id="tab-json" class="tab-content">
+        <div class="content-card">
+            <div class="cart-header">
+                <h2 class="card-title">
+                    <i class="fa-solid fa-layer-group"></i> JSON de Cartazes
+                </h2>
+                <p class="cart-count-text">
+                    <span id="cart-total">0</span> cartaz(es) adicionado(s)
+                </p>
+            </div>
+
+            <div id="cart-list" class="cart-list">
+                <div class="empty-cart">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <h3>JSON vazio</h3>
+                    <p>Adicione cartazes usando a aba Criar Cartaz</p>
+                </div>
+            </div>
+
+            <div id="json-actions" class="json-actions" style="display:none">
+                <button id="btn-enviar-json" class="btn-primary">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Enviar JSON
+                </button>
+                <div class="json-actions-row">
+                    <button id="btn-ver-copiar-json" class="btn-secondary btn-flex">
+                        <i class="fa-solid fa-eye"></i> Ver / Copiar
+                    </button>
+                    <button id="btn-limpar-json" class="btn-danger btn-flex">
+                        <i class="fa-solid fa-trash"></i> Limpar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- ══════════════════════════════════════════════════
+     BOTTOM NAVIGATION — CÍRCULOS
+══════════════════════════════════════════════════ -->
+<nav class="bottom-nav" id="bottom-nav">
+    <button class="tab-item active" data-tab="criar-cartaz" data-index="0">
+        <i class="fa-solid fa-file-invoice nav-icon"></i>
+        <span class="nav-label">Criar Cartaz</span>
+    </button>
+    <button class="tab-item" data-tab="calculadora" data-index="1">
+        <i class="fa-solid fa-calculator nav-icon"></i>
+        <span class="nav-label">Calculadora</span>
+    </button>
+    <button class="tab-item" data-tab="json" data-index="2">
+        <i class="fa-solid fa-layer-group nav-icon"></i>
+        <span class="nav-label">JSON</span>
+        <span class="cart-badge" id="cart-count" style="display:none">0</span>
+    </button>
+</nav>
+
+<!-- ══════════════════════════════════════════════════
+     SEARCH OVERLAY — 3 FASES
+══════════════════════════════════════════════════ -->
+<div id="search-overlay" class="search-overlay">
+    <div class="search-overlay-card">
+        <div id="sov-icon-wrap" class="sov-icon-wrap loading">
+            <div class="sov-spinner"></div>
+        </div>
+        <div id="sov-title" class="sov-title">Buscando produto</div>
+        <div id="sov-sub" class="sov-sub">Aguarde um momento...</div>
+        <div id="sov-product" class="sov-product-name" style="display:none"></div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     TOAST CONTAINER
+══════════════════════════════════════════════════ -->
+<div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+<!-- ══════════════════════════════════════════════════
+     MODAL: BUSCA DE PRODUTO
+══════════════════════════════════════════════════ -->
+<div id="modal-busca" class="modal-overlay" style="display:none" role="dialog" aria-modal="true">
+    <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-magnifying-glass"></i> Buscar Produto</h3>
+            <button class="modal-close" onclick="fecharModalBusca()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-search-bar">
+            <i class="fa-solid fa-search modal-search-icon"></i>
+            <input type="text" id="busca-input" placeholder="Nome, código ou marca..." class="busca-input" autocomplete="off">
+            <button class="busca-clear" id="busca-clear" style="display:none"><i class="fa-solid fa-times-circle"></i></button>
+        </div>
+        <div class="modal-body">
+            <div id="busca-loading" class="busca-loading" style="display:none">
+                <div class="busca-spinner"></div>
+                <p>Carregando produtos...</p>
+            </div>
+            <div id="busca-count" class="busca-count" style="display:none"></div>
+            <div id="busca-results" class="busca-results"></div>
+            <div id="busca-empty" class="busca-empty" style="display:none">
+                <i class="fa-solid fa-box-open"></i>
+                <p>Nenhum produto encontrado</p>
+                <span>Tente outro código ou nome</span>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="mobile.js"></script>
-    <script src="../js/session-guard.js"></script>
+<!-- ══════════════════════════════════════════════════
+     MODAL: JSON VIEWER
+══════════════════════════════════════════════════ -->
+<div id="modal-json-viewer" class="modal-overlay" style="display:none" role="dialog" aria-modal="true">
+    <div class="modal-sheet json-modal-sheet">
+        <div class="modal-handle"></div>
+        <div class="modal-header modal-header-primary">
+            <h3><i class="fa-solid fa-code"></i> JSON dos Cartazes</h3>
+            <button class="modal-close modal-close-white" onclick="fecharModalJSONViewer()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <pre id="json-viewer-content" class="json-viewer"></pre>
+            <button id="btn-copiar-json-modal" class="btn-primary btn-full" style="margin-top:14px">
+                <i class="fa-solid fa-copy"></i> Copiar JSON
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     MODAL: COMO FUNCIONA
+══════════════════════════════════════════════════ -->
+<div id="modal-help" class="modal-overlay" style="display:none" role="dialog" aria-modal="true">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-circle-question"></i> Como funciona?</h3>
+            <button class="modal-close" onclick="fecharModalHelp()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="help-step">
+                <div class="help-step-icon"><i class="fa-solid fa-mobile-screen"></i></div>
+                <div>
+                    <strong>1. Adicione os cartazes</strong>
+                    <p>Preencha o formulário e toque em "Adicionar Cartaz" para cada produto.</p>
+                </div>
+            </div>
+            <div class="help-step">
+                <div class="help-step-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                <div>
+                    <strong>2. Envie o JSON</strong>
+                    <p>Na aba JSON, toque em "Enviar JSON" para upload ao servidor.</p>
+                </div>
+            </div>
+            <div class="help-step">
+                <div class="help-step-icon"><i class="fa-solid fa-print"></i></div>
+                <div>
+                    <strong>3. Gere no computador</strong>
+                    <p>No PC, carregue o JSON e gere todos os cartazes de uma vez.</p>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-primary btn-full" onclick="fecharModalHelp()">
+                <i class="fa-solid fa-check"></i> Entendi!
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     CONSOLE OVERLAY (envio JSON)
+══════════════════════════════════════════════════ -->
+<div id="console-overlay" class="console-overlay" style="display:none">
+    <div class="console-container">
+        <div class="console-header">
+            <div class="console-dot red"></div>
+            <div class="console-dot yellow"></div>
+            <div class="console-dot green"></div>
+            <div class="console-title">terminal ~ /mobile</div>
+        </div>
+        <div class="console-body" id="console-body">
+            <div class="console-line">
+                <span class="console-prompt">›</span>
+                <span class="console-text">Iniciando envio...</span>
+                <span class="console-cursor"></span>
+            </div>
+        </div>
+        <div class="console-actions" id="console-actions" style="display:none"></div>
+    </div>
+</div>
+
+<script src="mobile.js"></script>
 </body>
 </html>
