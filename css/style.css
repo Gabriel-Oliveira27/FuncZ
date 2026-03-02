@@ -1558,16 +1558,16 @@ input:checked + .slider:before {
 
 /* 1 dígito */
 .poster-value-container[data-digits="1"] .poster-value-decimal {
-  margin-left: -30px; /* ⬅️ 5mm mais perto (era -42px) */
+  margin-left: -61px; /* ⬅️ 5mm mais perto (era -42px) */
 }
 
-
+/* 2 dígitos: ,90 vai 0,5cm DIREITA */
 .poster-value-container[data-digits="2"] .poster-value-integer {
   font-size: 234pt;
 }
 
 .poster-value-container[data-digits="2"] .poster-value-decimal {
-  margin-left: -115px;
+  margin-left: -120px;
 }
 
 .poster-value-container[data-digits="3"] {
@@ -1580,7 +1580,7 @@ input:checked + .slider:before {
 }
 /* 3 dígitos: ,90 mais próximo do valor */
 .poster-value-container[data-digits="3"] .poster-value-decimal {
-  margin-left: -115px; /* ⬅️ mais próximo (era -100px; ajuste 3 dígitos) */
+  margin-left: -140px; /* ⬅️ mais próximo (era -100px; ajuste 3 dígitos) */
 }
 
 /* 4 dígitos: fonte reduzida para 68% do tamanho base */
@@ -1825,84 +1825,104 @@ input:checked + .slider:before {
 
 /* ==================================================
    ⭐ LAYOUT ESPECIAL PARA MODELO CAMEBA ⭐
-   TODO O CONTEÚDO DESCE 5CM EM RELAÇÃO AO MODELO PADRÃO
    ================================================== */
+
 .poster-cameba .poster-header {
-  top: 10.5cm !important; /* ⬆️ Subiu 15mm (era 12cm) */
+  top: 12.5cm !important; /* era 10.5cm */
 }
-
-.poster-cameba .poster-price-section {
-  top: 17.7cm !important; /* ⬇️ +1.5cm (era 16.2cm) */
-}
-
 .poster-cameba .poster-validity {
-  top: 11cm !important; /* ⬆️ Subiu 10mm (era 12cm) */
+  top: 13cm !important; /* era 11cm */
+}
+.poster-cameba .poster-price-section {
+  top: 19.7cm !important; /* era 17.7cm */
+}
+.poster-cameba .poster-footer-table {
+  top: auto !important;
+  bottom: 1cm !important; /* ~10mm do fim da página (A4 = 29.7cm) */
 }
 
-.poster-cameba .poster-footer-table {
-  top: 23.5cm !important; /* fallback cameba (era 25cm); ~1cm abaixo da parcela 4-dígitos */
+/* Por nº de dígitos — price-section */
+.poster-cameba[data-digits="1"] .poster-price-section {
+  top: 18.9cm !important; /* era 16.9cm */
+}
+.poster-cameba[data-digits="2"] .poster-price-section {
+  top: 18.9cm !important; /* era 16.9cm */
+  left: 0cm !important;
+}
+
+/* Por nº de dígitos — footer-table (todos fixos no rodapé) */
+.poster-cameba[data-digits="4"] .poster-footer-table,
+.poster-cameba[data-digits="3"] .poster-footer-table,
+.poster-cameba[data-digits="2"] .poster-footer-table,
+.poster-cameba[data-digits="1"] .poster-footer-table {
+  top: auto !important;
+  bottom: 1cm !important; /* ajuste aqui se quiser distância diferente por dígito */
+}
+
+/* --------------------------------------------------
+   ⭐ POSIÇÃO DO ,90 NO CAMEBA — ajuste por dígito ⭐
+   Altere cada margin-left individualmente.
+   Negativo = mais à esquerda (cola no número).
+   Positivo = mais à direita (afasta do número).
+   -------------------------------------------------- */
+
+/* 1 dígito — está perfeito, ajuste só se precisar */
+.poster-cameba
+  .poster-value-container[data-digits="1"]
+  .poster-value-decimal {
+  margin-left: -61px;
+}
+
+/* 2 dígitos — quase bom, ajuste fino aqui */
+.poster-cameba
+  .poster-value-container[data-digits="2"]
+  .poster-value-decimal {
+  margin-left: -105px;
+}
+
+/* 3 dígitos — ajuste necessário aqui */
+.poster-cameba
+  .poster-value-container[data-digits="3"]
+  .poster-value-decimal {
+  margin-left: -75px;
+}
+
+/* 4 dígitos */
+.poster-cameba
+  .poster-value-container[data-digits="4"]
+  .poster-value-decimal {
+  margin-left: -135px;
 }
 
 /* ==================================================
    ⭐ AJUSTES DE POSIÇÃO CONDICIONAL POR Nº DE DÍGITOS ⭐
    data-digits é definido no elemento raiz .poster via JS.
-   Permite mover price-section E footer-table simultaneamente.
    ================================================== */
 
 /* 1 dígito: parcela e tabela sobem 8mm do padrão */
 [data-digits="1"] .poster-price-section {
-  top: 10.9cm; /* ⬆️ 8mm acima do padrão (11.7cm) */
+  top: 10.9cm;
 }
-/* top = price_top(10.9) + css_height(5.71)×scale(1.2) + 1cm = ~18.8cm */
 [data-digits="1"] .poster-footer-table {
-  top: 18.8cm; /* ⬅️ 1cm abaixo da parcela (era 19.2cm) */
+  top: 18.8cm;
 }
 
-/* 2 dígitos: parcela sobe 8mm — sem override de left (herda base 0.6cm) */
+/* 2 dígitos */
 [data-digits="2"] .poster-price-section {
-  top: 10.9cm; /* ⬆️ 8mm acima do padrão */
-  /* left: herda 0.6cm da regra base — override anterior de 0cm desalinhava */
+  top: 10.9cm;
 }
-/* top = price_top(10.9) + css_height(5.60)×scale(1.2) + 1cm = ~18.6cm */
 [data-digits="2"] .poster-footer-table {
-  top: 18.6cm; /* ⬅️ 1cm abaixo da parcela (era 19.2cm) */
+  top: 18.6cm;
 }
 
-/* 3 dígitos: APENAS value-container recua (R$ e parcelamento herdam left: 0.6cm da base) */
-/* top = price_top(11.7) + css_height(4.41)×scale(1.2) + 1cm = ~18.0cm */
+/* 3 dígitos */
 [data-digits="3"] .poster-footer-table {
-  top: 18cm; /* ⬅️ 1cm abaixo da parcela (era 19.2cm) */
+  top: 18cm;
 }
 
-/* 4 dígitos: apenas a tabela segue a altura dos 1-2 dígitos (parcela ajustada via JS) */
-/* top = price_top(11.7) + css_height(3.81)×scale(1.2) + 1cm = ~17.3cm */
+/* 4 dígitos */
 [data-digits="4"] .poster-footer-table {
-  top: 17.3cm; /* ⬅️ 1cm abaixo da parcela (era 19.2cm; left-section domina em 4 dígitos) */
-}
-
-/* Cameba: equivalentes com !important para sobrepor a regra base de cameba */
-/* Parcela deslocada +1.5cm em relação aos valores anteriores */
-.poster-cameba[data-digits="1"] .poster-price-section {
-  top: 16.9cm !important; /* ⬇️ +1.5cm (era 15.4cm) */
-}
-.poster-cameba[data-digits="2"] .poster-price-section {
-  top: 16.9cm !important; /* ⬇️ +1.5cm (era 15.4cm) */
-  left: 0cm !important; /* ⬅️ -0.8cm (era 0.75cm; ajuste relativo mantido ≈0) */
-}
-
-/* Cameba footer-table: 1cm abaixo do fim visual da parcela por nº de dígitos */
-/* top = price_top + css_height×scale(1.2) + 1cm */
-.poster-cameba[data-digits="4"] .poster-footer-table {
-  top: 23.3cm !important; /* price_top(17.7) + 3.81×1.2 + 1 (era 25, inválido sem unidade) */
-}
-.poster-cameba[data-digits="3"] .poster-footer-table {
-  top: 24cm !important; /* price_top(17.7) + 4.41×1.2 + 1 (era 25, inválido sem unidade) */
-}
-.poster-cameba[data-digits="2"] .poster-footer-table {
-  top: 24.6cm !important; /* price_top(16.9) + 5.60×1.2 + 1 (era 25, inválido sem unidade) */
-}
-.poster-cameba[data-digits="1"] .poster-footer-table {
-  top: 24.8cm !important; /* price_top(16.9) + 5.71×1.2 + 1 (era 25, inválido sem unidade) */
+  top: 17.3cm;
 }
 
 /* Modal de Tabela de Fatores */
