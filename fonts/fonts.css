@@ -1,14 +1,16 @@
 /* ===========================================================================
-   FONTES LOCAIS - LATO E IMPACT
-   ===========================================================================
-   Fontes embutidas para não depender de CDN externo
+   FONTES LOCAIS — carregadas APENAS quando o checkbox "Usar fontes locais"
+   estiver ativado. O modo padrão usa Google Fonts + CDN injetados via JS.
+
+   Para ativar, coloque os arquivos abaixo em /fonts/:
+     lato-regular.woff2  /  lato-regular.woff
+     lato-bold.woff2     /  lato-bold.woff
+     lato-black.woff2    /  lato-black.woff
+     impact-regular.woff2 / impact-regular.woff
    =========================================================================== */
 
-/* ============================================================================
-   LATO - Weights: 400 (Regular), 700 (Bold), 900 (Black)
-   ============================================================================ */
+/* ── LATO ──────────────────────────────────────────────────────────────── */
 
-/* Lato Regular (400) */
 @font-face {
   font-family: 'Lato';
   font-style: normal;
@@ -18,7 +20,6 @@
        url('./lato-regular.woff') format('woff');
 }
 
-/* Lato Bold (700) */
 @font-face {
   font-family: 'Lato';
   font-style: normal;
@@ -28,7 +29,6 @@
        url('./lato-bold.woff') format('woff');
 }
 
-/* Lato Black (900) */
 @font-face {
   font-family: 'Lato';
   font-style: normal;
@@ -38,9 +38,7 @@
        url('./lato-black.woff') format('woff');
 }
 
-/* ============================================================================
-   IMPACT - Weight: 400 (Regular)
-   ============================================================================ */
+/* ── IMPACT ─────────────────────────────────────────────────────────────── */
 
 @font-face {
   font-family: 'Impact';
@@ -51,7 +49,6 @@
        url('./impact-regular.woff') format('woff');
 }
 
-/* Impact Bold (caso necessário - geralmente não existe variante bold) */
 @font-face {
   font-family: 'Impact';
   font-style: normal;
@@ -61,13 +58,9 @@
        url('./impact-regular.woff') format('woff');
 }
 
-/* ============================================================================
-   FALLBACKS
-   ============================================================================
-   Caso as fontes não carreguem, usa fallbacks seguros
-   ============================================================================ */
+/* ── VARIÁVEIS (usadas via var(--font-lato) e var(--font-impact)) ─────── */
 
 :root {
-  --font-lato: 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  --font-lato:   'Lato',   -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
   --font-impact: 'Impact', 'Arial Black', 'Arial Narrow Bold', sans-serif;
 }

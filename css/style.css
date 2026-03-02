@@ -1434,8 +1434,8 @@ input:checked + .slider:before {
 /* Nome/Subdesc/Características/Código */
 .poster-header {
   position: absolute;
-  top: 5cm; /* ⬆️ Subiu 15mm (era 6.5cm) */
-  left: 1.1cm; /* Posição unificada (carnê) */
+  top: 5cm;
+  left: 0.6cm;
   right: 3cm;
 }
 
@@ -1482,9 +1482,9 @@ input:checked + .slider:before {
 /* Layout do preço: posições unificadas (carnê) */
 .poster-price-section {
   position: absolute;
-  left: 0.9cm; /* ⬅️ 2mm à esquerda (era 1.1cm) */
-  top: 11.7cm; /* ⬆️ Subiu 8mm (era 12.5cm) */
-  transform: scale(1.2); /* Aumenta 20% (carnê) */
+  left: 0.6cm;
+  top: 11.7cm;
+  transform: scale(1.2);
   transform-origin: left top;
   display: flex;
   align-items: flex-start;
@@ -1522,7 +1522,7 @@ input:checked + .slider:before {
   display: flex;
   align-items: flex-start; /* Alinha tudo no topo */
   gap: 0; /* Ajuste aqui - gap zerado para não empurrar o ,90 */
-  margin-left: 0.2cm; /* Posição unificada (carnê) - Parcela vai mais 0,2cm para DIREITA */
+  margin-left: 0cm; /* ⬅️ -0.2cm extra dentro da section (era 0.2cm) → parcela e ,90 totalizam -1cm */
 }
 
 /* Parte inteira: grande e esticada (+20% = 238pt) */
@@ -1558,25 +1558,29 @@ input:checked + .slider:before {
 
 /* 1 dígito */
 .poster-value-container[data-digits="1"] .poster-value-decimal {
-  margin-left: -61px; /* ⬅️ 5mm mais perto (era -42px) */
+  margin-left: -30px; /* ⬅️ 5mm mais perto (era -42px) */
 }
 
-/* 2 dígitos: ,90 vai 0,5cm DIREITA */
+
 .poster-value-container[data-digits="2"] .poster-value-integer {
   font-size: 234pt;
 }
 
 .poster-value-container[data-digits="2"] .poster-value-decimal {
-  margin-left: -101px; /* ⬅️ 5mm mais perto (era -82px) */
+  margin-left: -115px;
+}
+
+.poster-value-container[data-digits="3"] {
+  margin-left: -0.25cm; /* ⬅️ só o value-container recua; R$ e parcelamento ficam no lugar */
 }
 
 .poster-value-container[data-digits="3"] .poster-value-integer {
   /* ⬇️ Reduzido para 80% do tamanho base (80% de 240pt = 192pt) — edite este valor se precisar ajustar */
   font-size: 192pt;
 }
-/* 3 dígitos */
+/* 3 dígitos: ,90 mais próximo do valor */
 .poster-value-container[data-digits="3"] .poster-value-decimal {
-  margin-left: -100px; /* ⬅️ 5mm mais perto (era -122px) */
+  margin-left: -115px; /* ⬅️ mais próximo (era -100px; ajuste 3 dígitos) */
 }
 
 /* 4 dígitos: fonte reduzida para 68% do tamanho base */
@@ -1612,9 +1616,10 @@ input:checked + .slider:before {
 }
 
 /* Tabela do rodapé - centralizada na folha (posição unificada carnê) */
+/* top: calculado para ~1cm abaixo do fim visual da parcela por nº de dígitos */
 .poster-footer-table {
   position: absolute;
-  top: 20cm;
+  top: 18.5cm; /* fallback (era 20cm) */
   left: 50%;
   transform: translateX(-50%); /* Centralizar */
   width: calc(100% - 2cm);
@@ -1835,7 +1840,7 @@ input:checked + .slider:before {
 }
 
 .poster-cameba .poster-footer-table {
-  top: 25cm !important;
+  top: 23.5cm !important; /* fallback cameba (era 25cm); ~1cm abaixo da parcela 4-dígitos */
 }
 
 /* ==================================================
@@ -1848,27 +1853,31 @@ input:checked + .slider:before {
 [data-digits="1"] .poster-price-section {
   top: 10.9cm; /* ⬆️ 8mm acima do padrão (11.7cm) */
 }
+/* top = price_top(10.9) + css_height(5.71)×scale(1.2) + 1cm = ~18.8cm */
 [data-digits="1"] .poster-footer-table {
-  top: 19.2cm;
+  top: 18.8cm; /* ⬅️ 1cm abaixo da parcela (era 19.2cm) */
 }
 
-/* 2 dígitos: parcela sobe 8mm + vai 1.5mm para esquerda; tabela sobe 8mm */
+/* 2 dígitos: parcela sobe 8mm — sem override de left (herda base 0.6cm) */
 [data-digits="2"] .poster-price-section {
   top: 10.9cm; /* ⬆️ 8mm acima do padrão */
-  left: 0.75cm; /* ⬅️ 1.5mm à esquerda do padrão (0.9cm) */
+  /* left: herda 0.6cm da regra base — override anterior de 0cm desalinhava */
 }
+/* top = price_top(10.9) + css_height(5.60)×scale(1.2) + 1cm = ~18.6cm */
 [data-digits="2"] .poster-footer-table {
-  top: 19.2cm;
+  top: 18.6cm; /* ⬅️ 1cm abaixo da parcela (era 19.2cm) */
 }
 
-/* 3 dígitos: apenas a tabela segue a altura dos 1-2 dígitos (parcela ajustada via JS) */
+/* 3 dígitos: APENAS value-container recua (R$ e parcelamento herdam left: 0.6cm da base) */
+/* top = price_top(11.7) + css_height(4.41)×scale(1.2) + 1cm = ~18.0cm */
 [data-digits="3"] .poster-footer-table {
-  top: 19.2cm;
+  top: 18cm; /* ⬅️ 1cm abaixo da parcela (era 19.2cm) */
 }
 
 /* 4 dígitos: apenas a tabela segue a altura dos 1-2 dígitos (parcela ajustada via JS) */
+/* top = price_top(11.7) + css_height(3.81)×scale(1.2) + 1cm = ~17.3cm */
 [data-digits="4"] .poster-footer-table {
-  top: 19.2cm;
+  top: 17.3cm; /* ⬅️ 1cm abaixo da parcela (era 19.2cm; left-section domina em 4 dígitos) */
 }
 
 /* Cameba: equivalentes com !important para sobrepor a regra base de cameba */
@@ -1878,13 +1887,22 @@ input:checked + .slider:before {
 }
 .poster-cameba[data-digits="2"] .poster-price-section {
   top: 16.9cm !important; /* ⬇️ +1.5cm (era 15.4cm) */
-  left: 0.75cm !important; /* ⬅️ 1.5mm à esquerda */
+  left: 0cm !important; /* ⬅️ -0.8cm (era 0.75cm; ajuste relativo mantido ≈0) */
 }
-.poster-cameba[data-digits="1"] .poster-footer-table,
-.poster-cameba[data-digits="2"] .poster-footer-table,
-.poster-cameba[data-digits="3"] .poster-footer-table,
+
+/* Cameba footer-table: 1cm abaixo do fim visual da parcela por nº de dígitos */
+/* top = price_top + css_height×scale(1.2) + 1cm */
 .poster-cameba[data-digits="4"] .poster-footer-table {
-  top: 25 !important;
+  top: 23.3cm !important; /* price_top(17.7) + 3.81×1.2 + 1 (era 25, inválido sem unidade) */
+}
+.poster-cameba[data-digits="3"] .poster-footer-table {
+  top: 24cm !important; /* price_top(17.7) + 4.41×1.2 + 1 (era 25, inválido sem unidade) */
+}
+.poster-cameba[data-digits="2"] .poster-footer-table {
+  top: 24.6cm !important; /* price_top(16.9) + 5.60×1.2 + 1 (era 25, inválido sem unidade) */
+}
+.poster-cameba[data-digits="1"] .poster-footer-table {
+  top: 24.8cm !important; /* price_top(16.9) + 5.71×1.2 + 1 (era 25, inválido sem unidade) */
 }
 
 /* Modal de Tabela de Fatores */

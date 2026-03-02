@@ -2611,78 +2611,56 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ==================================================
-  // SISTEMA DE FONTES (LOCAIS OU CLOUDFLARE)
-  // PADRÃO: Fontes locais (MARCADO) | DESMARCADO: Fontes Cloudflare
+  // SISTEMA DE FONTES
+  // PADRÃO (desmarcado): Fontes importadas via CDN (Google Fonts + cdnfonts)
+  // ATIVADO (marcado):   Fontes locais — arquivos .woff2/.woff em /fonts/
   // ==================================================
   const checkboxFontesCloudflare = document.getElementById('usar-fontes-cloudflare');
   const FONT_PREFERENCE_KEY = 'cartazes-usar-fontes-locais';
 
   if (checkboxFontesCloudflare) {
-    // Carregar preferência salva (checkbox MARCADO = fontes locais, DESMARCADO = Cloudflare)
     const fonteSalva = localStorage.getItem(FONT_PREFERENCE_KEY);
-    if (fonteSalva === 'false') {
-      // Usuário escolheu Cloudflare anteriormente → desmarcar checkbox
+
+    if (fonteSalva === 'true') {
+      // Usuário escolheu fontes locais anteriormente → marcar e ativar locais
+      checkboxFontesCloudflare.checked = true;
+      removerFontesImportadas();         // garante que CDN não esteja ativo
+    } else {
+      // Padrão (null) ou escolha prévia de CDN → desmarcado + fontes importadas
       checkboxFontesCloudflare.checked = false;
-      aplicarFontesCloudflare();
+      aplicarFontesImportadas();
     }
-    // Se fonteSalva é null ou 'true', mantém checked (fontes locais = padrão)
-
-    // Detectar falha de fontes locais
-    function detectarFalhaFontesLocais() {
-      const testDiv = document.createElement('div');
-      testDiv.style.fontFamily = 'Lato, sans-serif';
-      testDiv.style.position = 'absolute';
-      testDiv.style.visibility = 'hidden';
-      testDiv.textContent = 'Test';
-      document.body.appendChild(testDiv);
-
-      const usandoLato = window.getComputedStyle(testDiv).fontFamily.includes('Lato');
-      document.body.removeChild(testDiv);
-
-      // Se fontes locais falharam E checkbox está marcado (local), desmarcar e usar Cloudflare
-      if (!usandoLato && checkboxFontesCloudflare.checked) {
-        console.warn('⚠️ Fontes locais não carregadas. Alternando para Cloudflare...');
-        checkboxFontesCloudflare.checked = false;
-        aplicarFontesCloudflare();
-        localStorage.setItem(FONT_PREFERENCE_KEY, 'false');
-      }
-    }
-
-    setTimeout(detectarFalhaFontesLocais, 1000);
 
     checkboxFontesCloudflare.addEventListener('change', function() {
       if (this.checked) {
-        // MARCADO = Usar fontes locais
-        removerFontesCloudflare();
+        // MARCADO = Fontes locais
+        removerFontesImportadas();
         localStorage.setItem(FONT_PREFERENCE_KEY, 'true');
-        showToast('success', 'Fontes alteradas', 'Usando fontes locais (importadas)');
+        showToast('success', 'Fontes locais ativadas', 'Usando arquivos de /fonts/');
       } else {
-        // DESMARCADO = Usar Cloudflare
-        aplicarFontesCloudflare();
+        // DESMARCADO = Fontes importadas (CDN)
+        aplicarFontesImportadas();
         localStorage.setItem(FONT_PREFERENCE_KEY, 'false');
-        showToast('success', 'Fontes alteradas', 'Usando fontes do Cloudflare');
+        showToast('success', 'Fontes importadas ativadas', 'Usando Google Fonts + CDN');
       }
-      
+
       if (products.length > 0) {
         renderProducts();
       }
     });
   }
 
-  function aplicarFontesCloudflare() {
-    // Desabilitar fontes locais
+  // Ativa fontes via CDN: desabilita fonts.css local e injeta links externos
+  function aplicarFontesImportadas() {
     const linkLocal = document.querySelector('link[href="../fonts/fonts.css"]');
-    if (linkLocal) {
-      linkLocal.disabled = true;
-    }
+    if (linkLocal) linkLocal.disabled = true;
 
-    // Adicionar Google Fonts
     if (!document.querySelector('link[href*="fonts.googleapis.com"]')) {
-      const linkGoogleFonts = document.createElement('link');
-      linkGoogleFonts.rel = 'stylesheet';
-      linkGoogleFonts.href = 'https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap';
-      linkGoogleFonts.id = 'google-fonts-link';
-      document.head.appendChild(linkGoogleFonts);
+      const linkLato = document.createElement('link');
+      linkLato.rel = 'stylesheet';
+      linkLato.href = 'https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap';
+      linkLato.id = 'google-fonts-link';
+      document.head.appendChild(linkLato);
 
       const linkImpact = document.createElement('link');
       linkImpact.rel = 'stylesheet';
@@ -2692,17 +2670,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function removerFontesCloudflare() {
-    // Remover Google Fonts
-    const linksGoogle = document.querySelectorAll('link[href*="fonts.googleapis.com"], link[href*="cdnfonts.com"]');
+  // Ativa fontes locais: remove links CDN e reabilita fonts.css com @font-face locais
+  function removerFontesImportadas() {
+    const linksGoogle = document.querySelectorAll(
+      'link[href*="fonts.googleapis.com"], link[href*="cdnfonts.com"]'
+    );
     linksGoogle.forEach(link => link.remove());
 
-    // Reabilitar fontes locais
     const linkLocal = document.querySelector('link[href="../fonts/fonts.css"]');
-    if (linkLocal) {
-      linkLocal.disabled = false;
-    }
+    if (linkLocal) linkLocal.disabled = false;
   }
+
+  // Mantém aliases para compatibilidade com outras chamadas existentes no código
+  function aplicarFontesCloudflare() { aplicarFontesImportadas(); }
+  function removerFontesCloudflare()  { removerFontesImportadas(); }
 });
 
 // ==================================================
