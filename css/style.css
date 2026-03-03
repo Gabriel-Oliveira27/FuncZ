@@ -1567,7 +1567,7 @@ input:checked + .slider:before {
 }
 
 .poster-value-container[data-digits="2"] .poster-value-decimal {
-  margin-left: -120px;
+  margin-left: -85px;
 }
 
 .poster-value-container[data-digits="3"] {
@@ -1580,7 +1580,7 @@ input:checked + .slider:before {
 }
 /* 3 dígitos: ,90 mais próximo do valor */
 .poster-value-container[data-digits="3"] .poster-value-decimal {
-  margin-left: -140px; /* ⬅️ mais próximo (era -100px; ajuste 3 dígitos) */
+  margin-left: -110px; /* ⬅️ mais próximo (era -100px; ajuste 3 dígitos) */
 }
 
 /* 4 dígitos: fonte reduzida para 68% do tamanho base */
