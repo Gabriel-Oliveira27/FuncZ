@@ -228,6 +228,8 @@ function salvarCartazesLocalStorage() {
         garantia36: p.garantia36 || 0,
         modelo: p.modelo || "padrao",
         semJuros: p.semJuros || false,
+        moverValidade: p.moverValidade || false,
+        layoutPersonalizado: p.layoutPersonalizado || '',
       })),
     };
     localStorage.setItem(
@@ -292,6 +294,8 @@ function gerarJSONCartazes() {
       garantia24: p.garantia24 || 0,
       garantia36: p.garantia36 || 0,
       semJuros: p.semJuros || false,
+      moverValidade: p.moverValidade || false,
+      layoutPersonalizado: p.layoutPersonalizado || '',
     })),
   };
 
@@ -1030,6 +1034,8 @@ productForm.addEventListener("submit", (e) => {
     .getElementById("autorizacao")
     .value.trim();
 
+
+
   const g12Val = parseCurrency(
     document.getElementById("garantia12").value,
   );
@@ -1174,6 +1180,8 @@ productForm.addEventListener("submit", (e) => {
     garantia36: g36Val,
     modelo: modeloAtual, // Adiciona o modelo selecionado
     semJuros: semJuros,  // Controla exibição de "Sem juros!" no rodapé
+    moverValidade: false, // Padrão: validade lateral; toggle no card da preview
+    layoutPersonalizado: '', // Layout customizado (ex: 'a5-loja53')
   };
 
   products.push(product);
@@ -1319,12 +1327,27 @@ function renderProducts() {
                     </div>
                 </div>
                 <div>
-                    <div class="product-preview" onclick="showPreview(${product.id})">
+                    <div class="product-preview" data-preview-id="${product.id}" onclick="showPreview(${product.id})">
                         ${generatePosterHTML(product, true)}
                     </div>
-                    <button class="btn-delete" onclick="deleteProduct(${product.id})">
-                        <i class="fa-solid fa-trash"></i> Remover
-                    </button>
+                    ${product.validade ? `
+                    <label class="chk-mover-validade-label" onclick="event.stopPropagation()">
+                        <input type="checkbox"
+                            onchange="toggleMoverValidade(${product.id}, this.checked)"
+                            ${product.moverValidade ? 'checked' : ''}>
+                        <span>Mover validade</span>
+                    </label>` : ''}
+                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 12px;">
+                        <select class="select-layout-personalizado${product.layoutPersonalizado ? ' layout-ativo' : ''}"
+                            onchange="alterarLayoutPersonalizado(${product.id}, this.value)"
+                            onclick="event.stopPropagation()">
+                            <option value="">Padrão</option>
+                            <option value="a5-loja53" ${product.layoutPersonalizado === 'a5-loja53' ? 'selected' : ''}>A5 - Loja 53</option>
+                        </select>
+                        <button class="btn-delete" style="margin-top: 0;" onclick="deleteProduct(${product.id})">
+                            <i class="fa-solid fa-trash"></i> Remover
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
@@ -1424,7 +1447,7 @@ function generatePosterHTML(product, isPreview = false) {
   // data-digits no elemento raiz permite CSS condicional por dígitos em filhos distintos (price-section e footer-table)
   const digitsAttr = product.metodo !== "1x" ? numDigitosParcela : numDigitosAvista;
 
-  return `
+  let posterHTML = `
         <div class="${finalClasses}" data-digits="${digitsAttr}">
             <div class="poster-header">
                 <div class="poster-title">${product.descricao}</div>
@@ -1460,7 +1483,7 @@ function generatePosterHTML(product, isPreview = false) {
             `
             }
             
-            ${validadeExtensa ? `<div class="poster-validity">${validadeExtensa}</div>` : ""}
+            ${validadeExtensa ? `<div class="poster-validity${product.moverValidade ? ' poster-validity-baixo' : ''}">${validadeExtensa}</div>` : ""}
             
             <div class="poster-footer-table">
                 <div class="poster-table-left" ${product.metodo === "1x" && !mostrar1xComTaxa && product.semJuros ? 'style="align-items: center;"' : ''}>
@@ -1482,6 +1505,13 @@ function generatePosterHTML(product, isPreview = false) {
             </div>
         </div>
     `;
+
+  // Se tiver layout personalizado, envolver o poster no wrapper correspondente
+  if (product.layoutPersonalizado === 'a5-loja53') {
+    posterHTML = `<div class="poster-wrapper-a5loja53">${posterHTML}</div>`;
+  }
+
+  return posterHTML;
 }
 
 // ==================================================
@@ -1534,6 +1564,40 @@ window.showPreview = function (id) {
     "Visualização",
     'Clique em "Gerar PDF" para visualizar o cartaz completo.',
   );
+};
+
+// Alterar layout personalizado de um produto
+window.alterarLayoutPersonalizado = function (id, valor) {
+  const product = products.find((p) => p.id === id);
+  if (!product) return;
+  product.layoutPersonalizado = valor || '';
+  salvarCartazesLocalStorage();
+  // Atualiza só o miniatura deste card
+  const previewEl = document.querySelector(`.product-preview[data-preview-id="${id}"]`);
+  if (previewEl) {
+    previewEl.innerHTML = generatePosterHTML(product, true);
+  }
+  // Atualizar classe do select
+  const card = previewEl ? previewEl.closest('.product-card') : null;
+  if (card) {
+    const sel = card.querySelector('.select-layout-personalizado');
+    if (sel) {
+      sel.classList.toggle('layout-ativo', !!valor);
+    }
+  }
+};
+
+// Toggle "Mover validade" diretamente no card — atualiza só o preview afetado
+window.toggleMoverValidade = function (id, checked) {
+  const product = products.find((p) => p.id === id);
+  if (!product) return;
+  product.moverValidade = checked;
+  salvarCartazesLocalStorage();
+  // Atualiza só o miniatura deste card, sem re-renderizar toda a lista
+  const previewEl = document.querySelector(`.product-preview[data-preview-id="${id}"]`);
+  if (previewEl) {
+    previewEl.innerHTML = generatePosterHTML(product, true);
+  }
 };
 
 // ==================================================
@@ -1601,10 +1665,18 @@ document
           false,
         );
 
+        // Verificar se é layout personalizado A5
+        const ehA5Loja53 = products[i].layoutPersonalizado === 'a5-loja53';
+
         // Verificar se é modelo cameba
         const ehCameba = clone.querySelector('.poster-cameba') !== null;
 
-        if (!ehCameba) {
+        if (ehA5Loja53) {
+          // A5 Loja 53: o wrapper já contém o poster escalado via CSS
+          clone.style.cssText =
+            "position:absolute;left:-99999px;top:0;width:210mm;height:297mm;background:#fff;margin:0;padding:0;box-sizing:border-box;overflow:hidden;";
+          // Não aplicar zoom extra nem reposicionar footer-table — o CSS do wrapper cuida de tudo
+        } else if (!ehCameba) {
           // Escalar conteúdo em 15%: container 15% menor → PDF mapeado para 210×297mm = zoom 1.15×
           clone.style.cssText =
             "position:absolute;left:-99999px;top:0;width:182.6mm;height:258.3mm;background:#fff;margin:0;padding:0;box-sizing:border-box;overflow:hidden;";
@@ -2636,12 +2708,12 @@ document.addEventListener("DOMContentLoaded", () => {
         // MARCADO = Fontes locais
         removerFontesImportadas();
         localStorage.setItem(FONT_PREFERENCE_KEY, 'true');
-        showToast('success', 'Fontes locais ativadas', 'Usando arquivos de /fonts/');
+        showToast('success', 'Fontes locais ativadas', 'Usando arquivos do repositório');
       } else {
         // DESMARCADO = Fontes importadas (CDN)
         aplicarFontesImportadas();
         localStorage.setItem(FONT_PREFERENCE_KEY, 'false');
-        showToast('success', 'Fontes importadas ativadas', 'Usando Google Fonts + CDN');
+        showToast('success', 'Fontes importadas ativadas', 'Usando fontes externas');
       }
 
       if (products.length > 0) {
@@ -2652,16 +2724,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Ativa fontes via CDN: desabilita fonts.css local e injeta links externos
   function aplicarFontesImportadas() {
-    const linkLocal = document.querySelector('link[href="../fonts/fonts.css"]');
+    // Usa ID para encontrar o link independente de normalização do browser
+    const linkLocal = document.getElementById('fonts-local');
     if (linkLocal) linkLocal.disabled = true;
 
-    if (!document.querySelector('link[href*="fonts.googleapis.com"]')) {
+    if (!document.getElementById('google-fonts-link')) {
       const linkLato = document.createElement('link');
       linkLato.rel = 'stylesheet';
-      linkLato.href = 'https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap';
+      linkLato.href = 'https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;0,900;1,400&display=swap';
       linkLato.id = 'google-fonts-link';
       document.head.appendChild(linkLato);
+    }
 
+    if (!document.getElementById('impact-font-link')) {
       const linkImpact = document.createElement('link');
       linkImpact.rel = 'stylesheet';
       linkImpact.href = 'https://fonts.cdnfonts.com/css/impact';
@@ -2672,12 +2747,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Ativa fontes locais: remove links CDN e reabilita fonts.css com @font-face locais
   function removerFontesImportadas() {
-    const linksGoogle = document.querySelectorAll(
-      'link[href*="fonts.googleapis.com"], link[href*="cdnfonts.com"]'
-    );
-    linksGoogle.forEach(link => link.remove());
+    const googleLink = document.getElementById('google-fonts-link');
+    if (googleLink) googleLink.remove();
 
-    const linkLocal = document.querySelector('link[href="../fonts/fonts.css"]');
+    const impactLink = document.getElementById('impact-font-link');
+    if (impactLink) impactLink.remove();
+
+    // Reabilita fonts.css local pelo ID (nunca falha por normalização de URL)
+    const linkLocal = document.getElementById('fonts-local');
     if (linkLocal) linkLocal.disabled = false;
   }
 

@@ -1435,7 +1435,7 @@ input:checked + .slider:before {
 .poster-header {
   position: absolute;
   top: 5cm;
-  left: 0.6cm;
+  left: 0.76cm; /* +1.6mm total (era 0.6cm) */
   right: 3cm;
 }
 
@@ -1482,7 +1482,7 @@ input:checked + .slider:before {
 /* Layout do preço: posições unificadas (carnê) */
 .poster-price-section {
   position: absolute;
-  left: 0.6cm;
+  left: 0.76cm; /* +1.6mm total (era 0.6cm) */
   top: 11.7cm;
   transform: scale(1.2);
   transform-origin: left top;
@@ -1545,23 +1545,20 @@ input:checked + .slider:before {
   font-weight: 700;
   color: #000;
   line-height: 0.8;
-  transform: scaleX(
-    0.85
-  ); /* Ajuste aqui - volta ao original, SEM scaleY */
-  transform-origin: left top; /* Alinha pelo topo */
-  margin-top: -57px; /* ⭐ Sobe mais 0,5cm em TODOS (-38px - 19px = -57px) */
+  transform: scaleX(0.85);
+  transform-origin: left top;
+  margin-top: -57px;
   padding-top: 0;
-  margin-left: -168px; /* ⬅️ 5mm mais perto (era -149px) */
+  margin-left: -168px;
 }
 
-/* ⭐ AJUSTES DO ,90 BASEADO NO NÚMERO DE DÍGITOS ⭐ */
+/*  AJUSTES DO ,90 BASEADO NO NÚMERO DE DÍGITOS  */
 
 /* 1 dígito */
 .poster-value-container[data-digits="1"] .poster-value-decimal {
   margin-left: -61px; /* ⬅️ 5mm mais perto (era -42px) */
 }
 
-/* 2 dígitos: ,90 vai 0,5cm DIREITA */
 .poster-value-container[data-digits="2"] .poster-value-integer {
   font-size: 234pt;
 }
@@ -1580,7 +1577,7 @@ input:checked + .slider:before {
 }
 /* 3 dígitos: ,90 mais próximo do valor */
 .poster-value-container[data-digits="3"] .poster-value-decimal {
-  margin-left: -110px; /* ⬅️ mais próximo (era -100px; ajuste 3 dígitos) */
+  margin-left: -100px; /* ⬅️ mais próximo (era -100px; ajuste 3 dígitos) */
 }
 
 /* 4 dígitos: fonte reduzida para 68% do tamanho base */
@@ -1613,6 +1610,131 @@ input:checked + .slider:before {
     270deg
   ); /* Girado 270 graus (texto de cima para baixo) */
   transform-origin: right center; /* Origem à direita */
+}
+
+/* --------------------------------------------------
+   VALIDADE CENTRALIZADA (checkbox "Mover validade")
+   Cancela a rotação lateral e posiciona 0,5cm abaixo da table.
+   Ajuste cada top por dígito se necessário.
+   -------------------------------------------------- */
+.poster-validity-baixo {
+  position: absolute;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);  /* sem rotação */
+  transform-origin: center;
+  text-align: center;
+  white-space: nowrap;
+  top: 20.55cm; /* fallback — sobe 0,5mm */
+  font-family: var(--font-lato);
+  font-size: 11pt;
+  font-weight: 700;
+  color: #000;
+  line-height: 1.2;
+}
+
+/* Ajuste fino por nº de dígitos (modelos padrão) */
+[data-digits="1"] .poster-validity-baixo { top: 20.95cm; }
+[data-digits="2"] .poster-validity-baixo { top: 20.75cm; }
+[data-digits="3"] .poster-validity-baixo { top: 20.15cm; }
+[data-digits="4"] .poster-validity-baixo { top: 19.45cm; }
+
+/* Cameba: table fica no rodapé (bottom:1cm), validade vai antes da table */
+.poster-cameba .poster-validity-baixo { top: 25.45cm; }
+.poster-cameba[data-digits="1"] .poster-validity-baixo,
+.poster-cameba[data-digits="2"] .poster-validity-baixo { top: 24.95cm; }
+
+/* --------------------------------------------------
+   CHECKBOX "MOVER VALIDADE" NO CARD DA PREVIEW
+   -------------------------------------------------- */
+.chk-mover-validade-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 4px 8px;
+  background: #f0f4ff;
+  border: 1px solid #c7d4f8;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  color: #374151;
+  user-select: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+.chk-mover-validade-label:hover {
+  background: #e0e9ff;
+  border-color: #93aef5;
+}
+.chk-mover-validade-label input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: #275efe;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------
+   SELECT "LAYOUTS PERSONALIZADOS" NO CARD DA PREVIEW
+   -------------------------------------------------- */
+.select-layout-personalizado {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 6px 28px 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--gray-700);
+  background: var(--gray-50);
+  border: 1px solid var(--gray-300);
+  border-radius: 20px;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.select-layout-personalizado:hover {
+  border-color: var(--primary);
+  background-color: #f0f4ff;
+}
+.select-layout-personalizado:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+.select-layout-personalizado.layout-ativo {
+  border-color: var(--primary);
+  background: #eff4ff;
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+/* --------------------------------------------------
+   LAYOUT A5 - LOJA 53 (poster reduzido centralizado)
+   Escala: 110mm / 210mm ≈ 0.5238
+   Poster fica com 110mm de largura, ~155.6mm de altura
+   Posição: 5cm das bordas laterais, 14cm do fim da página
+   -------------------------------------------------- */
+.poster-wrapper-a5loja53 {
+  position: relative;
+  width: 210mm;
+  height: 297mm;
+  background: #fff;
+  overflow: hidden;
+}
+.poster-wrapper-a5loja53 > .poster,
+.poster-wrapper-a5loja53 > .poster.poster-carne {
+  position: absolute;
+  left: 50mm;
+  top: 1.4mm;
+  width: 210mm;
+  height: 297mm;
+  transform: scale(0.5238);
+  transform-origin: top left;
 }
 
 /* Tabela do rodapé - centralizada na folha (posição unificada carnê) */
@@ -1710,6 +1832,21 @@ input:checked + .slider:before {
   transition: transform 0.3s ease;
 }
 
+/* Preview A5 Loja 53: wrapper recebe o scale do preview,
+   poster interno mantém apenas o scale de redução 0.5238 */
+.product-preview .poster-wrapper-a5loja53 {
+  transform: scale(0.28);
+  transform-origin: top left;
+  width: 210mm;
+  height: 297mm;
+  transition: transform 0.3s ease;
+}
+.product-preview .poster-wrapper-a5loja53 > .poster,
+.product-preview .poster-wrapper-a5loja53 > .poster.poster-carne {
+  transform: scale(0.5238) !important;
+  transform-origin: top left;
+}
+
 /* ========================================
    ZOOM DOS CARTAZES (Tamanhos 1, 2, 3)
    ======================================== */
@@ -1728,6 +1865,27 @@ input:checked + .slider:before {
 .product-preview .poster.poster-zoom-3,
 .product-preview .poster-carne.poster-zoom-3 {
   transform: scale(0.35) !important; /* 0.28 * 1.25 = 0.35 */
+}
+
+/* PREVIEW ZOOM - A5 Loja 53: zoom no wrapper, poster mantém 0.5238 */
+.product-preview .poster-wrapper-a5loja53.poster-zoom-1 {
+  transform: scale(0.42) !important;
+}
+.product-preview .poster-wrapper-a5loja53.poster-zoom-2 {
+  transform: scale(0.373) !important;
+}
+.product-preview .poster-wrapper-a5loja53.poster-zoom-3 {
+  transform: scale(0.35) !important;
+}
+/* Poster dentro do wrapper A5 nunca recebe zoom do preview */
+.product-preview .poster-wrapper-a5loja53 > .poster.poster-zoom-1,
+.product-preview .poster-wrapper-a5loja53 > .poster.poster-zoom-2,
+.product-preview .poster-wrapper-a5loja53 > .poster.poster-zoom-3,
+.product-preview .poster-wrapper-a5loja53 > .poster-carne.poster-zoom-1,
+.product-preview .poster-wrapper-a5loja53 > .poster-carne.poster-zoom-2,
+.product-preview .poster-wrapper-a5loja53 > .poster-carne.poster-zoom-3 {
+  transform: scale(0.5238) !important;
+  transform-origin: top left;
 }
 
 /* PDF/IMPRESSÃO (escala 1.0 base) */

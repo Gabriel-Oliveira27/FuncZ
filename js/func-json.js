@@ -1501,8 +1501,4 @@ setTimeout(() => {
             }
         });
     }
-    
-    console.log('✅ func-json.js carregado com sucesso!');
-    console.log('🔐 Sistema de permissões ativo');
-    console.log('☁️ Cloud Import configurado');
 }, 500);
