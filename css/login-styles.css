@@ -23,21 +23,23 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
   background: #001d5c;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
-  zoom: 0.80;
+  zoom: 0.8;
   position: relative;
   overflow: hidden;
 }
 
 /* Gradiente dinâmico que se move */
 body::before {
-  content: '';
+  content: "";
   position: fixed;
   top: -50%;
   left: -50%;
@@ -59,8 +61,12 @@ body::before {
 }
 
 @keyframes gradientRotate {
-  0% { transform: translate(0, 0) rotate(0deg); }
-  100% { transform: translate(0, 0) rotate(360deg); }
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(360deg);
+  }
 }
 
 /* ===== LOGIN WRAPPER ===== */
@@ -177,6 +183,75 @@ body::before {
   color: var(--text);
 }
 
+/* Label row com "Esqueci minha senha" ao lado */
+.pass-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pass-label-row label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.forgot-link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--primary);
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.2s ease;
+  font-family: inherit;
+  line-height: 1;
+  align-self: flex-end;
+  margin-top: 4px;
+}
+
+.forgot-link:hover {
+  color: var(--primary-light);
+}
+
+/* ===== LINK DE AJUDA ABAIXO DO FORM ===== */
+.help-links-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.help-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-light);
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  text-decoration: none;
+}
+
+.help-link svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.help-link:hover {
+  color: var(--primary);
+  background: rgba(0, 61, 165, 0.06);
+}
+
 .input-wrapper {
   position: relative;
   display: flex;
@@ -206,7 +281,9 @@ body::before {
   border-radius: 12px;
   background: var(--surface);
   color: var(--text);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
   font-family: inherit;
 }
 
@@ -253,7 +330,11 @@ body::before {
   font-size: 16px;
   font-weight: 600;
   color: white;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    var(--primary-light) 100%
+  );
   border: none;
   border-radius: 12px;
   cursor: pointer;
@@ -391,7 +472,11 @@ body::before {
   width: 52px;
   height: 52px;
   padding: 0;
-  background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+  background: linear-gradient(
+    135deg,
+    var(--success) 0%,
+    #059669 100%
+  );
   border: none;
   border-radius: 12px;
   color: white;
@@ -600,8 +685,12 @@ body::before {
 
 /* ===== ANIMAÇÕES ===== */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes fadeInUp {
@@ -649,12 +738,18 @@ body::before {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes toastProgress {
-  from { width: 100%; }
-  to { width: 0%; }
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
 }
 
 /* ===== RESPONSIVO ===== */

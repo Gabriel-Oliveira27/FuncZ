@@ -113,10 +113,14 @@
     },
     'get-local': {
       type: 'location'
+    },
+    'mock': {
+      type: 'mock'
     }
   };
 
   let currentBaseSession = null;
+  let _isMock = false; // rastreia se estamos em contexto de mock
 
   // Detectar combinação Ctrl+Shift+L
   document.addEventListener('keydown', function(e) {
@@ -363,6 +367,14 @@
       return;
     }
 
+    // Tipo mock - abrir menu de mock functions
+    if (config.type === 'mock') {
+      const devPanel = document.getElementById('_devPanel');
+      if (devPanel) devPanel.remove();
+      _showMockOptions();
+      return;
+    }
+
     // Tipo auth - verificar palavra secreta
     const secretInput = document.getElementById('_secretInput');
     const secret = secretInput.value.trim();
@@ -398,190 +410,436 @@
       inset: 0;
       background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
       border-radius: 20px;
-      padding: 40px 32px;
+      padding: 36px 28px;
       transform: rotateY(180deg);
       backface-visibility: hidden;
       z-index: 11;
       overflow-y: auto;
     `;
 
+    const fullName = currentBaseSession ? (currentBaseSession.fullName || currentBaseSession.user || '') : '';
+
     panel.innerHTML = `
       <style>
-        .profile-header {
+        .pf-header {
           text-align: center;
-          margin-bottom: 32px;
+          margin-bottom: 22px;
         }
-        
-        .profile-icon {
-          width: 64px;
-          height: 64px;
-          margin: 0 auto 16px;
-          padding: 14px;
-          background: linear-gradient(135deg, rgba(96, 165, 250, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%);
+        .pf-avatar {
+          width: 58px;
+          height: 58px;
+          margin: 0 auto 13px;
+          padding: 13px;
+          background: linear-gradient(135deg, rgba(96,165,250,0.2) 0%, rgba(59,130,246,0.2) 100%);
           border-radius: 50%;
           color: #60a5fa;
         }
-        
-        .profile-icon svg {
-          width: 100%;
-          height: 100%;
-        }
-        
-        .profile-header h3 {
-          font-size: 22px;
+        .pf-avatar svg { width: 100%; height: 100%; }
+        .pf-header h3 {
+          font-size: 19px;
           font-weight: 700;
           color: #60a5fa;
-          margin-bottom: 8px;
+          margin-bottom: 5px;
         }
-        
-        .profile-header p {
-          font-size: 14px;
+        .pf-header p {
+          font-size: 13px;
           color: #94a3b8;
         }
-        
-        .profile-options {
+        .pf-field { margin-bottom: 16px; }
+        .pf-label {
+          display: block;
+          font-size: 11px;
+          font-weight: 700;
+          color: #64748b;
+          text-transform: uppercase;
+          letter-spacing: 0.8px;
+          margin-bottom: 7px;
+        }
+        .pf-input-wrapper { position: relative; }
+        .pf-input {
+          width: 100%;
+          padding: 12px 36px 12px 13px;
+          border: 2px solid #334155;
+          border-radius: 10px;
+          font-size: 14px;
+          background: #0f172a;
+          color: #e2e8f0;
+          transition: all 0.2s ease;
+          font-family: inherit;
+          box-sizing: border-box;
+        }
+        .pf-input:focus {
+          outline: none;
+          border-color: #60a5fa;
+          box-shadow: 0 0 0 3px rgba(96,165,250,0.1);
+        }
+        .pf-edit-hint {
+          position: absolute;
+          right: 11px;
+          top: 50%;
+          transform: translateY(-50%);
+          font-size: 13px;
+          pointer-events: none;
+          opacity: 0.45;
+        }
+        .perm-list {
           display: flex;
           flex-direction: column;
-          gap: 10px;
+          gap: 7px;
         }
-        
-        .profile-btn {
-          width: 100%;
-          padding: 16px 18px;
-          border: 2px solid #334155;
-          border-radius: 12px;
-          background: #0f172a;
-          cursor: pointer;
-          transition: all 0.2s ease;
+        .perm-item {
           display: flex;
           align-items: center;
-          gap: 12px;
-          font-size: 15px;
+          gap: 11px;
+          padding: 11px 13px;
+          border: 2px solid #334155;
+          border-radius: 10px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          background: #0f172a;
+          user-select: none;
+        }
+        .perm-item:hover {
+          border-color: #475569;
+          background: #1e293b;
+        }
+        .perm-item.active {
+          border-color: #3b82f6;
+          background: rgba(96,165,250,0.07);
+        }
+        .perm-checkbox {
+          width: 20px;
+          height: 20px;
+          border: 2px solid #475569;
+          border-radius: 5px;
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+          background: transparent;
+        }
+        .perm-item.active .perm-checkbox {
+          background: #3b82f6;
+          border-color: #3b82f6;
+        }
+        .perm-checkbox svg {
+          width: 11px;
+          height: 11px;
+          color: white;
+          opacity: 0;
+          transition: opacity 0.15s ease;
+          stroke-width: 3;
+        }
+        .perm-item.active .perm-checkbox svg { opacity: 1; }
+        .perm-details { flex: 1; }
+        .perm-name {
+          font-size: 14px;
           font-weight: 600;
           color: #e2e8f0;
         }
-        
-        .profile-btn:hover {
-          border-color: #60a5fa;
-          background: #1e293b;
-          transform: translateX(4px);
-        }
-        
-        .profile-btn.cancel {
-          background: rgba(239, 68, 68, 0.1);
-          border-color: rgba(239, 68, 68, 0.3);
-          color: #fca5a5;
-        }
-        
-        .profile-btn.cancel:hover {
-          background: rgba(239, 68, 68, 0.2);
-          border-color: rgba(239, 68, 68, 0.5);
-        }
-        
-        .profile-icon-small {
-          width: 24px;
-          height: 24px;
-          color: #60a5fa;
-          flex-shrink: 0;
-        }
-        
-        .profile-btn.cancel .profile-icon-small {
-          color: #ef4444;
-        }
-        
-        .profile-details {
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-          flex: 1;
-          text-align: left;
-        }
-        
-        .profile-name {
-          font-size: 15px;
-          font-weight: 600;
-        }
-        
-        .profile-info {
-          font-size: 12px;
+        .perm-info {
+          font-size: 11px;
           color: #64748b;
-          font-weight: 400;
+          margin-top: 1px;
+        }
+        .pf-btn-login {
+          width: 100%;
+          padding: 14px;
+          border: none;
+          border-radius: 12px;
+          font-weight: 700;
+          font-size: 15px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          margin-bottom: 8px;
+          background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+          color: white;
+          box-shadow: 0 4px 16px rgba(96,165,250,0.3);
+          box-sizing: border-box;
+          font-family: inherit;
+        }
+        .pf-btn-login:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 24px rgba(96,165,250,0.45);
+        }
+        .pf-btn-cancel {
+          width: 100%;
+          padding: 11px;
+          border: 2px solid rgba(239,68,68,0.3);
+          border-radius: 12px;
+          font-weight: 600;
+          font-size: 14px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          background: rgba(239,68,68,0.07);
+          color: #fca5a5;
+          box-sizing: border-box;
+          font-family: inherit;
+        }
+        .pf-btn-cancel:hover {
+          background: rgba(239,68,68,0.15);
+          border-color: rgba(239,68,68,0.5);
+        }
+        .pf-forgot-link {
+          display: block;
+          width: 100%;
+          text-align: center;
+          font-size: 13px;
+          color: #60a5fa;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 8px;
+          margin-bottom: 8px;
+          text-decoration: underline;
+          text-underline-offset: 2px;
+          transition: color 0.2s ease;
+          font-family: inherit;
+        }
+        .pf-forgot-link:hover { color: #93c5fd; }
+        .pf-input.shake {
+          animation: _shake 0.3s ease;
+        }
+        @keyframes _shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-8px); }
+          75% { transform: translateX(8px); }
         }
       </style>
       
-      <div class="profile-header">
-        <div class="profile-icon">
+      <div class="pf-header">
+        <div class="pf-avatar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
             <circle cx="12" cy="7" r="4"></circle>
           </svg>
         </div>
-        <h3>Escolha o Perfil</h3>
-        <p>Selecione como deseja acessar</p>
+        <h3>Acesso Identificado</h3>
+        <p>Confirme os dados antes de entrar</p>
       </div>
       
-      <div class="profile-options">
-        <button class="profile-btn" data-perm="admin" data-duration="null">
-          <svg class="profile-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-            <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
-          </svg>
-          <div class="profile-details">
-            <div class="profile-name">Admin</div>
-            <div class="profile-info">Acesso completo • Ilimitado</div>
-          </div>
-        </button>
-        
-        <button class="profile-btn" data-perm="fat" data-duration="21600000">
-          <svg class="profile-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-            <line x1="16" y1="13" x2="8" y2="13"></line>
-            <line x1="16" y1="17" x2="8" y2="17"></line>
-          </svg>
-          <div class="profile-details">
-            <div class="profile-name">Faturamento</div>
-            <div class="profile-info">Acesso faturamento • 6 horas</div>
-          </div>
-        </button>
-        
-        <button class="profile-btn" data-perm="vendedor" data-duration="10800000">
-          <svg class="profile-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="9" cy="21" r="1"></circle>
-            <circle cx="20" cy="21" r="1"></circle>
-            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-          </svg>
-          <div class="profile-details">
-            <div class="profile-name">Vendedor</div>
-            <div class="profile-info">Acesso vendas • 3 horas</div>
-          </div>
-        </button>
-        
-        <button class="profile-btn cancel" onclick="window._cancelProfile()">
-          <svg class="profile-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-          <div class="profile-details">
-            <div class="profile-name">Cancelar</div>
-            <div class="profile-info">Voltar sem fazer login</div>
-          </div>
-        </button>
+      <div class="pf-field">
+        <label class="pf-label">Nome do usuário</label>
+        <div class="pf-input-wrapper">
+          <input type="text" id="_nameInput" class="pf-input" value="${fullName}" placeholder="Digite seu nome" autocomplete="off" />
+          <span class="pf-edit-hint">✏️</span>
+        </div>
       </div>
+      
+      <div class="pf-field">
+        <label class="pf-label">Permissão de acesso</label>
+        <div class="perm-list" id="_permList">
+          <div class="perm-item active" data-perm="admin" data-duration="null">
+            <div class="perm-checkbox">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <div class="perm-details">
+              <div class="perm-name">Admin</div>
+              <div class="perm-info">Acesso completo • Sem limite de tempo</div>
+            </div>
+          </div>
+          
+          <div class="perm-item" data-perm="fat" data-duration="21600000">
+            <div class="perm-checkbox">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <div class="perm-details">
+              <div class="perm-name">Faturamento</div>
+              <div class="perm-info">Acesso faturamento • 6 horas</div>
+            </div>
+          </div>
+          
+          <div class="perm-item" data-perm="vendedor" data-duration="10800000">
+            <div class="perm-checkbox">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <div class="perm-details">
+              <div class="perm-name">Vendedor</div>
+              <div class="perm-info">Acesso vendas • 3 horas</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <button class="pf-btn-login" id="_loginConfirmBtn">Entrar</button>
+      <button class="pf-forgot-link" onclick="window._showForgotPassword()">Esqueci minha senha</button>
+      <button class="pf-btn-cancel" onclick="window._cancelProfile()">Cancelar</button>
     `;
 
     container.appendChild(panel);
 
-    // Adicionar eventos
-    const profileBtns = panel.querySelectorAll('.profile-btn[data-perm]');
-    profileBtns.forEach(btn => {
-      btn.addEventListener('click', function() {
-        const perm = this.dataset.perm;
-        const duration = this.dataset.duration === 'null' ? null : parseInt(this.dataset.duration);
-        _createSession(currentBaseSession, perm, duration);
-        panel.remove();
+    // Comportamento de rádio para os itens de permissão
+    let selectedPerm = 'admin';
+    let selectedDuration = null;
+
+    const permItems = panel.querySelectorAll('.perm-item[data-perm]');
+    permItems.forEach(item => {
+      item.addEventListener('click', function() {
+        permItems.forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+        selectedPerm = this.dataset.perm;
+        selectedDuration = this.dataset.duration === 'null' ? null : parseInt(this.dataset.duration);
       });
     });
+
+    // Botão confirmar
+    document.getElementById('_loginConfirmBtn').addEventListener('click', function() {
+      const nameInput = document.getElementById('_nameInput');
+      const name = nameInput.value.trim();
+
+      if (!name) {
+        _shake(nameInput);
+        _showToast('Digite seu nome para continuar', 'warning');
+        return;
+      }
+
+      if (!selectedPerm) {
+        _showToast('Selecione uma permissão para continuar', 'warning');
+        return;
+      }
+
+      const updatedSession = { ...currentBaseSession, fullName: name };
+      panel.remove();
+      _showRecognitionScreen(name, updatedSession, selectedPerm, selectedDuration);
+    });
+  }
+
+  // Tela de reconhecimento animada
+  function _showRecognitionScreen(name, baseSession, perm, duration) {
+    const container = document.querySelector('.login-container');
+
+    const panel = document.createElement('div');
+    panel.id = '_recognitionPanel';
+    panel.style.cssText = `
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border-radius: 20px;
+      padding: 48px 40px;
+      transform: rotateY(180deg);
+      backface-visibility: hidden;
+      z-index: 11;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    `;
+
+    const firstName = name.split(' ')[0];
+    const permLabels = { admin: 'Admin', fat: 'Faturamento', vendedor: 'Vendedor' };
+    const permLabel = permLabels[perm] || perm;
+
+    panel.innerHTML = `
+      <style>
+        @keyframes _checkPop {
+          0% { transform: scale(0); opacity: 0; }
+          65% { transform: scale(1.18); opacity: 1; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes _recogFade {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes _barLoad {
+          from { width: 0%; }
+          to { width: 100%; }
+        }
+        .recog-check-wrap {
+          width: 88px;
+          height: 88px;
+          margin-bottom: 28px;
+          background: linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(5,150,105,0.15) 100%);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          animation: _checkPop 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        .recog-check-wrap svg {
+          width: 42px;
+          height: 42px;
+          color: #10b981;
+          stroke-width: 2.5;
+        }
+        .recog-label {
+          font-size: 15px;
+          color: #94a3b8;
+          margin-bottom: 6px;
+          animation: _recogFade 0.4s ease 0.35s both;
+        }
+        .recog-name {
+          font-size: 36px;
+          font-weight: 800;
+          color: #60a5fa;
+          margin-bottom: 18px;
+          animation: _recogFade 0.4s ease 0.45s both;
+          letter-spacing: -0.5px;
+        }
+        .recog-perm-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 16px;
+          border-radius: 20px;
+          background: rgba(96,165,250,0.12);
+          border: 1px solid rgba(96,165,250,0.3);
+          color: #93c5fd;
+          font-size: 13px;
+          font-weight: 600;
+          margin-bottom: 28px;
+          animation: _recogFade 0.4s ease 0.55s both;
+        }
+        .recog-sub {
+          font-size: 13px;
+          color: #64748b;
+          animation: _recogFade 0.4s ease 0.65s both;
+        }
+        .recog-progress-wrap {
+          width: 150px;
+          height: 3px;
+          background: #1e293b;
+          border-radius: 3px;
+          margin-top: 14px;
+          overflow: hidden;
+          animation: _recogFade 0.4s ease 0.75s both;
+        }
+        .recog-progress-fill {
+          height: 100%;
+          width: 0%;
+          background: linear-gradient(90deg, #3b82f6, #60a5fa);
+          border-radius: 3px;
+          animation: _barLoad 1.8s ease 0.85s forwards;
+        }
+      </style>
+      
+      <div class="recog-check-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+      <div class="recog-label">Reconhecido,</div>
+      <div class="recog-name">${firstName}</div>
+      <div class="recog-perm-badge">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+          <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
+        </svg>
+        ${permLabel}
+      </div>
+      <p class="recog-sub">Preparando seu acesso...</p>
+      <div class="recog-progress-wrap"><div class="recog-progress-fill"></div></div>
+    `;
+
+    container.appendChild(panel);
+    _createSession(baseSession, perm, duration);
   }
 
   // Cancelar perfil
@@ -592,7 +850,7 @@
     _showToast('⚠️ Operação cancelada', 'warning');
   };
 
-  // Criar sessão
+  // Criar sessão e animar retorno ao login normal
   function _createSession(baseSession, perm, duration) {
     const now = Date.now();
     const session = {
@@ -604,13 +862,178 @@
     };
 
     localStorage.setItem('authSession', JSON.stringify(session));
-    _showToast('✅ Sessão criada!', 'success');
-    
-    // NÃO fecha o card, apenas recarrega
+
+    // Após a animação de reconhecimento, virar o card de volta e mostrar overlay de autenticação
     setTimeout(() => {
-      window.location.reload();
-    }, 1500);
+      const recogPanel = document.getElementById('_recognitionPanel');
+      if (recogPanel) recogPanel.remove();
+
+      // Desvirar o card (volta ao lado normal)
+      const container = document.querySelector('.login-container');
+      if (container) {
+        container.classList.remove('flipped');
+      }
+
+      // Aguardar o flip terminar antes de mostrar o overlay
+      setTimeout(() => {
+        const overlayAuth = document.getElementById('overlayAuth');
+        if (overlayAuth) {
+          const h3 = overlayAuth.querySelector('h3');
+          const p = overlayAuth.querySelector('p');
+          if (h3) h3.textContent = 'Acesso Autorizado!';
+          if (p) p.textContent = 'Redirecionando...';
+          overlayAuth.classList.add('show');
+        }
+
+        setTimeout(() => {
+          window.location.href = 'pages/selectsetor.html';
+        }, 1200);
+      }, 650);
+
+    }, 2000);
   }
+
+  // Popup "Esqueci minha senha"
+  window._showForgotPassword = function() {
+    if (document.getElementById('_forgotPopup')) return;
+
+    const popup = document.createElement('div');
+    popup.id = '_forgotPopup';
+    popup.style.cssText = `
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    `;
+
+    popup.innerHTML = `
+      <style>
+        @keyframes _popupFadeIn { from { opacity:0; } to { opacity:1; } }
+        @keyframes _popupIn {
+          from { opacity:0; transform: scale(0.9) translateY(14px); }
+          to { opacity:1; transform: scale(1) translateY(0); }
+        }
+        #_forgotPopup { animation: _popupFadeIn 0.2s ease; }
+        #_forgotCard { animation: _popupIn 0.3s cubic-bezier(0.175,0.885,0.32,1.275); }
+        .fp-contact-item {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 14px 16px;
+          background: #0f172a;
+          border: 2px solid #334155;
+          border-radius: 12px;
+          margin-bottom: 10px;
+          transition: border-color 0.2s ease;
+        }
+        .fp-contact-item:hover { border-color: #475569; }
+        .fp-contact-icon {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .fp-contact-icon svg { width: 20px; height: 20px; }
+        .fp-contact-label {
+          font-size: 11px;
+          font-weight: 700;
+          color: #64748b;
+          text-transform: uppercase;
+          letter-spacing: 0.6px;
+          margin-bottom: 3px;
+        }
+        .fp-contact-value {
+          font-size: 16px;
+          font-weight: 700;
+          color: #e2e8f0;
+        }
+        .fp-close-btn {
+          width: 100%;
+          padding: 13px;
+          border: none;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+          color: white;
+          font-weight: 600;
+          font-size: 15px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          box-shadow: 0 4px 16px rgba(96,165,250,0.3);
+          margin-top: 8px;
+          font-family: inherit;
+        }
+        .fp-close-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 24px rgba(96,165,250,0.45);
+        }
+      </style>
+      <div id="_forgotCard" style="
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border: 1px solid #334155;
+        border-radius: 20px;
+        padding: 40px 36px;
+        max-width: 380px;
+        width: 100%;
+        box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+        text-align: center;
+      ">
+        <div style="
+          width:64px; height:64px;
+          margin:0 auto 20px;
+          padding:16px;
+          background:rgba(96,165,250,0.12);
+          border-radius:50%;
+          color:#60a5fa;
+        ">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:100%;height:100%">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <h3 style="font-size:20px;font-weight:700;color:#60a5fa;margin-bottom:10px;">Como trocar de senha?</h3>
+        <p style="font-size:14px;color:#94a3b8;margin-bottom:24px;line-height:1.6;">
+          Entre em contato com o desenvolvedor<br>pelos canais abaixo:
+        </p>
+        <div class="fp-contact-item">
+          <div class="fp-contact-icon" style="background:rgba(96,165,250,0.12)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.58 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+            </svg>
+          </div>
+          <div style="text-align:left;">
+            <div class="fp-contact-label">Ramal Interno</div>
+            <div class="fp-contact-value">302</div>
+          </div>
+        </div>
+        <div class="fp-contact-item">
+          <div class="fp-contact-icon" style="background:rgba(37,211,102,0.12)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#25d366" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </div>
+          <div style="text-align:left;">
+            <div class="fp-contact-label">WhatsApp</div>
+            <div class="fp-contact-value">(88) 98856-8911</div>
+          </div>
+        </div>
+        <button class="fp-close-btn" onclick="document.getElementById('_forgotPopup').remove()">Entendido</button>
+      </div>
+    `;
+
+    document.body.appendChild(popup);
+    popup.addEventListener('click', function(e) {
+      if (e.target === popup) popup.remove();
+    });
+  };
 
   // Buscar localização
   function _getLocation() {
@@ -1106,11 +1529,31 @@
       <div class="result-city">${city}</div>
       <p class="result-text">Cidade copiada para a área de transferência</p>
       
-      <button class="result-btn primary" onclick="window._closeLocationResult()">Fechar</button>
-      <button class="result-btn secondary" onclick="window._askForCEP()">Cidade incorreta?</button>
+      <button class="result-btn primary" id="_resultCloseBtn">Fechar</button>
+      <button class="result-btn secondary" id="_resultWrongCityBtn">Cidade incorreta?</button>
     `;
 
     container.appendChild(resultPanel);
+
+    // Botão Fechar: em mock volta ao menu de mock, fora do mock mantém card virado
+    document.getElementById('_resultCloseBtn').addEventListener('click', () => {
+      resultPanel.remove();
+      if (_isMock) {
+        _isMock = false;
+        _showMockOptions();
+      }
+      // fora de mock: card continua virado (comportamento original)
+    });
+
+    // Botão "Cidade incorreta?": em mock volta ao mock, fora do mock vai pro CEP
+    document.getElementById('_resultWrongCityBtn').addEventListener('click', () => {
+      resultPanel.remove();
+      if (_isMock) {
+        _askForCEP(); // no CEP em modo mock, fechar vai para mock options via _closeCEPPanel
+      } else {
+        _askForCEP();
+      }
+    });
 
     // Copiar para clipboard
     if (navigator.clipboard) {
@@ -1120,35 +1563,241 @@
     _showToast(`Localização: ${city}`, 'success');
   }
 
-  // Fechar resultado
+  // Fechar resultado (mantido para compatibilidade, usado em chamadas antigas se existirem)
   window._closeLocationResult = function() {
     const panel = document.getElementById('_resultPanel');
     if (panel) panel.remove();
-    // NÃO chama _closeDevPanel - mantém card virado
+    if (_isMock) { _isMock = false; _showMockOptions(); }
   };
 
   // Fechar painel dev
   window._closeDevPanel = function() {
-    const panel = document.getElementById('_devPanel');
-    const profilePanel = document.getElementById('_profilePanel');
-    const locationPanel = document.getElementById('_locationPanel');
-    const cepPanel = document.getElementById('_cepPanel');
-    const errorPanel = document.getElementById('_errorPanel');
-    const resultPanel = document.getElementById('_resultPanel');
-    
-    if (panel) panel.remove();
-    if (profilePanel) profilePanel.remove();
-    if (locationPanel) locationPanel.remove();
-    if (cepPanel) cepPanel.remove();
-    if (errorPanel) errorPanel.remove();
-    if (resultPanel) resultPanel.remove();
+    ['_devPanel','_profilePanel','_recognitionPanel','_locationPanel',
+     '_cepPanel','_errorPanel','_resultPanel','_mockPanel','_mockBlockPanel',
+     '_mockBlockBanner','_mockDeniedBanner'
+    ].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    });
+    _isMock = false;
 
     // Desvirar card
     const container = document.querySelector('.login-container');
-    if (container) {
-      container.classList.remove('flipped');
-    }
+    if (container) container.classList.remove('flipped');
   };
+
+  // ===== MOCK FUNCTIONS =====
+
+  function _showMockOptions() {
+    const container = document.querySelector('.login-container');
+    const panel = document.createElement('div');
+    panel.id = '_mockPanel';
+    panel.style.cssText = `
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border-radius: 20px;
+      padding: 36px 28px;
+      transform: rotateY(180deg);
+      backface-visibility: hidden;
+      z-index: 12;
+      overflow-y: auto;
+    `;
+
+    panel.innerHTML = `
+      <style>
+        @keyframes _mkIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        #_mockPanel .mk-header { text-align:center; margin-bottom:24px; animation:_mkIn .3s ease; }
+        #_mockPanel .mk-badge {
+          display:inline-flex; align-items:center; gap:6px;
+          padding:3px 12px;
+          background:rgba(245,158,11,.15); border:1px solid rgba(245,158,11,.35);
+          border-radius:20px; font-size:11px; font-weight:700; color:#fbbf24;
+          text-transform:uppercase; letter-spacing:.8px; margin-bottom:12px;
+        }
+        #_mockPanel h3 { font-size:21px; font-weight:700; color:#e2e8f0; margin-bottom:4px; }
+        #_mockPanel .mk-sub { font-size:13px; color:#64748b; }
+        .mk-option {
+          display:flex; align-items:center; gap:16px;
+          width:100%; padding:17px 18px; margin-bottom:10px;
+          background:#0f172a; border:2px solid #1e293b; border-radius:14px;
+          cursor:pointer; transition:all .2s ease; text-align:left; font-family:inherit;
+          animation:_mkIn .3s ease both;
+        }
+        .mk-option:nth-child(1){animation-delay:.05s}
+        .mk-option:nth-child(2){animation-delay:.1s}
+        .mk-option:nth-child(3){animation-delay:.15s}
+        .mk-option:hover { border-color:#334155; background:#1a2234; transform:translateX(4px); }
+        .mk-icon {
+          width:44px; height:44px; border-radius:12px;
+          display:flex; align-items:center; justify-content:center; flex-shrink:0;
+        }
+        .mk-icon svg { width:22px; height:22px; }
+        .mk-title { font-size:15px; font-weight:700; color:#e2e8f0; margin-bottom:3px; }
+        .mk-desc { font-size:12px; color:#64748b; line-height:1.4; }
+        .mk-hr { border:none; border-top:1px solid #1e293b; margin:14px 0; }
+        .mk-cancel {
+          width:100%; padding:12px;
+          border:2px solid #334155; border-radius:12px;
+          background:transparent; color:#64748b;
+          font-size:14px; font-weight:600; cursor:pointer;
+          transition:all .2s ease; font-family:inherit;
+          animation:_mkIn .3s ease .2s both;
+        }
+        .mk-cancel:hover { background:#1e293b; color:#94a3b8; border-color:#475569; }
+      </style>
+
+      <div class="mk-header">
+        <div class="mk-badge">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+          Mock Mode
+        </div>
+        <h3>🧪 Funções de Teste</h3>
+        <p class="mk-sub">Escolha uma função para testar de forma independente</p>
+      </div>
+
+      <div>
+        <button class="mk-option" id="_mkGPS">
+          <div class="mk-icon" style="background:rgba(96,165,250,.12)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+          </div>
+          <div>
+            <div class="mk-title">Pegar Local</div>
+            <div class="mk-desc">Testa GPS e geocoding reverso — exibe a cidade detectada</div>
+          </div>
+        </button>
+
+        <button class="mk-option" id="_mkCEP">
+          <div class="mk-icon" style="background:rgba(16,185,129,.12)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+          </div>
+          <div>
+            <div class="mk-title">Buscar CEP</div>
+            <div class="mk-desc">Abre o input de CEP e consulta a API ViaCEP diretamente</div>
+          </div>
+        </button>
+
+        <button class="mk-option" id="_mkBlock">
+          <div class="mk-icon" style="background:rgba(239,68,68,.12)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+            </svg>
+          </div>
+          <div>
+            <div class="mk-title">Bloqueio do Local</div>
+            <div class="mk-desc">Simula a tela de acesso negado por localização não autorizada</div>
+          </div>
+        </button>
+      </div>
+
+      <hr class="mk-hr">
+      <button class="mk-cancel" onclick="window._closeDevPanel()">Cancelar</button>
+    `;
+
+    container.appendChild(panel);
+
+    document.getElementById('_mkGPS').addEventListener('click', () => { panel.remove(); _mockPegarLocal(); });
+    document.getElementById('_mkCEP').addEventListener('click', () => { panel.remove(); _mockBuscarCEP(); });
+    document.getElementById('_mkBlock').addEventListener('click', () => { panel.remove(); _mockBloqueioLocal(); });
+  }
+
+  // MOCK: GPS
+  function _mockPegarLocal() {
+    _isMock = true;
+    _showToast('🧪 Mock: Testando GPS...', 'warning');
+    _getLocation();
+  }
+
+  // MOCK: CEP direto
+  function _mockBuscarCEP() {
+    _showToast('🧪 Mock: Testando busca por CEP...', 'warning');
+    _askForCEP();
+  }
+
+  // MOCK: Bloqueio de local
+  // MOCK: Bloqueio de local — simula o fluxo real: GPS tenta → banner vermelho → CEP
+  function _mockBloqueioLocal() {
+    _showToast('🧪 Mock: Simulando permissão de localização negada...', 'warning');
+
+    // Passo 1: mostrar tela "buscando localização"
+    _showLocationSearching();
+
+    // Passo 2: após 1.8s simular rejeição do navegador
+    setTimeout(function() {
+      var locPanel = document.getElementById('_locationPanel');
+      if (locPanel) locPanel.remove();
+
+      // Mostrar banner vermelho idêntico ao do fluxo real
+      _showMockDeniedBanner();
+
+      // Passo 3: após 2.8s abrir painel CEP (banner ainda visível)
+      setTimeout(function() {
+        _askForCEP();
+      }, 2800);
+    }, 1800);
+  }
+
+  // Banner vermelho de localização bloqueada
+  function _showMockDeniedBanner() {
+    var existing = document.getElementById('_mockDeniedBanner');
+    if (existing) existing.remove();
+
+    var banner = document.createElement('div');
+    banner.id = '_mockDeniedBanner';
+    banner.style.cssText = [
+      'position:fixed',
+      'top:0','left:0','right:0',
+      'z-index:99999',
+      'display:flex',
+      'align-items:flex-start',
+      'justify-content:flex-start',
+      'padding:12px 16px',
+      'pointer-events:none'
+    ].join(';');
+
+    banner.innerHTML = '<style>' +
+      '@keyframes _mdbIn{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}' +
+      '@keyframes _mdbOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-20px)}}' +
+      '@keyframes _mdbShake{0%,100%{transform:translateX(0)}15%{transform:translateX(-5px)}35%{transform:translateX(5px)}55%{transform:translateX(-3px)}75%{transform:translateX(3px)}}' +
+      '@keyframes _mdbPulse{0%,100%{box-shadow:0 8px 32px rgba(185,28,28,.45),0 0 0 1px rgba(255,255,255,.08)}50%{box-shadow:0 8px 44px rgba(220,38,38,.7),0 0 0 2px rgba(255,120,120,.2)}}' +
+      '#_mdbInner{display:flex;align-items:center;gap:12px;padding:12px 18px;background:linear-gradient(135deg,#7f1d1d 0%,#b91c1c 100%);border-radius:14px;max-width:420px;' +
+        'animation:_mdbIn .4s cubic-bezier(.175,.885,.32,1.275) forwards,_mdbPulse 2s ease .6s infinite}' +
+      '#_mdbIconWrap{width:36px;height:36px;background:rgba(0,0,0,.22);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;animation:_mdbShake .45s ease .5s}' +
+      '#_mdbIconWrap svg{width:18px;height:18px}' +
+      '#_mdbText{line-height:1.45}' +
+      '#_mdbTitle{font-size:13px;font-weight:700;color:#fff;margin-bottom:2px}' +
+      '#_mdbSub{font-size:12px;color:#fca5a5}' +
+      '</style>' +
+      '<div id="_mdbInner">' +
+        '<div id="_mdbIconWrap">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="#fca5a5" stroke-width="2.5">' +
+            '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>' +
+            '<path d="M7 11V7a5 5 0 0 1 10 0v4"></path>' +
+          '</svg>' +
+        '</div>' +
+        '<div id="_mdbText">' +
+          '<div id="_mdbTitle">Localização bloqueada pelo navegador \uD83D\uDD12</div>' +
+          '<div id="_mdbSub">Clique no <strong style="color:#fff">cadeado \uD83D\uDD12</strong> na barra de endere\u00E7o para permitir \u2014 ou informe seu CEP abaixo</div>' +
+        '</div>' +
+      '</div>';
+
+    document.body.appendChild(banner);
+
+    // Remove após 6s
+    setTimeout(function() {
+      banner.style.animation = '_mdbOut .4s ease forwards';
+      setTimeout(function() { banner.remove(); }, 400);
+    }, 6000);
+  }
 
   // Shake animation
   function _shake(element) {
