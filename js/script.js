@@ -1342,7 +1342,8 @@ function renderProducts() {
                             onchange="alterarLayoutPersonalizado(${product.id}, this.value)"
                             onclick="event.stopPropagation()">
                             <option value="">Padrão</option>
-                            <option value="a5-loja53" ${product.layoutPersonalizado === 'a5-loja53' ? 'selected' : ''}>A5 - Loja 53</option>
+                            <option value="a5-loja53" ${product.layoutPersonalizado === 'a5-loja53' ? 'selected' : ''}>A5 - Config</option>
+                            <option value="a5-loja53-novo" ${product.layoutPersonalizado === 'a5-loja53-novo' ? 'selected' : ''}>A5 - Loja 53 (novo)</option>
                         </select>
                         <button class="btn-delete" style="margin-top: 0;" onclick="deleteProduct(${product.id})">
                             <i class="fa-solid fa-trash"></i> Remover
@@ -1414,7 +1415,7 @@ function generatePosterHTML(product, isPreview = false) {
   const numDigitosParcela = String(parcelaInteiro).length;
   let fontSizeParcela = "240pt"; // Padrão para 1-2 dígitos (100%)
   if (numDigitosParcela === 3) {
-    fontSizeParcela = "180pt"; // 80% de 240pt — edite este valor se o tamanho não ficar bom
+    fontSizeParcela = "165pt";
   } else if (numDigitosParcela >= 4) {
     fontSizeParcela = "150pt"; // 68% de 240pt — edite este valor se o tamanho não ficar bom
   }
@@ -1509,6 +1510,8 @@ function generatePosterHTML(product, isPreview = false) {
   // Se tiver layout personalizado, envolver o poster no wrapper correspondente
   if (product.layoutPersonalizado === 'a5-loja53') {
     posterHTML = `<div class="poster-wrapper-a5loja53">${posterHTML}</div>`;
+  } else if (product.layoutPersonalizado === 'a5-loja53-novo') {
+    posterHTML = `<div class="poster-wrapper-a5loja53novo">${posterHTML}</div>`;
   }
 
   return posterHTML;
@@ -1667,12 +1670,13 @@ document
 
         // Verificar se é layout personalizado A5
         const ehA5Loja53 = products[i].layoutPersonalizado === 'a5-loja53';
+        const ehA5Loja53Novo = products[i].layoutPersonalizado === 'a5-loja53-novo';
 
         // Verificar se é modelo cameba
         const ehCameba = clone.querySelector('.poster-cameba') !== null;
 
-        if (ehA5Loja53) {
-          // A5 Loja 53: o wrapper já contém o poster escalado via CSS
+        if (ehA5Loja53 || ehA5Loja53Novo) {
+          // A5 Config / A5 Loja 53 (novo): o wrapper já contém o poster escalado via CSS
           clone.style.cssText =
             "position:absolute;left:-99999px;top:0;width:210mm;height:297mm;background:#fff;margin:0;padding:0;box-sizing:border-box;overflow:hidden;";
           // Não aplicar zoom extra nem reposicionar footer-table — o CSS do wrapper cuida de tudo
