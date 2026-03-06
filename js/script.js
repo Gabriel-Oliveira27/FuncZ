@@ -907,35 +907,37 @@ function recalcularParcela() {
     return;
   }
 
-  // LÓGICA PARA 3x, 5x, 10x: SEM JUROS
+  // LÓGICA PARA 3x, 5x, 10x: Taxa é OPCIONAL
   if (metodo === "3x" || metodo === "5x" || metodo === "10x") {
-    const parcela = parseCurrency(parcelaInput.value);
-    if (parcela > 0) {
+    const habilitarTaxaCheck = document.getElementById("habilitar-taxa-1x");
+    const taxaAtiva = habilitarTaxaCheck && habilitarTaxaCheck.checked;
+
+    if (taxaAtiva && juros && juros !== "") {
+      // COM taxa: usar FATORES (igual 12x)
+      const avista = parseCurrency(avistaInput.value);
+      if (avista === 0) return;
+
       const numParcelas = parseInt(metodo.replace("x", ""));
-      const valorAvista = parcela * numParcelas;
-      avistaInput.value = formatCurrency(
-        valorAvista.toFixed(2),
-      );
+      const tipoTaxa = juros === "carne" ? "carne" : "cartao";
 
-      // Bloquear campo à vista e adicionar tooltip
-      avistaInput.setAttribute("readonly", "true");
-      avistaInput.setAttribute("disabled", "true");
-
-      // Criar tooltip
-      const tooltip = document.createElement("div");
-      tooltip.className = "tooltip-text";
-
-      let tooltipMsg = `Como o parcelamento é "sem juros", não há necessidade de preencher o campo de à vista, o cálculo é feito automaticamente`;
-      if (metodo === "10x" && juros === "cartao") {
-        tooltipMsg = `Parcelamento sem juros no cartão! O valor à vista é calculado automaticamente`;
+      if (FATORES[tipoTaxa] && FATORES[tipoTaxa][numParcelas]) {
+        const fator = FATORES[tipoTaxa][numParcelas];
+        let parcela = avista * fator;
+        parcela = arredondar90(parcela);
+        parcelaInput.value = parcela ? formatCurrency(parcela.toFixed(2)) : "";
+      }
+    } else {
+      // SEM taxa: parcela = à vista / número de parcelas
+      parcelaInput.setAttribute("readonly", "true");
+      const avista = parseCurrency(avistaInput.value);
+      if (avista === 0) {
+        parcelaInput.value = "";
+        return;
       }
 
-      tooltip.textContent = tooltipMsg;
-      const formGroup = avistaInput.closest(".form-group");
-      if (formGroup) {
-        formGroup.classList.add("input-with-tooltip");
-        formGroup.appendChild(tooltip);
-      }
+      const numParcelas = parseInt(metodo.replace("x", ""));
+      const parcela = Math.round((avista / numParcelas) * 100) / 100;
+      parcelaInput.value = formatCurrency(parcela.toFixed(2));
     }
     return;
   }
@@ -968,11 +970,6 @@ function recalcularParcela() {
 const parcelaInput = document.getElementById("parcela");
 parcelaInput.addEventListener("input", (e) => {
   e.target.value = formatCurrency(e.target.value);
-  // Recalcular à vista para parcelamentos sem juros
-  const metodo = document.getElementById("metodo").value;
-  if (metodo === "3x" || metodo === "5x" || metodo === "10x") {
-    recalcularParcela();
-  }
 });
 
 document
@@ -1064,8 +1061,13 @@ productForm.addEventListener("submit", (e) => {
     return;
   }
 
-  // Para 1x sem checkbox de taxa, juros pode ser vazio
-  if (!juros && metodo !== "1x") {
+  // Parcelamentos que permitem taxa opcional (1x, 3x, 5x, 10x)
+  const metodoTaxaOpcional = ["1x", "3x", "5x", "10x"].includes(metodo);
+  const habilitarTaxaCheckVal = document.getElementById("habilitar-taxa-1x");
+  const taxaAtivaCheckVal = habilitarTaxaCheckVal && habilitarTaxaCheckVal.checked;
+
+  // Para métodos com taxa opcional sem checkbox ativo, juros pode ser vazio
+  if (!juros && !metodoTaxaOpcional) {
     showToast(
       "warning",
       "Campos obrigatórios",
@@ -1074,17 +1076,14 @@ productForm.addEventListener("submit", (e) => {
     return;
   }
 
-  // Para 1x COM checkbox ativo, juros é obrigatório
-  if (!juros && metodo === "1x") {
-    const habilitarTaxa1xCheck = document.getElementById("habilitar-taxa-1x");
-    if (habilitarTaxa1xCheck && habilitarTaxa1xCheck.checked) {
-      showToast(
-        "warning",
-        "Campos obrigatórios",
-        "Selecione a taxa de juros!",
-      );
-      return;
-    }
+  // Para métodos com taxa opcional COM checkbox ativo, juros é obrigatório
+  if (!juros && metodoTaxaOpcional && taxaAtivaCheckVal) {
+    showToast(
+      "warning",
+      "Campos obrigatórios",
+      "Selecione a taxa de juros!",
+    );
+    return;
   }
 
   if (avista <= 0) {
@@ -1096,7 +1095,8 @@ productForm.addEventListener("submit", (e) => {
     return;
   }
 
-  if (parcela <= 0 && metodo !== "1x") {
+  // Para métodos com taxa obrigatória (12x), parcela é obrigatória
+  if (parcela <= 0 && !metodoTaxaOpcional) {
     showToast(
       "warning",
       "Valor inválido",
@@ -1105,17 +1105,14 @@ productForm.addEventListener("submit", (e) => {
     return;
   }
 
-  // Para 1x COM taxa ativa, parcela é obrigatória
-  if (parcela <= 0 && metodo === "1x") {
-    const habilitarTaxa1xCheck2 = document.getElementById("habilitar-taxa-1x");
-    if (habilitarTaxa1xCheck2 && habilitarTaxa1xCheck2.checked) {
-      showToast(
-        "warning",
-        "Valor inválido",
-        "Informe o valor da parcela!",
-      );
-      return;
-    }
+  // Para métodos com taxa opcional COM taxa ativa, parcela é obrigatória
+  if (parcela <= 0 && metodoTaxaOpcional && taxaAtivaCheckVal) {
+    showToast(
+      "warning",
+      "Valor inválido",
+      "Informe o valor da parcela!",
+    );
+    return;
   }
 
   // Capturar estado do checkbox "Sem juros!"
@@ -1149,17 +1146,21 @@ productForm.addEventListener("submit", (e) => {
     }
   }
 
-  // Para 1x sem taxa: parcela recebe o valor à vista
+  // Para parcelamentos com taxa opcional sem taxa ativa
   let parcelaFinal = parcela;
   let jurosFinal = juros;
-  if (metodo === "1x") {
-    const habilitarTaxa1xCheckFinal = document.getElementById("habilitar-taxa-1x");
-    const taxa1xAtivaFinal = habilitarTaxa1xCheckFinal && habilitarTaxa1xCheckFinal.checked;
-    if (!taxa1xAtivaFinal) {
-      // 1x sem taxa: valor à vista é o preço grande, parcela = avista, juros vazio
-      parcelaFinal = avista;
-      jurosFinal = "";
-    }
+  const habilitarTaxaCheckFinal = document.getElementById("habilitar-taxa-1x");
+  const taxaAtivaFinal = habilitarTaxaCheckFinal && habilitarTaxaCheckFinal.checked;
+
+  if (metodo === "1x" && !taxaAtivaFinal) {
+    // 1x sem taxa: valor à vista é o preço grande, parcela = avista, juros vazio
+    parcelaFinal = avista;
+    jurosFinal = "";
+  } else if (["3x", "5x", "10x"].includes(metodo) && !taxaAtivaFinal) {
+    // 3x/5x/10x sem taxa: parcela = à vista / número de parcelas
+    const numParcelas = parseInt(metodo.replace("x", ""));
+    parcelaFinal = Math.round((avista / numParcelas) * 100) / 100;
+    jurosFinal = "";
   }
 
   const product = {
@@ -1211,7 +1212,10 @@ productForm.addEventListener("submit", (e) => {
     jurosSelectReset.disabled = false;
     jurosSelectReset.setAttribute("required", "required");
   }
-  if (parcelaInputReset) parcelaInputReset.disabled = false;
+  if (parcelaInputReset) {
+    parcelaInputReset.disabled = false;
+    parcelaInputReset.removeAttribute("readonly");
+  }
   if (checkboxTaxa1xReset) checkboxTaxa1xReset.style.display = "none";
   if (habilitarTaxa1xReset) habilitarTaxa1xReset.checked = false;
   // Resetar "Sem juros!" e esconder checkbox
@@ -1389,14 +1393,16 @@ function generatePosterHTML(product, isPreview = false) {
       ? "poster poster-carne"
       : "poster";
 
-  // Lógica especial para parcelamentos sem juros
-  if (product.metodo === "3x" || product.metodo === "5x") {
-    taxaTexto = "Sem juros";
-  } else if (
-    product.metodo === "10x" &&
-    product.juros === "cartao"
-  ) {
-    taxaTexto = "Sem juros no cartão!";
+  // Lógica especial para parcelamentos sem juros (apenas quando TEM taxa aplicada)
+  if (product.juros && product.juros !== "") {
+    if (product.metodo === "3x" || product.metodo === "5x") {
+      taxaTexto = "Sem juros";
+    } else if (
+      product.metodo === "10x" &&
+      product.juros === "cartao"
+    ) {
+      taxaTexto = "Sem juros no cartão!";
+    }
   }
 
   // Lógica especial para 1x
@@ -1405,6 +1411,9 @@ function generatePosterHTML(product, isPreview = false) {
     // Se for 1x E tiver taxa selecionada (checkbox ativo)
     mostrar1xComTaxa = true;
   }
+
+  // Lógica para 3x/5x/10x sem taxa (juros vazio)
+  const semTaxaNx = ["3x", "5x", "10x"].includes(product.metodo) && (!product.juros || product.juros === "");
 
   // Validade por extenso
   const validadeExtensa = product.validade
@@ -1432,12 +1441,16 @@ function generatePosterHTML(product, isPreview = false) {
 
   // Determinar conteúdo da seção de pagamento (lado esquerdo do rodapé)
   let paymentInfoSection = '';
-  if (mostrar1xComTaxa || product.metodo !== "1x") {
+  if (mostrar1xComTaxa || (product.metodo !== "1x" && !semTaxaNx)) {
+    // Com taxa aplicada (12x, ou 1x/3x/5x/10x com taxa ativa)
     if (product.semJuros) {
       paymentInfoSection = `<div class="poster-payment-info"><div class="poster-payment-type" style="font-family: var(--font-lato); font-weight: 400; font-size: 20pt; line-height: 1.2;">Sem juros!</div></div>`;
     } else {
       paymentInfoSection = `<div class="poster-payment-info"><div class="poster-payment-type">no ${tipoParcelamento}</div><div class="poster-payment-rate">${taxaTexto}</div></div>`;
     }
+  } else if (semTaxaNx && product.semJuros) {
+    // 3x/5x/10x sem taxa mas com "Sem juros!" marcado
+    paymentInfoSection = `<div class="poster-payment-info"><div class="poster-payment-type" style="font-family: var(--font-lato); font-weight: 400; font-size: 20pt; line-height: 1.2;">Sem juros!</div></div>`;
   }
 
   // Classe adicional para modelo cameba
@@ -1487,15 +1500,14 @@ function generatePosterHTML(product, isPreview = false) {
             ${validadeExtensa ? `<div class="poster-validity${product.moverValidade ? ' poster-validity-baixo' : ''}">${validadeExtensa}</div>` : ""}
             
             <div class="poster-footer-table">
-                <div class="poster-table-left" ${product.metodo === "1x" && !mostrar1xComTaxa && product.semJuros ? 'style="align-items: center;"' : ''}>
-                    <div class="poster-price-line" ${product.metodo === "1x" && !mostrar1xComTaxa && product.semJuros ? 'style="width: 100%; justify-content: center;"' : ''}>
-                        ${product.metodo === "1x" && !mostrar1xComTaxa
-                          ? (product.semJuros
-                              ? `<div class="poster-table-main-text" style="font-family: var(--font-lato); font-weight: 400; font-size: 20pt; line-height: 1.2; text-align: center;">Sem juros!</div>`
-                              : '')
-                          : `<div class="poster-table-main-text">= ${brl(valorTotal)}</div>`
+                <div class="poster-table-left" ${product.semJuros ? 'style="align-items: center;"' : ''}>
+                    <div class="poster-price-line" ${product.semJuros ? 'style="width: 100%; justify-content: center;"' : ''}>
+                        ${product.semJuros
+                          ? `<div class="poster-table-main-text" style="font-family: var(--font-lato); font-weight: 400; font-size: 20pt; line-height: 1.2; text-align: center;">Sem juros!</div>`
+                          : (product.metodo === "1x" && !mostrar1xComTaxa
+                              ? ''
+                              : `<div class="poster-table-main-text">= ${brl(valorTotal)}</div>${paymentInfoSection}`)
                         }
-                        ${paymentInfoSection}
                     </div>
                     ${product.motivo ? `<div class="poster-table-sub-text" style="margin-top: 8px; font-weight: 700;">${product.motivo}</div>` : ""}
                 </div>
@@ -2627,60 +2639,86 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ==================================================
-  // LÓGICA DO CHECKBOX PARA PARCELAMENTO 1X
+  // LÓGICA DO CHECKBOX PARA PARCELAMENTO COM TAXA OPCIONAL (1x, 3x, 5x, 10x)
   // ==================================================
   const metodoSelect = document.getElementById("metodo");
   const jurosSelect = document.getElementById("juros");
   const parcelaInput = document.getElementById("parcela");
   const checkboxTaxa1x = document.getElementById("checkbox-taxa-1x");
   const habilitarTaxa1x = document.getElementById("habilitar-taxa-1x");
+  const labelTaxa = habilitarTaxa1x ? habilitarTaxa1x.closest(".checkbox-wrapper-13")?.querySelector("label") : null;
+
+  // Métodos que permitem taxa opcional
+  const metodosTaxaOpcional = ["1x", "3x", "5x", "10x"];
 
   if (metodoSelect && jurosSelect && checkboxTaxa1x && habilitarTaxa1x && parcelaInput) {
-    // Mostrar/esconder checkboxes quando selecionar 1x
+    // Mostrar/esconder checkboxes quando selecionar método com taxa opcional
     metodoSelect.addEventListener("change", function() {
       const checkboxSemJuros = document.getElementById("checkbox-sem-juros");
       const mostrarSemJurosInput = document.getElementById("mostrar-sem-juros");
-      if (this.value === "1x") {
+      const metodoVal = this.value;
+
+      if (metodosTaxaOpcional.includes(metodoVal)) {
         checkboxTaxa1x.style.display = "flex";
-        // Mostrar checkbox "Sem juros?" apenas para 1x
+        // Atualizar label dinamicamente
+        if (labelTaxa) labelTaxa.textContent = `Aplicar taxa em ${metodoVal}`;
+        // Mostrar checkbox "Sem juros?"
         if (checkboxSemJuros) checkboxSemJuros.style.display = "flex";
-        
+
         if (!habilitarTaxa1x.checked) {
-          // Remover required e desabilitar
+          // Remover required e desabilitar juros
           jurosSelect.removeAttribute("required");
           jurosSelect.value = "";
           jurosSelect.disabled = true;
-          parcelaInput.value = "";
-          parcelaInput.disabled = true;
+
+          if (metodoVal === "1x") {
+            // 1x sem taxa: parcela vazia e desabilitada
+            parcelaInput.value = "";
+            parcelaInput.disabled = true;
+          } else {
+            // 3x/5x/10x sem taxa: parcela calculada automaticamente (readonly)
+            parcelaInput.setAttribute("readonly", "true");
+            recalcularParcela();
+          }
         }
       } else {
+        // 12x ou outros: taxa obrigatória
         checkboxTaxa1x.style.display = "none";
         habilitarTaxa1x.checked = false;
-        // Ocultar e resetar checkbox "Sem juros?" ao mudar de 1x
+        // Ocultar e resetar checkbox "Sem juros?"
         if (checkboxSemJuros) checkboxSemJuros.style.display = "none";
         if (mostrarSemJurosInput) mostrarSemJurosInput.checked = false;
         jurosSelect.disabled = false;
         jurosSelect.setAttribute("required", "required");
         parcelaInput.disabled = false;
+        parcelaInput.removeAttribute("readonly");
       }
     });
 
     // Habilitar/desabilitar taxa ao marcar/desmarcar checkbox
     habilitarTaxa1x.addEventListener("change", function() {
-      if (metodoSelect.value === "1x") {
+      const metodoVal = metodoSelect.value;
+      if (metodosTaxaOpcional.includes(metodoVal)) {
         if (this.checked) {
           // Habilitar taxa e parcela
           jurosSelect.disabled = false;
           jurosSelect.setAttribute("required", "required");
           parcelaInput.disabled = false;
+          parcelaInput.removeAttribute("readonly");
         } else {
-          // Desabilitar taxa e parcela
+          // Desabilitar taxa
           jurosSelect.removeAttribute("required");
           jurosSelect.value = "";
           jurosSelect.disabled = true;
-          parcelaInput.value = "";
-          parcelaInput.disabled = true;
-          recalcularParcela();
+
+          if (metodoVal === "1x") {
+            parcelaInput.value = "";
+            parcelaInput.disabled = true;
+          } else {
+            // 3x/5x/10x: recalcular parcela sem taxa
+            parcelaInput.setAttribute("readonly", "true");
+            recalcularParcela();
+          }
         }
       }
     });
@@ -3574,7 +3612,7 @@ function atualizarSquircles() {
     squircle.innerHTML = `
       <span>${codigo}</span>
       <span onclick="event.stopPropagation(); toggleCodigoSelecionado('${codigo}')" 
-            style="cursor: pointer; opacity: 0.8; hover: opacity: 1;">✕</span>
+            style="cursor: pointer; opacity: 0.8; hover: opacity: 1;">��</span>
     `;
     container.appendChild(squircle);
   });
