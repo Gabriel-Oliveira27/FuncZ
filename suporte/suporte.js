@@ -68,7 +68,7 @@ function initNavigation() {
   const backBtns = document.querySelectorAll('.back-btn');
 
   backButton?.addEventListener('click', () => {
-    window.location.href = '../home/selectsetor.html';
+    window.location.href = '../pages/selectsetor.html';
   });
 
   // Click nos cards principais
