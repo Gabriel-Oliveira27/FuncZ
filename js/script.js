@@ -1394,16 +1394,13 @@ function generatePosterHTML(product, isPreview = false) {
       : "poster";
 
   // Lógica especial para parcelamentos sem juros (apenas quando TEM taxa aplicada)
-  if (product.juros && product.juros !== "") {
-    if (product.metodo === "3x" || product.metodo === "5x") {
-      taxaTexto = "Sem juros";
-    } else if (
-      product.metodo === "10x" &&
-      product.juros === "cartao"
-    ) {
-      taxaTexto = "Sem juros no cartão!";
+    if (product.juros === 'carne') {
+        taxaTexto = '6,9% a.m e 122,71% a.a';
+    } else if (product.juros === 'cartao') {
+        taxaTexto = '2,92% a.m e 41,25% a.a';
+    } else {
+        taxaTexto = 'Sem juros';
     }
-  }
 
   // Lógica especial para 1x
   let mostrar1xComTaxa = false;
