@@ -123,7 +123,8 @@ const DICIONARIO_NATIVO = {
    * Ordenadas internamente por comprimento (maiores primeiro).
    */
   features: [
-    'C/Eurotop', 'Pillow touch', '128gb', '9000 btus', '2 portas', 'Bluetooth', '158X198', '138X188', '220V/60hz'
+    'C/Eurotop', 'Pillow touch', '128gb', '9000 btus', '2 portas', 'Bluetooth',
+    '158X198', '138X188', '220V/60hz', '4K', 'FHD', 'UHD', 'QLED', 'Android',
   ],
 
   /**
