@@ -4255,117 +4255,74 @@ body.mobile-detected {
 }
 /* ====================================================================
    GARANTIA ESTENDIDA — OVERLAY NO CARTAZ
-   Posiciona valores calculados sobre as linhas do template físico Zenir.
+   Posiciona valores sobre as linhas do template físico Zenir.
 
-   USA EXCLUSIVAMENTE % para funcionar corretamente tanto na preview
-   (transform: scale(0.28)) quanto na impressão PDF (escala 1:1).
-   Valores em cm/pt NÃO escalam com CSS transform.
+   USA EXCLUSIVAMENTE % relativas ao poster (210×297mm) para escalar
+   corretamente tanto no preview (transform:scale(0.28)) quanto no PDF.
 
-   Posições calibradas a partir da imagem física do template Zenir A4.
-   Referência: A4 = 210mm × 297mm.
+   RAIZ DO BUG ANTERIOR: .poster-ge não tinha height explícita,
+   então .pgvc { height:8% } → 8% de 0 = 0 → tudo empilhado.
+   SOLUÇÃO: .poster-ge cobre o poster inteiro (top:0; bottom:0),
+   e cada span usa bottom/left % relativos ao poster.
 
-   ┌──────────────────────────────────────────────────────────────┐
-   │ COMO AJUSTAR POR IMPRESSORA                                  │
-   │                                                              │
-   │ HP (padrão) — calibrado para impressão sem margens ou com    │
-   │   "Ajustar a área de impressão" desativado.                  │
-   │   → Edite --ge-base-b em .poster-ge-hp                       │
-   │                                                              │
-   │ Brother DCP-1617W — ajuste --ge-base-b em .poster-ge-brother │
-   │   Fórmula: 1 cm vertical = 3,37% │ 1 cm horizontal = 4,76%  │
-   │   Com "Ajustar área de impressão" (margem 3mm): tente +1%    │
-   │                                                              │
-   │ Custom — gerenciado via dialog em JavaScript (cm → %)        │
-   └──────────────────────────────────────────────────────────────┘
+   ┌──────────────────────────────────────────────────────────────────┐
+   │ COMO AJUSTAR POR IMPRESSORA                                      │
+   │                                                                  │
+   │ HP (padrão) — ajuste --ge-shift-y em .poster-ge-hp              │
+   │   Positivo = sobe | Negativo = desce | 1cm = 3,37%              │
+   │                                                                  │
+   │ Brother DCP-1617W — ajuste --ge-shift-y em .poster-ge-brother   │
+   │   Com "Ajustar área de impressão" ativo no CUPS tente +1%       │
+   │   Fórmula vertical: 1cm → 3,37%  |  horizontal: 1cm → 4,76%    │
+   │                                                                  │
+   │ Custom — ajuste via dialog (valores em cm, convertidos para %)   │
+   └──────────────────────────────────────────────────────────────────┘
+
+   POSIÇÕES calibradas com dados do Canva (canvas estimado 1434×2029px):
+     parcelamento X 420.9  parcela X 586.6  (col +1 ANO)
+     total Y 1855.3        a vista Y 1889.9  taxa Y 1927.7
    ==================================================================== */
 
 /* ------------------------------------------------------------------
-   CONTAINER PRINCIPAL — bottom ancorado ao rodapé do poster (%)
-   Os offsets --ge-ob/ot/ol/or são injetados inline pelo JS em %,
-   resultado de converter os cm digitados pelo usuário.
+   CONTAINER — cobre o poster INTEIRO para que os % funcionem
    ------------------------------------------------------------------ */
 .poster-ge {
   position: absolute;
-  left:  0;
-  right: 0;
-  pointer-events: none;
-  --ge-base-b: 4.8%;
-  /* offsets runtime (injetados via style="" pelo renderGarantiaOverlay) */
-  --ge-ob: 0%;   /* bottom offset */
-  --ge-ot: 0%;   /* top offset    */
-  --ge-ol: 0%;   /* left offset   */
-  --ge-or: 0%;   /* right offset  */
-  bottom:      calc(var(--ge-base-b) + var(--ge-ob) - var(--ge-ot));
-  margin-left: calc(var(--ge-ol) - var(--ge-or));
-}
-
-/* ------------------------------------------------------------------
-   POSIÇÕES BASE POR MODELO DE IMPRESSORA
-   Medição a partir do template físico Zenir (foto de referência):
-     linha "*Tx" ≈ 5.4% → linha "_×R$" ≈ 11.6% do fundo da A4
-     Posicionamos o fundo do bloco em 4.8% e altura 8%
-     para abranger toda a seção com margem de segurança.
-
-   HP  — Ajuste aqui se os valores saírem deslocados na HP:
-   ------------------------------------------------------------------ */
-.poster-ge-hp {
-  /* ← AJUSTE: 4.8% = 1.43 cm do fundo. Aumente para subir, diminua para descer. */
-  --ge-base-b: 4.8%;
-}
-
-/* ------------------------------------------------------------------
-   Brother DCP-1617W — AJUSTE AQUI para este driver:
-   Com "Ajustar área de impressão" no CUPS (margem bottom ≈ 3 mm):
-     tente --ge-base-b: 5.8%  (= HP + ~1% compensação de margem)
-   ------------------------------------------------------------------ */
-.poster-ge-brother {
-  /* ← AJUSTE: altere este valor após imprimir um teste e medir com régua.
-     Fórmula: se valor subiu X cm, aumente em X/29.7*100 %;
-              se desceu X cm, diminua em X/29.7*100 %.            */
-  --ge-base-b: 4.8%;   /* igual ao HP por padrão — ajuste conforme sua impressora */
-}
-
-/* Custom — gerenciado pelo dialog (cm → %) via JS */
-.poster-ge-custom { --ge-base-b: 4.8%; }
-
-/* ------------------------------------------------------------------
-   COLUNAS (pgvc)
-   Template Zenir — % da largura do poster (210mm):
-     "Fique tranquilo..." :  0% – 24%
-     Col +1 ANO  (pgvc-1) : 24% – 47%  → left: 24%
-     Col +2 ANOS (pgvc-2) : 49% – 72%  → left: 49%
-     Col +3 ANOS (pgvc-3) : 74% – 97%  → left: 74%
-
-   Altura do bloco: do row "Tx" (≈5.4% fundo) ao row "_×R$" (≈11.6% fundo)
-     = 6.2% + margem → height: 8% de 297mm = 23.8mm ≈ 2.38cm
-   ------------------------------------------------------------------ */
-.pgvc {
-  position: absolute;
+  left:   0;
+  right:  0;
+  top:    0;
   bottom: 0;
-  width: 23%;
-  height: 8%;   /* cobre os 4 rows: ~23.8mm — ajuste se as linhas saírem do bloco */
+  pointer-events: none;
+  /* Shift global por impressora (injetado inline pelo JS para Custom) */
+  --ge-shift-y: 0%;   /* positivo = sobe, negativo = desce */
+  --ge-shift-x: 0%;   /* positivo = direita, negativo = esquerda */
 }
 
-.pgvc-1 { left: 24%; }   /* +1 ANO  */
-.pgvc-2 { left: 49%; }   /* +2 ANOS */
-.pgvc-3 { left: 74%; }   /* +3 ANOS */
+/* HP — padrão calibrado sem margens ("Ajustar área" desativado) */
+.poster-ge-hp {
+  /* ← AJUSTE HP: mude --ge-shift-y se os valores saírem deslocados.
+     1 cm para cima = +3.37%  |  1 cm para baixo = -3.37%           */
+  --ge-shift-y: 0%;
+  --ge-shift-x: 0%;
+}
+
+/* Brother DCP-1617W — igual ao HP por padrão; ajuste após teste com régua */
+.poster-ge-brother {
+  /* ← AJUSTE BROTHER: altere --ge-shift-y até os valores ficarem nas linhas.
+     Com CUPS "Ajustar área de impressão" (margem ~3mm): tente --ge-shift-y: 1%;
+     Fórmula: medir distância com régua (cm) e multiplicar por 3.37 para obter % */
+  --ge-shift-y: 0%;   /* ← MUDE AQUI PARA BROTHER */
+  --ge-shift-x: 0%;   /* ← MUDE AQUI PARA BROTHER (horizontal) */
+}
+
+/* Custom — gerenciado via dialog JS (cm → %) */
+.poster-ge-custom {
+  --ge-shift-y: 0%;
+  --ge-shift-x: 0%;
+}
 
 /* ------------------------------------------------------------------
-   VALORES INDIVIDUAIS — % relativas ao pgvc (height=8%, width=23%)
-
-   Linhas do template (% de cima do pgvc):
-     Row 0  "_×R$___"     : top ≈ 15%   (≈ 3.6mm de cima do bloco)
-     Row 1  "TOTAL PRAZO" : top ≈ 41%   (≈ 9.8mm)
-     Row 2  "À VISTA R$"  : top ≈ 65%   (≈ 15.5mm)
-     Row 3  "*Tx a.m."    : top ≈ 89%   (≈ 21.2mm)
-
-   Horizontal dentro do pgvc (% da largura = 23% × 210mm ≈ 48mm):
-     pgv-n   (número, ex "12")  : left:  8%  (≈ 3.8mm da esquerda)
-     pgv-vrc (vrpcalc)          : left: 52%  (≈ 25mm — após "x R$_____")
-     pgv-vtp (vrtotpraz)        : left: 47%  (≈ 22.6mm — após "TOTAL A PRAZO R$")
-     pgv-vi  (vrinput)          : left: 50%  (≈ 24mm — após "À VISTA R$")
-     pgv-tx1 (taxa a.m.)        : left: 16%  (≈ 7.7mm — após "*Tx a.m. __")
-     pgv-tx2 (taxa a.a.)        : left: 72%  (≈ 34.6mm — após "*Tx a.a. __")
+   SPAN BASE — compartilhado por todos os valores
    ------------------------------------------------------------------ */
 .pgv {
   position: absolute;
@@ -4377,19 +4334,47 @@ body.mobile-detected {
   line-height: 1;
 }
 
-/* Row 0 — "__ × R$ ___" */
-.pgv-n   { left:  8%; top: 15%; }   /* número de parcelas (ex: "12") */
-.pgv-vrc { left: 52%; top: 15%; }   /* vrpcalc — valor da parcela calculado */
+/* ================================================================
+   POSIÇÕES ABSOLUTAS POR COLUNA E POR VALOR
+   Referência: bottom = % da altura do poster (297mm)
+               left   = % da largura do poster (210mm)
 
-/* Row 1 — "TOTAL A PRAZO R$ ___" */
-.pgv-vtp { left: 47%; top: 41%; font-weight: 400; }   /* vrtotpraz */
+   Para ajuste fino de um valor específico: edite diretamente
+   o left/bottom do seletor correspondente.
+   Para ajuste global da impressora: use --ge-shift-y / --ge-shift-x
+   na classe .poster-ge-hp ou .poster-ge-brother acima.
+   ================================================================ */
 
-/* Row 2 — "À VISTA R$ ___" */
-.pgv-vi  { left: 50%; top: 65%; }   /* vrinput — valor do input do formulário */
+/* ---- Coluna +1 ANO (+12 meses) ---- */
 
-/* Row 3 — "*Tx a.m. ___ % *Tx a.a. ___ %" */
-.pgv-tx1 { left: 16%; top: 89%; font-weight: 400; font-size: 5.5pt; }   /* taxa a.m. */
-.pgv-tx2 { left: 72%; top: 89%; font-weight: 400; font-size: 5.5pt; }   /* taxa a.a. */
+/* Row 0: "__ × R$ ___" */
+.g12-n   { left: calc(28% + var(--ge-shift-x)); bottom: calc(10.4% + var(--ge-shift-y)); }
+.g12-vrc { left: calc(39.2% + var(--ge-shift-x)); bottom: calc(10.4% + var(--ge-shift-y)); }
+/* Row 1: "TOTAL A PRAZO R$ ___" */
+.g12-vtp { left: calc(39.2% + var(--ge-shift-x)); bottom: calc( 8.6% + var(--ge-shift-y)); font-weight: 400; }
+/* Row 2: "À VISTA R$ ___" */
+.g12-vi  { left: calc(39% + var(--ge-shift-x)); bottom: calc( 6.9% + var(--ge-shift-y)); }
+/* Row 3: "*Tx a.m. ___% *Tx a.a. ___%"  */
+.g12-tx1 { left: calc(31% + var(--ge-shift-x)); bottom: calc( 5.0% + var(--ge-shift-y)); font-weight: 400; font-size: 5.5pt; }
+.g12-tx2 { left: calc(40.7% + var(--ge-shift-x)); bottom: calc( 5.0% + var(--ge-shift-y)); font-weight: 400; font-size: 5.5pt; }
+
+/* ---- Coluna +2 ANOS (+24 meses) ---- */
+
+.g24-n   { left: calc(51.4% + var(--ge-shift-x)); bottom: calc(10.4% + var(--ge-shift-y)); }
+.g24-vrc { left: calc(63.9% + var(--ge-shift-x)); bottom: calc(10.4% + var(--ge-shift-y)); }
+.g24-vtp { left: calc(63.8% + var(--ge-shift-x)); bottom: calc( 8.6% + var(--ge-shift-y)); font-weight: 400; }
+.g24-vi  { left: calc(63.8% + var(--ge-shift-x)); bottom: calc( 6.9% + var(--ge-shift-y)); }
+.g24-tx1 { left: calc(54.4% + var(--ge-shift-x)); bottom: calc( 5.0% + var(--ge-shift-y)); font-weight: 400; font-size: 5.5pt; }
+.g24-tx2 { left: calc(63.8% + var(--ge-shift-x)); bottom: calc( 5.0% + var(--ge-shift-y)); font-weight: 400; font-size: 5.5pt; }
+
+/* ---- Coluna +3 ANOS (+36 meses) ---- */
+
+.g36-n   { left: calc(73.6% + var(--ge-shift-x)); bottom: calc(10.4% + var(--ge-shift-y)); }
+.g36-vrc { left: calc(82.7% + var(--ge-shift-x)); bottom: calc(10.4% + var(--ge-shift-y)); }
+.g36-vtp { left: calc(82.7% + var(--ge-shift-x)); bottom: calc( 8.6% + var(--ge-shift-y)); font-weight: 400; }
+.g36-vi  { left: calc(82.7% + var(--ge-shift-x)); bottom: calc( 6.9% + var(--ge-shift-y)); }
+.g36-tx1 { left: calc(75.8% + var(--ge-shift-x)); bottom: calc( 5.0% + var(--ge-shift-y)); font-weight: 400; font-size: 5.5pt; }
+.g36-tx2 { left: calc(85% + var(--ge-shift-x)); bottom: calc( 5.0% + var(--ge-shift-y)); font-weight: 400; font-size: 5.5pt; }
 
 /* ====================================================================
    CONTROLES DE POSIÇÃO GE NO CARD DE PREVIEW
@@ -4438,7 +4423,7 @@ body.mobile-detected {
   font-weight: 700;
 }
 
-/* Botão de calibração (engrenagem) */
+/* Botão de calibração (régua — só para Custom) */
 .ge-calib-btn {
   background: transparent;
   border: 1px solid #a7f3d0;
@@ -4461,8 +4446,7 @@ body.mobile-detected {
 }
 
 /* ====================================================================
-   DIALOG CUSTOM GE — estilos compartilhados com o modal dinâmico
-   (gerado em JS por abrirDialogCustomGE)
+   DIALOG CUSTOM GE — estilos do modal dinâmico (abrirDialogCustomGE)
    ==================================================================== */
 .ge-calib-grid {
   display: grid;

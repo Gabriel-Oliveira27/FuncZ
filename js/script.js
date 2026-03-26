@@ -59,31 +59,30 @@ function renderGarantiaOverlay(product) {
 
   const tiers = [calcTier(garantia12), calcTier(garantia24), calcTier(garantia36)];
   const posicao = posicaoGarantia || 'hp';
-  // off.bottom/top em cm verticais (÷ 29.7cm) → %; off.left/right em cm horizontais (÷ 21cm) → %
+  // off em cm → convert to % for --ge-shift-y / --ge-shift-x
   const off = getGarantiaOffsets(posicao);
-  const obPct = ((off.bottom || 0) / 29.7 * 100).toFixed(3);
-  const otPct = ((off.top    || 0) / 29.7 * 100).toFixed(3);
-  const olPct = ((off.left   || 0) / 21.0 * 100).toFixed(3);
-  const orPct = ((off.right  || 0) / 21.0 * 100).toFixed(3);
+  const syPct = (((off.top || 0) - (off.bottom || 0)) / 29.7 * 100).toFixed(3);
+  const sxPct = (((off.left || 0) - (off.right || 0)) / 21.0 * 100).toFixed(3);
 
-  const colHtml = (tier, cls) => {
+  // Gera os 6 spans de um tier, com prefixo de classe por tier (g12/g24/g36)
+  const tierHtml = (tier, prefix) => {
     if (!tier) return '';
-    return `<div class="pgvc ${cls}">
-      <span class="pgv pgv-n">${numParcelas}</span>
-      <span class="pgv pgv-vrc">${fmtGeVal(tier.vrpcalc)}</span>
-      <span class="pgv pgv-vtp">${fmtGeVal(tier.vrtotpraz)}</span>
-      <span class="pgv pgv-vi">${fmtGeVal(tier.vrinput)}</span>
-      <span class="pgv pgv-tx1">${tx1}</span>
-      <span class="pgv pgv-tx2">${tx2}</span>
-    </div>`;
+    return `
+      <span class="pgv ${prefix}-n">${numParcelas}</span>
+      <span class="pgv ${prefix}-vrc">${fmtGeVal(tier.vrpcalc)}</span>
+      <span class="pgv ${prefix}-vtp">${fmtGeVal(tier.vrtotpraz)}</span>
+      <span class="pgv ${prefix}-vi">${fmtGeVal(tier.vrinput)}</span>
+      <span class="pgv ${prefix}-tx1">${tx1}</span>
+      <span class="pgv ${prefix}-tx2">${tx2}</span>`;
   };
 
-  return `<div class="poster-ge poster-ge-${posicao}" style="--ge-ob:${obPct}%;--ge-ot:${otPct}%;--ge-ol:${olPct}%;--ge-or:${orPct}%;">
-    ${colHtml(tiers[0], 'pgvc-1')}
-    ${colHtml(tiers[1], 'pgvc-2')}
-    ${colHtml(tiers[2], 'pgvc-3')}
+  return `<div class="poster-ge poster-ge-${posicao}" style="--ge-shift-y:${syPct}%;--ge-shift-x:${sxPct}%;">${
+    tierHtml(tiers[0], 'g12')}${
+    tierHtml(tiers[1], 'g24')}${
+    tierHtml(tiers[2], 'g36')}
   </div>`;
 }
+
 
 // ==================================================
 // DETECÇÃO DE DISPOSITIVO MÓVEL (VALIDAÇÃO INFINITA)
@@ -1850,6 +1849,7 @@ window.aplicarCustomGE = function () {
   const left   = parseFloat(document.getElementById('ge-cust-left')?.value)   || 0;
   const right  = parseFloat(document.getElementById('ge-cust-right')?.value)  || 0;
 
+  // Salva em cm; renderGarantiaOverlay converte para % ao gerar o HTML
   salvarGarantiaOffsets('custom', { top, bottom, left, right });
 
   // Re-renderiza todos os cartazes com posição custom
