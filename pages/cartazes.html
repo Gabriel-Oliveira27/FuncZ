@@ -281,29 +281,31 @@
 
                         <!-- Garantia -->
                         <div class="form-group">
-                            <div class="warranty-toggle">
-                                <div>
-                                    <label for="garantia">Garantia estendida</label>
-                                    <p class="help-text">Ativar opções de garantia</p>
+                            <div class="warranty-box" id="warranty-box" onclick="toggleWarrantySection(event)">
+                                <div class="warranty-toggle">
+                                    <div>
+                                        <label for="garantia" onclick="event.stopPropagation()">Garantia estendida</label>
+                                        <p class="help-text">Clique aqui para ativar ou desativar</p>
+                                    </div>
+                                    <label class="switch" onclick="event.stopPropagation()">
+                                        <input type="checkbox" id="garantia">
+                                        <span class="slider"></span>
+                                    </label>
                                 </div>
-                                <label class="switch">
-                                    <input type="checkbox" id="garantia">
-                                    <span class="slider"></span>
-                                </label>
-                            </div>
 
-                            <div id="warranty-options" class="warranty-options" style="display: none;">
-                                <div class="warranty-input-group">
-                                    <label for="garantia12">+12 meses</label>
-                                    <input type="text" id="garantia12" placeholder="199,90">
-                                </div>
-                                <div class="warranty-input-group">
-                                    <label for="garantia24">+24 meses</label>
-                                    <input type="text" id="garantia24" placeholder="299,90" disabled>
-                                </div>
-                                <div class="warranty-input-group">
-                                    <label for="garantia36">+36 meses</label>
-                                    <input type="text" id="garantia36" placeholder="399,90" disabled>
+                                <div id="warranty-options" class="warranty-options" style="display: none;">
+                                    <div class="warranty-input-group">
+                                        <label for="garantia12">+12 meses</label>
+                                        <input type="text" id="garantia12" placeholder="199,90">
+                                    </div>
+                                    <div class="warranty-input-group">
+                                        <label for="garantia24">+24 meses</label>
+                                        <input type="text" id="garantia24" placeholder="299,90" disabled>
+                                    </div>
+                                    <div class="warranty-input-group">
+                                        <label for="garantia36">+36 meses</label>
+                                        <input type="text" id="garantia36" placeholder="399,90" disabled>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -823,20 +825,30 @@
                 <button class="modal-close" onclick="fecharModalVerJSON()">&times;</button>
             </div>
             <div class="modal-body">
-                <div style="margin-bottom: 16px; padding: 12px; background: var(--gray-50); border-radius: 8px; border: 1px solid var(--gray-200);">
+                <div style="margin-bottom: 12px; padding: 12px; background: var(--gray-50); border-radius: 8px; border: 1px solid var(--gray-200); display:flex; justify-content:space-between; align-items:center;">
                     <p style="font-size: 14px; color: var(--gray-700); margin: 0;">
                         <i class="fa-solid fa-info-circle"></i> 
                         <strong>Total de cartazes salvos:</strong> <span id="json-count">0</span>
                     </p>
+                    <span style="font-size:12px;color:var(--gray-500);">
+                        <i class="fa-solid fa-pencil"></i> Editável diretamente
+                    </span>
                 </div>
-                <pre id="json-display" style="background: #1e1e1e; color: #d4d4d4; padding: 20px; border-radius: 8px; overflow-x: auto; max-height: 500px; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.5;"></pre>
+                <textarea id="json-display" spellcheck="false" style="width:100%;background:#1e1e1e;color:#d4d4d4;padding:20px;border-radius:8px;border:1px solid #374151;max-height:500px;min-height:300px;font-family:'Courier New',monospace;font-size:13px;line-height:1.5;resize:vertical;outline:none;display:block;box-sizing:border-box;"></textarea>
+                <div id="json-edit-error-modal" style="display:none;margin-top:10px;padding:10px 14px;background:#fef2f2;border-left:4px solid var(--danger);border-radius:8px;font-size:13px;color:#b91c1c;"></div>
             </div>
             <div class="modal-footer">
                 <button class="btn-secondary" onclick="copiarJSON()">
-                    <i class="fa-solid fa-copy"></i> Copiar JSON
+                    <i class="fa-solid fa-copy"></i> Copiar
                 </button>
-                <button class="btn-primary" onclick="fecharModalVerJSON()">
-                    <i class="fa-solid fa-check"></i> Fechar
+                <button class="btn-secondary" onclick="abrirModalVerJSON()">
+                    <i class="fa-solid fa-rotate-left"></i> Recarregar
+                </button>
+                <button class="btn-primary" onclick="aplicarAlteracoesJSON()">
+                    <i class="fa-solid fa-floppy-disk"></i> Aplicar alterações
+                </button>
+                <button class="btn-secondary" onclick="fecharModalVerJSON()" style="margin-left:4px;">
+                    <i class="fa-solid fa-times"></i> Fechar
                 </button>
             </div>
         </div>

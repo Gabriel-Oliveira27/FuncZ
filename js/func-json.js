@@ -961,6 +961,80 @@ document.getElementById('btn-gerar-json')?.addEventListener('click', () => {
 // FUNÇÕES DO MODAL VER JSON (fecharModalVerJSON + copiarJSON)
 // ==================================================
 
+// Aplica as edições feitas no textarea do modal de JSON
+function aplicarAlteracoesJSON() {
+    const jsonDisplay = document.getElementById('json-display');
+    const errEl = document.getElementById('json-edit-error-modal');
+    if (!jsonDisplay) return;
+
+    const mostrarErro = (msg) => {
+        if (errEl) { errEl.style.display = 'block'; errEl.textContent = '⚠ ' + msg; }
+    };
+    const limparErro = () => { if (errEl) errEl.style.display = 'none'; };
+
+    const texto = jsonDisplay.value.trim();
+    if (!texto) { mostrarErro('O campo está vazio.'); return; }
+
+    try {
+        const dados = JSON.parse(texto);
+        if (!dados.cartazes || !Array.isArray(dados.cartazes)) {
+            throw new Error('Propriedade "cartazes" ausente ou inválida.');
+        }
+        if (dados.cartazes.length === 0) {
+            throw new Error('O JSON não contém nenhum cartaz.');
+        }
+        dados.cartazes.forEach((item, i) => {
+            if (!item.codigo)   throw new Error(`Cartaz ${i + 1}: "codigo" ausente.`);
+            if (!item.descricao) throw new Error(`Cartaz ${i + 1}: "descricao" ausente.`);
+            if (!item.metodo)   throw new Error(`Cartaz ${i + 1}: "metodo" ausente.`);
+            if (item.avista === undefined) throw new Error(`Cartaz ${i + 1}: "avista" ausente.`);
+        });
+
+        limparErro();
+
+        // Aplicar cartazes
+        if (typeof products !== 'undefined') {
+            products.length = 0;
+            dados.cartazes.forEach(item => {
+                products.push({
+                    id:                 item.id || Date.now() + Math.random(),
+                    codigo:             item.codigo,
+                    descricao:          item.descricao,
+                    subdescricao:       item.subdescricao || '',
+                    features:           item.features || [],
+                    metodo:             item.metodo,
+                    juros:              item.juros || '',
+                    avista:             parseFloat(item.avista) || 0,
+                    parcela:            parseFloat(item.parcela) || 0,
+                    motivo:             item.motivo || '',
+                    validade:           item.validade || '',
+                    autorizacao:        item.autorizacao || '',
+                    garantia12:         parseFloat(item.garantia12) || 0,
+                    garantia24:         parseFloat(item.garantia24) || 0,
+                    garantia36:         parseFloat(item.garantia36) || 0,
+                    modelo:             item.modelo || 'padrao',
+                    semJuros:           item.semJuros || false,
+                    moverValidade:      item.moverValidade || false,
+                    layoutPersonalizado: item.layoutPersonalizado || '',
+                    posicaoGarantia:    item.posicaoGarantia || 'hp',
+                });
+            });
+        }
+
+        if (typeof salvarCartazesLocalStorage === 'function') salvarCartazesLocalStorage();
+        if (typeof renderProducts === 'function') renderProducts();
+
+        fecharModalVerJSON();
+
+        if (typeof showToast === 'function') {
+            showToast('success', 'Alterações aplicadas!',
+                `${dados.cartazes.length} cartaz(es) atualizado(s) com sucesso.`);
+        }
+    } catch (error) {
+        mostrarErro(error.message);
+    }
+}
+
 function fecharModalVerJSON() {
     const modal = document.getElementById('modal-ver-json');
     if (modal) {
@@ -1004,9 +1078,13 @@ function abrirModalVerJSON() {
     const jsonCount = document.getElementById('json-count');
     if (jsonCount) jsonCount.textContent = dados.totalCartazes;
 
-    // Atualizar o pre com o JSON
+    // Atualizar o textarea com o JSON
     const jsonDisplay = document.getElementById('json-display');
-    if (jsonDisplay) jsonDisplay.textContent = jsonFormatado;
+    if (jsonDisplay) jsonDisplay.value = jsonFormatado;
+
+    // Esconder erro anterior
+    const errEl = document.getElementById('json-edit-error-modal');
+    if (errEl) errEl.style.display = 'none';
 
     // Mostrar modal
     modal.style.display = 'flex';
@@ -1015,21 +1093,20 @@ function abrirModalVerJSON() {
 
 function copiarJSON() {
     const jsonDisplay = document.getElementById('json-display');
-    if (!jsonDisplay || !jsonDisplay.textContent) {
+    if (!jsonDisplay || !jsonDisplay.value) {
         if (typeof showToast === 'function') {
             showToast('warning', 'Nada para copiar', 'O JSON está vazio.');
         }
         return;
     }
 
-    navigator.clipboard.writeText(jsonDisplay.textContent).then(() => {
+    navigator.clipboard.writeText(jsonDisplay.value).then(() => {
         if (typeof showToast === 'function') {
             showToast('success', 'JSON copiado!', 'O conteúdo foi copiado para a área de transferência.');
         }
     }).catch(() => {
-        // Fallback para navegadores sem suporte a clipboard API
         const textArea = document.createElement('textarea');
-        textArea.value = jsonDisplay.textContent;
+        textArea.value = jsonDisplay.value;
         textArea.style.position = 'fixed';
         textArea.style.opacity = '0';
         document.body.appendChild(textArea);

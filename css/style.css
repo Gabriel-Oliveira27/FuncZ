@@ -1097,22 +1097,49 @@ body {
   padding-left: 48px !important;
 }
 
+/* Wrapper clicável da garantia — cobre toggle + opções */
+.warranty-box {
+  background: var(--gray-50);
+  border-radius: 10px;
+  border: 1.5px solid var(--gray-200);
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  overflow: hidden;
+}
+
+.warranty-box:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+}
+
+.warranty-box-active {
+  border-color: var(--primary);
+  background: #f0f6ff;
+}
+
+.warranty-box-active:hover {
+  border-color: var(--primary-dark);
+}
+
 /* Warranty Toggle */
 .warranty-toggle {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 16px;
-  background: var(--gray-50);
-  border-radius: 8px;
-  border: 1px solid var(--gray-200);
+  background: transparent;
+  border-radius: 0;
+  border: none;
 }
 
 .warranty-options {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
-  margin-top: 16px;
+  margin-top: 0;
+  padding: 16px;
+  border-top: 1px solid var(--gray-200);
+  background: white;
 }
 
 .warranty-input-group {
@@ -4225,4 +4252,248 @@ body.mobile-detected {
   font-size: 14px;
   color: var(--gray-800);
   font-weight: 700;
+}
+/* ====================================================================
+   GARANTIA ESTENDIDA — OVERLAY NO CARTAZ
+   Posiciona valores calculados sobre as linhas do template físico Zenir.
+
+   USA EXCLUSIVAMENTE % para funcionar corretamente tanto na preview
+   (transform: scale(0.28)) quanto na impressão PDF (escala 1:1).
+   Valores em cm/pt NÃO escalam com CSS transform.
+
+   Posições calibradas a partir da imagem física do template Zenir A4.
+   Referência: A4 = 210mm × 297mm.
+
+   ┌──────────────────────────────────────────────────────────────┐
+   │ COMO AJUSTAR POR IMPRESSORA                                  │
+   │                                                              │
+   │ HP (padrão) — calibrado para impressão sem margens ou com    │
+   │   "Ajustar a área de impressão" desativado.                  │
+   │   → Edite --ge-base-b em .poster-ge-hp                       │
+   │                                                              │
+   │ Brother DCP-1617W — ajuste --ge-base-b em .poster-ge-brother │
+   │   Fórmula: 1 cm vertical = 3,37% │ 1 cm horizontal = 4,76%  │
+   │   Com "Ajustar área de impressão" (margem 3mm): tente +1%    │
+   │                                                              │
+   │ Custom — gerenciado via dialog em JavaScript (cm → %)        │
+   └──────────────────────────────────────────────────────────────┘
+   ==================================================================== */
+
+/* ------------------------------------------------------------------
+   CONTAINER PRINCIPAL — bottom ancorado ao rodapé do poster (%)
+   Os offsets --ge-ob/ot/ol/or são injetados inline pelo JS em %,
+   resultado de converter os cm digitados pelo usuário.
+   ------------------------------------------------------------------ */
+.poster-ge {
+  position: absolute;
+  left:  0;
+  right: 0;
+  pointer-events: none;
+  --ge-base-b: 4.8%;
+  /* offsets runtime (injetados via style="" pelo renderGarantiaOverlay) */
+  --ge-ob: 0%;   /* bottom offset */
+  --ge-ot: 0%;   /* top offset    */
+  --ge-ol: 0%;   /* left offset   */
+  --ge-or: 0%;   /* right offset  */
+  bottom:      calc(var(--ge-base-b) + var(--ge-ob) - var(--ge-ot));
+  margin-left: calc(var(--ge-ol) - var(--ge-or));
+}
+
+/* ------------------------------------------------------------------
+   POSIÇÕES BASE POR MODELO DE IMPRESSORA
+   Medição a partir do template físico Zenir (foto de referência):
+     linha "*Tx" ≈ 5.4% → linha "_×R$" ≈ 11.6% do fundo da A4
+     Posicionamos o fundo do bloco em 4.8% e altura 8%
+     para abranger toda a seção com margem de segurança.
+
+   HP  — Ajuste aqui se os valores saírem deslocados na HP:
+   ------------------------------------------------------------------ */
+.poster-ge-hp {
+  /* ← AJUSTE: 4.8% = 1.43 cm do fundo. Aumente para subir, diminua para descer. */
+  --ge-base-b: 4.8%;
+}
+
+/* ------------------------------------------------------------------
+   Brother DCP-1617W — AJUSTE AQUI para este driver:
+   Com "Ajustar área de impressão" no CUPS (margem bottom ≈ 3 mm):
+     tente --ge-base-b: 5.8%  (= HP + ~1% compensação de margem)
+   ------------------------------------------------------------------ */
+.poster-ge-brother {
+  /* ← AJUSTE: altere este valor após imprimir um teste e medir com régua.
+     Fórmula: se valor subiu X cm, aumente em X/29.7*100 %;
+              se desceu X cm, diminua em X/29.7*100 %.            */
+  --ge-base-b: 4.8%;   /* igual ao HP por padrão — ajuste conforme sua impressora */
+}
+
+/* Custom — gerenciado pelo dialog (cm → %) via JS */
+.poster-ge-custom { --ge-base-b: 4.8%; }
+
+/* ------------------------------------------------------------------
+   COLUNAS (pgvc)
+   Template Zenir — % da largura do poster (210mm):
+     "Fique tranquilo..." :  0% – 24%
+     Col +1 ANO  (pgvc-1) : 24% – 47%  → left: 24%
+     Col +2 ANOS (pgvc-2) : 49% – 72%  → left: 49%
+     Col +3 ANOS (pgvc-3) : 74% – 97%  → left: 74%
+
+   Altura do bloco: do row "Tx" (≈5.4% fundo) ao row "_×R$" (≈11.6% fundo)
+     = 6.2% + margem → height: 8% de 297mm = 23.8mm ≈ 2.38cm
+   ------------------------------------------------------------------ */
+.pgvc {
+  position: absolute;
+  bottom: 0;
+  width: 23%;
+  height: 8%;   /* cobre os 4 rows: ~23.8mm — ajuste se as linhas saírem do bloco */
+}
+
+.pgvc-1 { left: 24%; }   /* +1 ANO  */
+.pgvc-2 { left: 49%; }   /* +2 ANOS */
+.pgvc-3 { left: 74%; }   /* +3 ANOS */
+
+/* ------------------------------------------------------------------
+   VALORES INDIVIDUAIS — % relativas ao pgvc (height=8%, width=23%)
+
+   Linhas do template (% de cima do pgvc):
+     Row 0  "_×R$___"     : top ≈ 15%   (≈ 3.6mm de cima do bloco)
+     Row 1  "TOTAL PRAZO" : top ≈ 41%   (≈ 9.8mm)
+     Row 2  "À VISTA R$"  : top ≈ 65%   (≈ 15.5mm)
+     Row 3  "*Tx a.m."    : top ≈ 89%   (≈ 21.2mm)
+
+   Horizontal dentro do pgvc (% da largura = 23% × 210mm ≈ 48mm):
+     pgv-n   (número, ex "12")  : left:  8%  (≈ 3.8mm da esquerda)
+     pgv-vrc (vrpcalc)          : left: 52%  (≈ 25mm — após "x R$_____")
+     pgv-vtp (vrtotpraz)        : left: 47%  (≈ 22.6mm — após "TOTAL A PRAZO R$")
+     pgv-vi  (vrinput)          : left: 50%  (≈ 24mm — após "À VISTA R$")
+     pgv-tx1 (taxa a.m.)        : left: 16%  (≈ 7.7mm — após "*Tx a.m. __")
+     pgv-tx2 (taxa a.a.)        : left: 72%  (≈ 34.6mm — após "*Tx a.a. __")
+   ------------------------------------------------------------------ */
+.pgv {
+  position: absolute;
+  font-family: var(--font-lato);
+  font-size: 6.5pt;
+  font-weight: 700;
+  color: #000;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* Row 0 — "__ × R$ ___" */
+.pgv-n   { left:  8%; top: 15%; }   /* número de parcelas (ex: "12") */
+.pgv-vrc { left: 52%; top: 15%; }   /* vrpcalc — valor da parcela calculado */
+
+/* Row 1 — "TOTAL A PRAZO R$ ___" */
+.pgv-vtp { left: 47%; top: 41%; font-weight: 400; }   /* vrtotpraz */
+
+/* Row 2 — "À VISTA R$ ___" */
+.pgv-vi  { left: 50%; top: 65%; }   /* vrinput — valor do input do formulário */
+
+/* Row 3 — "*Tx a.m. ___ % *Tx a.a. ___ %" */
+.pgv-tx1 { left: 16%; top: 89%; font-weight: 400; font-size: 5.5pt; }   /* taxa a.m. */
+.pgv-tx2 { left: 72%; top: 89%; font-weight: 400; font-size: 5.5pt; }   /* taxa a.a. */
+
+/* ====================================================================
+   CONTROLES DE POSIÇÃO GE NO CARD DE PREVIEW
+   ==================================================================== */
+
+/* Row com ícone + label + select + botão calibrar */
+.ge-sel-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 5px 8px;
+  background: #f0fdf4;
+  border: 1px solid #6ee7b7;
+  border-radius: 20px;
+}
+
+.ge-sel-icon  { color: #059669; font-size: 13px; flex-shrink: 0; }
+.ge-sel-label { font-size: 11px; font-weight: 600; color: #065f46; white-space: nowrap; flex-shrink: 0; }
+
+/* Select de posição */
+.select-posicao-garantia {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 22px 4px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--gray-700);
+  background: white;
+  border: 1px solid #a7f3d0;
+  border-radius: 12px;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  transition: border-color 0.2s;
+}
+.select-posicao-garantia:hover { border-color: #059669; }
+.select-posicao-garantia.posicao-ativa {
+  border-color: #059669;
+  background-color: #ecfdf5;
+  color: #065f46;
+  font-weight: 700;
+}
+
+/* Botão de calibração (engrenagem) */
+.ge-calib-btn {
+  background: transparent;
+  border: 1px solid #a7f3d0;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #059669;
+  font-size: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.ge-calib-btn:hover {
+  background: #059669;
+  color: white;
+  border-color: #059669;
+}
+
+/* ====================================================================
+   DIALOG CUSTOM GE — estilos compartilhados com o modal dinâmico
+   (gerado em JS por abrirDialogCustomGE)
+   ==================================================================== */
+.ge-calib-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.ge-calib-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.ge-calib-field span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+}
+.ge-calib-field input[type="number"] {
+  padding: 9px 12px;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Courier New', monospace;
+  background: white;
+  color: #111827;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.ge-calib-field input[type="number"]:focus {
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
 }

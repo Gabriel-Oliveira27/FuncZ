@@ -9,55 +9,6 @@
   const s = document.createElement('style');
   s.id = 'dict-styles';
   s.textContent = `
-    /* ── Garantia estendida no cartaz ── */
-    .poster-garantia-section {
-      position: absolute;
-      left: 5cm;
-      top: 20cm;
-      font-family: var(--font-lato);
-      font-size: 6pt;
-      line-height: 1.3;
-    }
-    .poster-garantia-bloco {
-      position: absolute;
-      left: 0;
-    }
-    .poster-garantia-bloco:nth-child(1) { top: 0;    }
-    .poster-garantia-bloco:nth-child(2) { top: 3cm;  }
-    .poster-garantia-bloco:nth-child(3) { top: 6cm;  }
-
-    .gar-titulo {
-      font-size: 6.5pt;
-      font-weight: 900;
-      margin-bottom: 0.12cm;
-      white-space: nowrap;
-    }
-    .gar-row {
-      display: flex;
-      white-space: nowrap;
-    }
-    .gar-parc {
-      display: inline-block;
-      width: 2cm;
-      font-weight: 700;
-    }
-    .gar-val {
-      font-weight: 400;
-    }
-    .gar-info {
-      margin-top: 0.4cm;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-    .gar-taxas {
-      display: flex;
-      align-items: center;
-      margin-top: 0.4cm;
-      margin-left: -0.23cm;
-      gap: 0.6cm;
-      white-space: nowrap;
-    }
-
     /* ── Toast action btn (compatibilidade) ── */
     .toast-action-btn.primary {
       background: var(--primary);
@@ -115,7 +66,8 @@ const DICIONARIO_NATIVO = {
    * (somente se o campo estiver vazio).
    */
   marcas: [
-    'Zeflex', 'Ortolar', 'Henn', 'Samsung', 'LG',
+    'Zeflex', 'Ortolar', 'Henn', 'Samsung', 'LG', 'Philips', 'Sony', 'Dell', 'Lenovo', 'Asus',
+    'Brastemp', 'Consul', 'Midea', 'Springer', 'Electrolux', 
   ],
 
   /**
@@ -199,16 +151,7 @@ const _UPPER_WORDS = new Set([
   'WIFI','WI-FI','BLUETOOTH','BT',
 ]);
 
-/**
- * Converte texto para Title Case respeitando as regras do português.
- *
- * Exemplo:
- *   "BERCO AMERICANO 3 EM 1" → "Berco Americano 3 em 1"
- *   "TUBOARTE"               → "Tuboarte"
- *   "BRANCO"                 → "Branco"
- *   "128GB"                  → "128GB"
- *   "TV SAMSUNG 50\""        → "TV Samsung 50\""
- */
+
 function _titleCase(str) {
   if (!str) return '';
   return str
@@ -646,115 +589,6 @@ function _instalarHandlersBusca() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// §6  GARANTIA ESTENDIDA NO CARTAZ
-// ═══════════════════════════════════════════════════════════════
-
-/**
- * Retorna null se valor ≤ 0. Caso contrário retorna objeto com
- * as 5 linhas de parcelamento calculadas pelo FATORES do produto.
- */
-function _calcBloco(valor, tipoJuros) {
-  if (!valor || valor <= 0) return null;
-  var fatores = (typeof FATORES !== 'undefined') ? FATORES[tipoJuros] : null;
-  if (!fatores) return null;
-
-  var opcoes = [1, 3, 5, 10, 12];
-  return {
-    valor:  valor,
-    linhas: opcoes.map(function(n) {
-      var porParcela = valor * fatores[n];
-      return { n: n, porParcela: porParcela, total: porParcela * n };
-    }),
-  };
-}
-
-/** Formata número como "R$ 1.234,56" sem usar brl() externo */
-function _brlLocal(n) {
-  return 'R$ ' + Number(n).toFixed(2)
-    .replace('.', ',')
-    .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-}
-
-/**
- * Gera o HTML de UM bloco de garantia.
- * @param {number} meses  — 12, 24 ou 36
- * @param {object} bloco  — resultado de _calcBloco
- * @param {string} juros  — 'carne' ou 'cartao'
- */
-function _blocoHTML(meses, bloco, juros) {
-  if (!bloco) return '';
-
-  var taxa1 = juros === 'carne' ? '6,9%' : '2,92%';
-  var taxa2 = juros === 'carne' ? '122,71%' : '41,25%';
-
-  // 12x é o plano de referência para "total a prazo"
-  var ultimo = bloco.linhas[bloco.linhas.length - 1];
-
-  var linhasHTML = bloco.linhas.map(function(l) {
-    return '<div class="gar-row">' +
-      '<span class="gar-parc">' + l.n + 'x</span>' +
-      '<span class="gar-val">' + _brlLocal(l.porParcela) + '</span>' +
-    '</div>';
-  }).join('');
-
-  return '<div class="poster-garantia-bloco">' +
-    '<div class="gar-titulo">+' + meses + ' MESES</div>' +
-    linhasHTML +
-    '<div class="gar-info">T.PRAZO: ' + _brlLocal(ultimo.total) + '</div>' +
-    '<div class="gar-info">À VISTA: ' + _brlLocal(bloco.valor) + '</div>' +
-    '<div class="gar-taxas">' +
-      '<span class="gar-t1">' + taxa1 + '</span>' +
-      '<span class="gar-t2">' + taxa2 + '</span>' +
-    '</div>' +
-  '</div>';
-}
-
-/**
- * Gera o HTML completo da seção de garantia para o produto.
- * Retorna string vazia se nenhuma garantia estiver preenchida.
- */
-function _garantiaSectionHTML(product) {
-  var juros = product.juros === 'carne' ? 'carne' : 'cartao';
-  var b12   = _calcBloco(product.garantia12, juros);
-  var b24   = _calcBloco(product.garantia24, juros);
-  var b36   = _calcBloco(product.garantia36, juros);
-
-  if (!b12 && !b24 && !b36) return '';
-
-  return '<div class="poster-garantia-section">' +
-    (b12 ? _blocoHTML(12, b12, juros) : '') +
-    (b24 ? _blocoHTML(24, b24, juros) : '') +
-    (b36 ? _blocoHTML(36, b36, juros) : '') +
-  '</div>';
-}
-
-/** Patch de generatePosterHTML: injeta a seção de garantia no poster */
-function _patchGeneratePosterHTML() {
-  var orig = window.generatePosterHTML;
-  if (typeof orig !== 'function') return;
-
-  window.generatePosterHTML = function(product, isPreview) {
-    var html = orig(product, isPreview);
-
-    var garantiaHTML = _garantiaSectionHTML(product);
-    if (!garantiaHTML) return html;
-
-    // Insere via DOM para garantir posicionamento correto
-    var temp = document.createElement('div');
-    temp.innerHTML = html;
-
-    var posterEl = temp.querySelector('.poster, .poster-carne');
-    if (posterEl) {
-      var div = document.createElement('div');
-      div.innerHTML = garantiaHTML;
-      while (div.firstChild) posterEl.appendChild(div.firstChild);
-    }
-
-    return temp.innerHTML;
-  };
-}
-
-// ═══════════════════════════════════════════════════════════════
 // §7  HOOKS
 // ═══════════════════════════════════════════════════════════════
 
@@ -877,9 +711,6 @@ document.addEventListener('DOMContentLoaded', function() {
   _hookBlurDescricao();
   _patchFormSubmit();
   _patchAdicionarProdutoDaBusca();
-
-  // Garantia: injeta seção no HTML do cartaz
-  _patchGeneratePosterHTML();
 
   // Bugs estruturais
   _fixProductsActions();

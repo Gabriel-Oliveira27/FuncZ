@@ -5,6 +5,87 @@ const API_URL =
 let modeloAtual = "padrao";
 
 // ==================================================
+// GARANTIA ESTENDIDA — OFFSETS GLOBAIS POR MODELO
+// ==================================================
+let GARANTIA_OFFSETS = (() => {
+  try {
+    const s = localStorage.getItem('garantia_offsets');
+    return s ? JSON.parse(s) : {};
+  } catch { return {}; }
+})();
+
+function getGarantiaOffsets(posicao) {
+  const def = { bottom: 0, top: 0, left: 0, right: 0 };
+  return Object.assign({}, def, GARANTIA_OFFSETS[posicao] || {});
+}
+
+function salvarGarantiaOffsets(posicao, offsets) {
+  GARANTIA_OFFSETS[posicao] = offsets;
+  try { localStorage.setItem('garantia_offsets', JSON.stringify(GARANTIA_OFFSETS)); } catch {}
+}
+
+// Formata número sem prefixo R$ para os blanks do template físico
+function fmtGeVal(val) {
+  if (!val || isNaN(val)) return '0,00';
+  return new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(val);
+}
+
+// Gera HTML do overlay de garantia estendida dentro do cartaz
+function renderGarantiaOverlay(product) {
+  const { garantia12, garantia24, garantia36, juros, metodo, posicaoGarantia } = product;
+  if (!(garantia12 > 0) && !(garantia24 > 0) && !(garantia36 > 0)) return '';
+  if (!juros) return '';
+
+  const tipoTaxa = juros === 'carne' ? 'carne' : 'cartao';
+  const numParcelas = parseInt((metodo || '12x').replace('x', '')) || 12;
+  const fator = FATORES[tipoTaxa]?.[numParcelas];
+  if (!fator) return '';
+
+  const taxas = {
+    carne:  { am: '6,9',  aa: '122,71' },
+    cartao: { am: '2,92', aa: '41,25' },
+  };
+  const { am: tx1, aa: tx2 } = taxas[tipoTaxa];
+
+  const calcTier = (valor) => {
+    if (!(valor > 0)) return null;
+    const vrpcalc   = arredondar90(valor * fator);
+    const vrtotpraz = vrpcalc * numParcelas;
+    return { vrinput: valor, vrpcalc, vrtotpraz };
+  };
+
+  const tiers = [calcTier(garantia12), calcTier(garantia24), calcTier(garantia36)];
+  const posicao = posicaoGarantia || 'hp';
+  // off.bottom/top em cm verticais (÷ 29.7cm) → %; off.left/right em cm horizontais (÷ 21cm) → %
+  const off = getGarantiaOffsets(posicao);
+  const obPct = ((off.bottom || 0) / 29.7 * 100).toFixed(3);
+  const otPct = ((off.top    || 0) / 29.7 * 100).toFixed(3);
+  const olPct = ((off.left   || 0) / 21.0 * 100).toFixed(3);
+  const orPct = ((off.right  || 0) / 21.0 * 100).toFixed(3);
+
+  const colHtml = (tier, cls) => {
+    if (!tier) return '';
+    return `<div class="pgvc ${cls}">
+      <span class="pgv pgv-n">${numParcelas}</span>
+      <span class="pgv pgv-vrc">${fmtGeVal(tier.vrpcalc)}</span>
+      <span class="pgv pgv-vtp">${fmtGeVal(tier.vrtotpraz)}</span>
+      <span class="pgv pgv-vi">${fmtGeVal(tier.vrinput)}</span>
+      <span class="pgv pgv-tx1">${tx1}</span>
+      <span class="pgv pgv-tx2">${tx2}</span>
+    </div>`;
+  };
+
+  return `<div class="poster-ge poster-ge-${posicao}" style="--ge-ob:${obPct}%;--ge-ot:${otPct}%;--ge-ol:${olPct}%;--ge-or:${orPct}%;">
+    ${colHtml(tiers[0], 'pgvc-1')}
+    ${colHtml(tiers[1], 'pgvc-2')}
+    ${colHtml(tiers[2], 'pgvc-3')}
+  </div>`;
+}
+
+// ==================================================
 // DETECÇÃO DE DISPOSITIVO MÓVEL (VALIDAÇÃO INFINITA)
 // ==================================================
 function isMobileDevice() {
@@ -230,6 +311,7 @@ function salvarCartazesLocalStorage() {
         semJuros: p.semJuros || false,
         moverValidade: p.moverValidade || false,
         layoutPersonalizado: p.layoutPersonalizado || '',
+        posicaoGarantia: p.posicaoGarantia || 'hp',
       })),
     };
     localStorage.setItem(
@@ -296,6 +378,7 @@ function gerarJSONCartazes() {
       semJuros: p.semJuros || false,
       moverValidade: p.moverValidade || false,
       layoutPersonalizado: p.layoutPersonalizado || '',
+      posicaoGarantia: p.posicaoGarantia || 'hp',
     })),
   };
 
@@ -813,6 +896,7 @@ const g36 = document.getElementById("garantia36");
 garantiaCheckbox.addEventListener("change", (e) => {
   if (e.target.checked) {
     warrantyOptions.style.display = "grid";
+    warrantyOptions.style.animation = 'slideDown 0.25s ease';
   } else {
     warrantyOptions.style.display = "none";
     g12.value = "";
@@ -821,7 +905,21 @@ garantiaCheckbox.addEventListener("change", (e) => {
     g24.disabled = true;
     g36.disabled = true;
   }
+  // Atualiza visual da caixa
+  const box = document.getElementById('warranty-box');
+  if (box) box.classList.toggle('warranty-box-active', e.target.checked);
 });
+
+// Clicar em qualquer parte da caixa de garantia ativa/desativa o switch
+window.toggleWarrantySection = function(e) {
+  // Não interferir em cliques nos próprios inputs, labels ou no switch
+  const tag = e.target.tagName.toUpperCase();
+  if (tag === 'INPUT' || tag === 'LABEL' || tag === 'SPAN') return;
+  if (e.target.closest('.switch')) return;
+  if (e.target.closest('.warranty-options')) return;
+  garantiaCheckbox.checked = !garantiaCheckbox.checked;
+  garantiaCheckbox.dispatchEvent(new Event('change'));
+};
 
 g12.addEventListener("input", () => {
   if (parseCurrency(g12.value) > 0) {
@@ -1183,6 +1281,7 @@ productForm.addEventListener("submit", (e) => {
     semJuros: semJuros,  // Controla exibição de "Sem juros!" no rodapé
     moverValidade: false, // Padrão: validade lateral; toggle no card da preview
     layoutPersonalizado: '', // Layout customizado (ex: 'a5-loja53')
+    posicaoGarantia: 'hp', // Posição da GE no template físico (hp/brother/custom)
   };
 
   products.push(product);
@@ -1353,6 +1452,23 @@ function renderProducts() {
                             <i class="fa-solid fa-trash"></i> Remover
                         </button>
                     </div>
+                    ${(product.garantia12 > 0 || product.garantia24 > 0 || product.garantia36 > 0) ? `
+                    <div id="ge-sel-row-${product.id}" class="ge-sel-row" onclick="event.stopPropagation()">
+                        <i class="fa-solid fa-shield-halved ge-sel-icon"></i>
+                        <span class="ge-sel-label">Posição GE:</span>
+                        <select class="select-posicao-garantia${product.posicaoGarantia && product.posicaoGarantia !== 'hp' ? ' posicao-ativa' : ''}"
+                            onchange="alterarPosicaoGarantia(${product.id}, this.value)"
+                            onclick="event.stopPropagation()">
+                            <option value="hp"      ${!product.posicaoGarantia || product.posicaoGarantia === 'hp'      ? 'selected' : ''}>HP (padrão)</option>
+                            <option value="brother" ${product.posicaoGarantia === 'brother' ? 'selected' : ''}>Brother</option>
+                            <option value="custom"  ${product.posicaoGarantia === 'custom'  ? 'selected' : ''}>Custom</option>
+                        </select>
+                        ${product.posicaoGarantia === 'custom' ? `
+                        <button class="ge-calib-btn" title="Editar posição Custom"
+                            onclick="abrirDialogCustomGE(${product.id})">
+                            <i class="fa-solid fa-ruler"></i>
+                        </button>` : ''}
+                    </div>` : ''}
                 </div>
             </div>
         `;
@@ -1513,6 +1629,8 @@ function generatePosterHTML(product, isPreview = false) {
                     ${product.autorizacao ? `<div class="poster-table-sub-text" style="margin-top: 8px;">${product.autorizacao}</div>` : ""}
                 </div>
             </div>
+
+            ${renderGarantiaOverlay(product)}
         </div>
     `;
 
@@ -1605,11 +1723,153 @@ window.toggleMoverValidade = function (id, checked) {
   if (!product) return;
   product.moverValidade = checked;
   salvarCartazesLocalStorage();
-  // Atualiza só o miniatura deste card, sem re-renderizar toda a lista
   const previewEl = document.querySelector(`.product-preview[data-preview-id="${id}"]`);
   if (previewEl) {
     previewEl.innerHTML = generatePosterHTML(product, true);
   }
+};
+
+// ==================================================
+// GARANTIA ESTENDIDA — FUNÇÕES DE POSIÇÃO E CALIBRAÇÃO
+// ==================================================
+window.alterarPosicaoGarantia = function (id, valor) {
+  const product = products.find((p) => p.id === id);
+  if (!product) return;
+  product.posicaoGarantia = valor || 'hp';
+  salvarCartazesLocalStorage();
+  const previewEl = document.querySelector(`.product-preview[data-preview-id="${id}"]`);
+  if (previewEl) previewEl.innerHTML = generatePosterHTML(product, true);
+  const card = previewEl ? previewEl.closest('.product-card') : null;
+  if (card) {
+    const sel = card.querySelector('.select-posicao-garantia');
+    if (sel) sel.classList.toggle('posicao-ativa', valor !== 'hp');
+    // Mostrar/ocultar botão de régua (só para Custom)
+    const row = document.getElementById(`ge-sel-row-${id}`);
+    if (row) {
+      let btn = row.querySelector('.ge-calib-btn');
+      if (valor === 'custom') {
+        if (!btn) {
+          btn = document.createElement('button');
+          btn.className = 'ge-calib-btn';
+          btn.title = 'Editar posição Custom';
+          btn.innerHTML = '<i class="fa-solid fa-ruler"></i>';
+          btn.onclick = (e) => { e.stopPropagation(); abrirDialogCustomGE(id); };
+          row.appendChild(btn);
+        }
+        // Auto-abre o dialog na primeira seleção de Custom
+        abrirDialogCustomGE(id);
+      } else {
+        if (btn) btn.remove();
+      }
+    }
+  }
+};
+
+// ==================================================
+// GARANTIA ESTENDIDA — DIALOG CUSTOM (posicionamento em cm)
+// ==================================================
+
+window.abrirDialogCustomGE = function (id) {
+  // Fechar qualquer dialog existente
+  const existing = document.getElementById('modal-ge-custom');
+  if (existing) existing.remove();
+
+  const off = getGarantiaOffsets('custom');
+
+  const overlay = document.createElement('div');
+  overlay.id = 'modal-ge-custom';
+  overlay.className = 'modal-overlay active';
+  overlay.style.zIndex = '10010';
+  overlay.onclick = (e) => { if (e.target === overlay) fecharDialogCustomGE(); };
+
+  overlay.innerHTML = `
+    <div class="modal-fator-content" style="max-width:520px;">
+      <div class="modal-header" style="background:linear-gradient(135deg,#065f46 0%,#059669 100%);color:white;">
+        <h2 style="color:white;"><i class="fa-solid fa-ruler"></i>&nbsp;Posicionamento Custom da GE</h2>
+        <button class="modal-close" style="color:white;font-size:28px;" onclick="fecharDialogCustomGE()">×</button>
+      </div>
+      <div class="modal-body">
+        <div style="background:#fef3c7;border-left:4px solid #f59e0b;border-radius:8px;padding:14px 16px;margin-bottom:20px;">
+          <p style="font-size:14px;font-weight:600;color:#92400e;margin-bottom:6px;">
+            <i class="fa-solid fa-triangle-exclamation"></i>&nbsp;Como usar
+          </p>
+          <p style="font-size:13px;color:#78350f;line-height:1.5;">
+            Imprima um cartaz de teste e use uma <strong>régua</strong> para medir a distância entre
+            onde os valores aparecerem e onde deveriam estar nas linhas do papel físico.
+            Insira os ajustes em <strong>cm</strong> abaixo. Os três módulos (+1/+2/+3 anos) serão
+            deslocados juntos.
+          </p>
+          <p style="font-size:12px;color:#92400e;margin-top:8px;">
+            Referência: 1&nbsp;cm vertical&nbsp;≈&nbsp;3,37% &nbsp;|&nbsp; 1&nbsp;cm horizontal&nbsp;≈&nbsp;4,76%
+          </p>
+        </div>
+        <div class="ge-calib-grid">
+          <label class="ge-calib-field">
+            <span>↑ Subir (cm)</span>
+            <input type="number" step="0.05" id="ge-cust-top"    value="${off.top    || 0}" placeholder="0.00">
+          </label>
+          <label class="ge-calib-field">
+            <span>↓ Descer (cm)</span>
+            <input type="number" step="0.05" id="ge-cust-bottom" value="${off.bottom || 0}" placeholder="0.00">
+          </label>
+          <label class="ge-calib-field">
+            <span>← Esquerda (cm)</span>
+            <input type="number" step="0.05" id="ge-cust-left"   value="${off.left   || 0}" placeholder="0.00">
+          </label>
+          <label class="ge-calib-field">
+            <span>→ Direita (cm)</span>
+            <input type="number" step="0.05" id="ge-cust-right"  value="${off.right  || 0}" placeholder="0.00">
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="fecharDialogCustomGE()">
+          <i class="fa-solid fa-times"></i> Cancelar
+        </button>
+        <button class="btn-secondary" onclick="resetarCustomGE()">
+          <i class="fa-solid fa-rotate-left"></i> Resetar
+        </button>
+        <button class="btn-primary" onclick="aplicarCustomGE()">
+          <i class="fa-solid fa-check"></i> Aplicar em todos
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+};
+
+window.fecharDialogCustomGE = function () {
+  const m = document.getElementById('modal-ge-custom');
+  if (m) m.remove();
+};
+
+window.aplicarCustomGE = function () {
+  const top    = parseFloat(document.getElementById('ge-cust-top')?.value)    || 0;
+  const bottom = parseFloat(document.getElementById('ge-cust-bottom')?.value) || 0;
+  const left   = parseFloat(document.getElementById('ge-cust-left')?.value)   || 0;
+  const right  = parseFloat(document.getElementById('ge-cust-right')?.value)  || 0;
+
+  salvarGarantiaOffsets('custom', { top, bottom, left, right });
+
+  // Re-renderiza todos os cartazes com posição custom
+  products.forEach((p) => {
+    if ((p.posicaoGarantia || 'hp') === 'custom') {
+      const previewEl = document.querySelector(`.product-preview[data-preview-id="${p.id}"]`);
+      if (previewEl) previewEl.innerHTML = generatePosterHTML(p, true);
+    }
+  });
+
+  fecharDialogCustomGE();
+  showToast('success', 'Posição Custom aplicada!',
+    'Todos os cartazes Custom foram atualizados.');
+};
+
+window.resetarCustomGE = function () {
+  ['ge-cust-top','ge-cust-bottom','ge-cust-left','ge-cust-right'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '0';
+  });
 };
 
 // ==================================================
@@ -1693,10 +1953,12 @@ document
           // Escalar conteúdo em 15%: container 15% menor → PDF mapeado para 210×297mm = zoom 1.15×
           clone.style.cssText =
             "position:absolute;left:-99999px;top:0;width:182.6mm;height:258.3mm;background:#fff;margin:0;padding:0;box-sizing:border-box;overflow:hidden;";
-          // Ajustar largura do poster para coincidir com o clone (garante centralização correta no PDF)
+          // Ajustar largura E ALTURA do poster para coincidir com o clone
+          // CRUCIAL: height:258.3mm garante que bottom:% na .poster-ge funcione corretamente no PDF
           const posterElPDF = clone.querySelector('.poster');
           if (posterElPDF) {
-            posterElPDF.style.width = '182.6mm';
+            posterElPDF.style.width  = '182.6mm';
+            posterElPDF.style.height = '258.3mm'; // sem isso bottom:4.8% aponta para fora do clone (297mm×4.8%=14.26mm do fundo → 282.74mm do topo, mas clone só vai até 258.3mm)
           }
           const footerTableEl = clone.querySelector('.poster-footer-table');
           if (footerTableEl) {
