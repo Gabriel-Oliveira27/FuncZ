@@ -52,8 +52,9 @@ function renderGarantiaOverlay(product) {
 
   const calcTier = (valor) => {
     if (!(valor > 0)) return null;
-    const vrpcalc   = arredondar90(valor * fator);
-    const vrtotpraz = vrpcalc * numParcelas;
+    // Cálculo simples: valor × fator, arredondado em 2 casas decimais (sem arredondamento para ,90)
+    const vrpcalc   = Math.round(valor * fator * 100) / 100;
+    const vrtotpraz = Math.round(vrpcalc * numParcelas * 100) / 100;
     return { vrinput: valor, vrpcalc, vrtotpraz };
   };
 
@@ -891,12 +892,27 @@ const descricaoErro = document.getElementById("descricao-erro");
 
 if (descricaoInput) {
   descricaoInput.addEventListener("input", () => {
-    if (descricaoInput.value.length > 35) {
-      descricaoErro.style.display = "block";
-      descricaoInput.style.borderColor = "red";
+    const len = descricaoInput.value.length;
+    if (len >= 38) {
+      // Hard cap: trava em 38 caracteres
+      descricaoInput.value = descricaoInput.value.substring(0, 38);
+    }
+    const lenAtual = descricaoInput.value.length;
+    if (lenAtual > 35) {
+      // Aviso visual: entre 36 e 38 (zona de alerta)
+      if (descricaoErro) {
+        descricaoErro.style.display = "block";
+        descricaoErro.textContent = `${lenAtual}/38 — Atenção: descrição longa pode cortar no cartaz!`;
+        descricaoErro.style.color = lenAtual >= 38 ? "var(--danger)" : "#d97706";
+      }
+      descricaoInput.style.borderColor = lenAtual >= 38 ? "var(--danger)" : "#f59e0b";
+      descricaoInput.style.boxShadow = lenAtual >= 38
+        ? "0 0 0 3px rgba(239,68,68,0.15)"
+        : "0 0 0 3px rgba(245,158,11,0.15)";
     } else {
-      descricaoErro.style.display = "none";
+      if (descricaoErro) descricaoErro.style.display = "none";
       descricaoInput.style.borderColor = "";
+      descricaoInput.style.boxShadow = "";
     }
   });
 }
@@ -1038,8 +1054,7 @@ function recalcularParcela() {
       if (FATORES[tipoTaxa] && FATORES[tipoTaxa][numParcelas]) {
         const fator = FATORES[tipoTaxa][numParcelas];
         let parcela = avista * fator;
-        // Sem arredondamento para ,90 — mantém o valor real calculado
-        parcela = Math.round(parcela * 100) / 100;
+        parcela = arredondar90(parcela); // arredonda para o centavo ,90 mais próximo
         parcelaInput.value = parcela ? formatCurrency(parcela.toFixed(2)) : "";
       }
     } else {
@@ -1073,8 +1088,7 @@ function recalcularParcela() {
     if (FATORES[tipoTaxa] && FATORES[tipoTaxa][numParcelas]) {
       const fator = FATORES[tipoTaxa][numParcelas];
       parcela = avista * fator;
-      // Sem arredondamento para ,90 — mantém o valor real calculado
-      parcela = Math.round(parcela * 100) / 100;
+      parcela = arredondar90(parcela); // arredonda para o centavo ,90 mais próximo
     }
 
     parcelaInput.value = parcela
