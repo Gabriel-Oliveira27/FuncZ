@@ -1460,6 +1460,8 @@ function renderProducts() {
                             onclick="event.stopPropagation()">
                             <option value="hp"      ${!product.posicaoGarantia || product.posicaoGarantia === 'hp'      ? 'selected' : ''}>HP (padrão)</option>
                             <option value="brother" ${product.posicaoGarantia === 'brother' ? 'selected' : ''}>Brother</option>
+                            <option value="hp-a5"   ${product.posicaoGarantia === 'hp-a5'   ? 'selected' : ''}>HP - A5</option>
+                            <option value="hp-a6"   ${product.posicaoGarantia === 'hp-a6'   ? 'selected' : ''}>HP - A6</option>
                             <option value="custom"  ${product.posicaoGarantia === 'custom'  ? 'selected' : ''}>Custom</option>
                         </select>
                         ${product.posicaoGarantia === 'custom' ? `

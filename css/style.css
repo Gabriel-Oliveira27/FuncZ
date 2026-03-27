@@ -4311,7 +4311,7 @@ body.mobile-detected {
   /* ← AJUSTE BROTHER: altere --ge-shift-y até os valores ficarem nas linhas.
      Com CUPS "Ajustar área de impressão" (margem ~3mm): tente --ge-shift-y: 1%;
      Fórmula: medir distância com régua (cm) e multiplicar por 3.37 para obter % */
-  --ge-shift-y: 0%;   /* ← MUDE AQUI PARA BROTHER */
+  --ge-shift-y: 1.685%;  /* 0.5cm para cima = 0.5/29.7×100 ≈ 1.685% */
   --ge-shift-x: 0%;   /* ← MUDE AQUI PARA BROTHER (horizontal) */
 }
 
@@ -4319,6 +4319,61 @@ body.mobile-detected {
 .poster-ge-custom {
   --ge-shift-y: 0%;
   --ge-shift-x: 0%;
+}
+
+/* ------------------------------------------------------------------
+   HP - A5
+   Posição: 2cm abaixo do HP padrão  →  --ge-shift-y: -6.73%
+            (negativo = desce, pois bottom aumenta para cima)
+   Fonte: 8.5pt  (HP padrão = 6.5pt, +2pt)
+
+   ← AJUSTE HP-A5 VERTICAL:   altere --ge-shift-y abaixo.
+     Fórmula: 1cm para baixo = -3.37% | 1cm para cima = +3.37%
+   ← AJUSTE HP-A5 HORIZONTAL: altere --ge-shift-x abaixo.
+     Fórmula: 1cm para direita = +4.76% | 1cm para esquerda = -4.76%
+   ------------------------------------------------------------------ */
+.poster-ge-hp-a5 {
+  --ge-shift-y: -6.73%;  /* ← AJUSTE VERTICAL HP-A5: 2cm abaixo do HP padrão */
+  --ge-shift-x: 0%;       /* ← AJUSTE HORIZONTAL HP-A5 */
+}
+
+/* Aumenta fonte 2pt para HP-A5 */
+.poster-ge-hp-a5 .pgv {
+  font-size: 8.5pt;   /* ← AJUSTE TAMANHO FONTE HP-A5 (HP padrão = 6.5pt) */
+}
+/* Taxas também maiores */
+.poster-ge-hp-a5 .g12-tx1,
+.poster-ge-hp-a5 .g12-tx2,
+.poster-ge-hp-a5 .g24-tx1,
+.poster-ge-hp-a5 .g24-tx2,
+.poster-ge-hp-a5 .g36-tx1,
+.poster-ge-hp-a5 .g36-tx2 {
+  font-size: 7.5pt;   /* ← AJUSTE TAMANHO FONTE TAXAS HP-A5 (HP padrão = 5.5pt) */
+}
+
+/* ------------------------------------------------------------------
+   HP - A6
+   Mesmas posições do HP-A5 por padrão — altere conforme necessário.
+
+   ← AJUSTE HP-A6 VERTICAL:   altere --ge-shift-y abaixo.
+   ← AJUSTE HP-A6 HORIZONTAL: altere --ge-shift-x abaixo.
+   ------------------------------------------------------------------ */
+.poster-ge-hp-a6 {
+  --ge-shift-y: -6.73%;  /* ← AJUSTE VERTICAL HP-A6 (igual HP-A5 por padrão) */
+  --ge-shift-x: 0%;       /* ← AJUSTE HORIZONTAL HP-A6 */
+}
+
+/* Aumenta fonte 2pt para HP-A6 */
+.poster-ge-hp-a6 .pgv {
+  font-size: 8.5pt;   /* ← AJUSTE TAMANHO FONTE HP-A6 */
+}
+.poster-ge-hp-a6 .g12-tx1,
+.poster-ge-hp-a6 .g12-tx2,
+.poster-ge-hp-a6 .g24-tx1,
+.poster-ge-hp-a6 .g24-tx2,
+.poster-ge-hp-a6 .g36-tx1,
+.poster-ge-hp-a6 .g36-tx2 {
+  font-size: 7.5pt;   /* ← AJUSTE TAMANHO FONTE TAXAS HP-A6 */
 }
 
 /* ------------------------------------------------------------------
@@ -4480,4 +4535,131 @@ body.mobile-detected {
 .ge-calib-field input[type="number"]:focus {
   border-color: #059669;
   box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+}
+
+/* ==================================================
+   VALIDADE — CHECKBOX E CAMPOS DE DATA ESTILIZADOS
+   ================================================== */
+
+/* Wrapper do checkbox habilitar validade */
+.checkbox-validade-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: white;
+  border: 1.5px solid var(--gray-300);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.checkbox-validade-wrapper:hover {
+  border-color: var(--primary);
+  background: #eff6ff;
+  box-shadow: 0 2px 8px rgba(37,99,235,0.12);
+}
+.checkbox-validade-wrapper input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.checkbox-validade-wrapper span {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-700);
+}
+
+/* Grid dos dois campos de data */
+.validade-dates-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 14px;
+  animation: slideDown 0.25s ease;
+}
+
+.validade-date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.validade-date-field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-600);
+  letter-spacing: 0.02em;
+}
+
+/* Input de data — moderno e limpo */
+.date-input-styled {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--gray-300);
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--gray-800);
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.date-input-styled:hover {
+  border-color: var(--primary);
+  background: #f8faff;
+}
+.date-input-styled:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  background: white;
+}
+/* Ícone de calendário customizado */
+.date-input-styled::-webkit-calendar-picker-indicator {
+  background: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none'%3E%3Crect x='3' y='4' width='18' height='18' rx='3' stroke='%232563eb' stroke-width='1.8'/%3E%3Cpath d='M3 10h18' stroke='%232563eb' stroke-width='1.8'/%3E%3Cpath d='M8 2v4M16 2v4' stroke='%232563eb' stroke-width='1.8' stroke-linecap='round'/%3E%3Ccircle cx='8' cy='15' r='1' fill='%232563eb'/%3E%3Ccircle cx='12' cy='15' r='1' fill='%232563eb'/%3E%3Ccircle cx='16' cy='15' r='1' fill='%232563eb'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: 18px 18px;
+  background-position: center;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 4px;
+  opacity: 1;
+  transition: background-color 0.15s ease;
+}
+.date-input-styled::-webkit-calendar-picker-indicator:hover {
+  background-color: #dbeafe;
+}
+
+/* Preview em tempo real do texto gerado */
+.validade-preview {
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-radius: 8px;
+  border-left: 3px solid var(--primary);
+  font-size: 12.5px;
+  color: #1e40af;
+  font-weight: 500;
+  display: none;
+  align-items: center;
+  gap: 7px;
+  box-shadow: 0 1px 4px rgba(37,99,235,0.08);
+  animation: fadeInUp 0.2s ease;
+}
+.validade-preview.active {
+  display: flex;
+}
+.validade-preview i {
+  color: #3b82f6;
+  flex-shrink: 0;
+  font-size: 13px;
 }

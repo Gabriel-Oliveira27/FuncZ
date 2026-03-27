@@ -1008,6 +1008,7 @@ function aplicarAlteracoesJSON() {
                     parcela:            parseFloat(item.parcela) || 0,
                     motivo:             item.motivo || '',
                     validade:           item.validade || '',
+                    validadeInicio:     item.validadeInicio || '',
                     autorizacao:        item.autorizacao || '',
                     garantia12:         parseFloat(item.garantia12) || 0,
                     garantia24:         parseFloat(item.garantia24) || 0,

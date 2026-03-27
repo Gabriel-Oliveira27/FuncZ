@@ -261,6 +261,14 @@
                             </div>
                         </div>
 
+                        <!-- Checkbox para habilitar validade (parcelamentos sem taxa: 1x, 3x, 5x, 10x) -->
+                        <div id="campo-habilitar-validade" style="display: none; margin-bottom: 12px;">
+                            <label class="checkbox-validade-wrapper" onclick="toggleHabilitarValidade(this)">
+                                <input type="checkbox" id="habilitar-validade" onchange="toggleHabilitarValidade(this.closest('label'))">
+                                <span><i class="fa-solid fa-calendar-days" style="color:var(--primary);margin-right:6px;"></i>Mostrar validade da oferta</span>
+                            </label>
+                        </div>
+
                         <!-- Campos Extras (Motivo, Validade, Autorização) -->
                         <div id="extra-campos" style="display: none;">
                             <div class="form-group" id="campo-motivo" style="display: none;">
@@ -269,8 +277,20 @@
                             </div>
 
                             <div class="form-group" id="campo-validade" style="display: none;">
-                                <label for="validade">Validade da oferta</label>
-                                <input type="date" id="validade">
+                                <label>Validade da oferta</label>
+                                <div class="validade-dates-row">
+                                    <div class="validade-date-field">
+                                        <label for="validade-fim"><i class="fa-solid fa-calendar-xmark" style="color:var(--primary);margin-right:4px;"></i>Válido até *</label>
+                                        <input type="date" id="validade" class="date-input-styled" oninput="atualizarPreviewValidade()">
+                                    </div>
+                                    <div class="validade-date-field">
+                                        <label for="validade-inicio"><i class="fa-solid fa-calendar-plus" style="color:var(--gray-500);margin-right:4px;"></i>A partir de (opcional)</label>
+                                        <input type="date" id="validade-inicio" class="date-input-styled" oninput="atualizarPreviewValidade()">
+                                    </div>
+                                </div>
+                                <div class="validade-preview" id="validade-preview">
+                                    <i class="fa-solid fa-eye" style="margin-right:5px;"></i><span id="validade-preview-texto"></span>
+                                </div>
                             </div>
 
                             <div class="form-group" id="campo-autorizacao" style="display: none;">
