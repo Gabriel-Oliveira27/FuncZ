@@ -59,10 +59,16 @@ function renderGarantiaOverlay(product) {
 
   const tiers = [calcTier(garantia12), calcTier(garantia24), calcTier(garantia36)];
   const posicao = posicaoGarantia || 'hp';
-  // off em cm → convert to % for --ge-shift-y / --ge-shift-x
-  const off = getGarantiaOffsets(posicao);
-  const syPct = (((off.top || 0) - (off.bottom || 0)) / 29.7 * 100).toFixed(3);
-  const sxPct = (((off.left || 0) - (off.right || 0)) / 21.0 * 100).toFixed(3);
+
+  // Só injecta --ge-shift-y/x inline para "custom" (valores vêm do dialog do usuário).
+  // Para hp / brother / hp-a5 / hp-a6 o CSS da classe já define os shifts — não sobrescrever.
+  let inlineStyle = '';
+  if (posicao === 'custom') {
+    const off = getGarantiaOffsets('custom');
+    const syPct = (((off.top || 0) - (off.bottom || 0)) / 29.7 * 100).toFixed(3);
+    const sxPct = (((off.left || 0) - (off.right || 0)) / 21.0 * 100).toFixed(3);
+    inlineStyle = ` style="--ge-shift-y:${syPct}%;--ge-shift-x:${sxPct}%;"`;
+  }
 
   // Gera os 6 spans de um tier, com prefixo de classe por tier (g12/g24/g36)
   const tierHtml = (tier, prefix) => {
@@ -76,7 +82,7 @@ function renderGarantiaOverlay(product) {
       <span class="pgv ${prefix}-tx2">${tx2}</span>`;
   };
 
-  return `<div class="poster-ge poster-ge-${posicao}" style="--ge-shift-y:${syPct}%;--ge-shift-x:${sxPct}%;">${
+  return `<div class="poster-ge poster-ge-${posicao}"${inlineStyle}>${
     tierHtml(tiers[0], 'g12')}${
     tierHtml(tiers[1], 'g24')}${
     tierHtml(tiers[2], 'g36')}
@@ -302,6 +308,7 @@ function salvarCartazesLocalStorage() {
         parcela: p.parcela,
         motivo: p.motivo || "",
         validade: p.validade || "",
+        validadeInicio: p.validadeInicio || "",
         autorizacao: p.autorizacao || "",
         garantia12: p.garantia12 || 0,
         garantia24: p.garantia24 || 0,
@@ -370,6 +377,7 @@ function gerarJSONCartazes() {
       parcela: p.parcela,
       motivo: p.motivo || "",
       validade: p.validade || "",
+      validadeInicio: p.validadeInicio || "",
       autorizacao: p.autorizacao || "",
       garantia12: p.garantia12 || 0,
       garantia24: p.garantia24 || 0,
@@ -678,7 +686,7 @@ function formatDate(dateStr) {
   return `${d}/${m}/${y}`;
 }
 
-function formatDateExtended(dateStr) {
+function formatDateExtended(dateStr, inicioStr) {
   if (!dateStr) return "";
   const [y, m, d] = dateStr.split("-");
   const meses = [
@@ -696,7 +704,17 @@ function formatDateExtended(dateStr) {
     "dezembro",
   ];
   const mesNome = meses[parseInt(m) - 1];
-  return `Oferta válida até ${parseInt(d)} de ${mesNome} de ${y}`;
+  const diaFim  = parseInt(d);
+
+  if (inicioStr) {
+    const [iy, im, id] = inicioStr.split("-");
+    const diaIni = parseInt(id);
+    const mesIni = String(im).padStart(2, '0');
+    const mesFim = String(m).padStart(2, '0');
+    return `Oferta válida de ${diaIni}/${mesIni} até ${diaFim}/${mesFim}/${String(y).slice(-2)}`;
+  }
+
+  return `Oferta válida até ${diaFim} de ${mesNome} de ${y}`;
 }
 
 // Aplicar máscara de moeda nos inputs
@@ -1020,7 +1038,8 @@ function recalcularParcela() {
       if (FATORES[tipoTaxa] && FATORES[tipoTaxa][numParcelas]) {
         const fator = FATORES[tipoTaxa][numParcelas];
         let parcela = avista * fator;
-        parcela = arredondar90(parcela);
+        // Sem arredondamento para ,90 — mantém o valor real calculado
+        parcela = Math.round(parcela * 100) / 100;
         parcelaInput.value = parcela ? formatCurrency(parcela.toFixed(2)) : "";
       }
     } else {
@@ -1054,7 +1073,8 @@ function recalcularParcela() {
     if (FATORES[tipoTaxa] && FATORES[tipoTaxa][numParcelas]) {
       const fator = FATORES[tipoTaxa][numParcelas];
       parcela = avista * fator;
-      parcela = arredondar90(parcela);
+      // Sem arredondamento para ,90 — mantém o valor real calculado
+      parcela = Math.round(parcela * 100) / 100;
     }
 
     parcelaInput.value = parcela
@@ -1124,6 +1144,7 @@ productForm.addEventListener("submit", (e) => {
   const validade = document
     .getElementById("validade")
     .value.trim();
+  const validadeInicio = (document.getElementById("validade-inicio")?.value || "").trim();
   const autorizacao = document
     .getElementById("autorizacao")
     .value.trim();
@@ -1272,6 +1293,7 @@ productForm.addEventListener("submit", (e) => {
     parcela: parcelaFinal,
     motivo,
     validade,
+    validadeInicio,
     autorizacao,
     garantia12: g12Val,
     garantia24: g24Val,
@@ -1531,7 +1553,7 @@ function generatePosterHTML(product, isPreview = false) {
 
   // Validade por extenso
   const validadeExtensa = product.validade
-    ? formatDateExtended(product.validade)
+    ? formatDateExtended(product.validade, product.validadeInicio || '')
     : "";
 
   // Calcular tamanho da fonte baseado no número de dígitos
