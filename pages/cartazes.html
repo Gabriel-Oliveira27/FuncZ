@@ -146,7 +146,7 @@
                     <span>Voltar ao início</span>
                 </button>
                 
-                <p>v5.5.4 • Sistema cartazes</p>
+                <p>v5.5.7 • Sistema cartazes</p>
                 <p>© 2025–2026 Gabriel Oliveira</p>
                 <p>Todos os direitos reservados.</p>
  
@@ -443,27 +443,17 @@
 
                     <!-- Abas de método de importação -->
                     <div class="import-tabs">
-                        <button class="import-tab active" data-import-tab="texto">
-                            <i class="fa-solid fa-keyboard"></i>
-                            <span>Colar JSON</span>
-                        </button>
-                        <button class="import-tab" data-import-tab="arquivo">
+
+                        <button class="import-tab active" data-import-tab="arquivo">
                             <i class="fa-solid fa-file-upload"></i>
                             <span>Upload de Arquivo</span>
                         </button>
                     </div>
 
-                    <!-- Conteúdo: Colar JSON -->
-                    <div id="import-content-texto" class="import-content active">
-                        <div class="form-group">
-                            <label for="json-text-input">JSON dos Cartazes *</label>
-                            <textarea id="json-text-input" rows="12" placeholder='{"cartazes": [...]}'></textarea>
-                            <p class="help-text">Cole o JSON exportado do sistema</p>
-                        </div>
-                    </div>
+            
 
                     <!-- Conteúdo: Upload de Arquivo -->
-                    <div id="import-content-arquivo" class="import-content">
+                    <div id="import-content-arquivo" class="import-content active">
                         <!-- Sub-abas dentro de Upload de Arquivo -->
                         <div class="sub-import-tabs">
                             <button class="sub-import-tab active" data-sub-import-tab="drive">

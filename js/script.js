@@ -987,6 +987,8 @@ const campoAutorizacao = document.getElementById(
 
 jurosSelect.addEventListener("change", () => {
   const juros = jurosSelect.value;
+  const metodo = document.getElementById("metodo").value;
+  const metodosSemTaxa = ["1x", "3x", "5x", "10x"];
 
   // Esconder todos primeiro
   extrasContainer.style.display = "none";
@@ -995,7 +997,6 @@ jurosSelect.addEventListener("change", () => {
   campoAutorizacao.style.display = "none";
 
   if (juros === "carne") {
-    // Carnê: nenhum campo extra
     extrasContainer.style.display = "none";
   } else if (juros === "cartao") {
     // Cartão: mostra APENAS validade (sem motivo)
@@ -1008,6 +1009,63 @@ jurosSelect.addEventListener("change", () => {
     campoAutorizacao.style.display = "block";
   }
 });
+
+// Mostra/esconde o checkbox de validade para métodos sem taxa (1x, 3x, 5x, 10x)
+function _sincValidadeCheckbox(metodo) {
+  const metodosSemTaxa = ["1x", "3x", "5x", "10x"];
+  const boxHabilitar = document.getElementById("campo-habilitar-validade");
+  if (!boxHabilitar) return;
+  if (metodosSemTaxa.includes(metodo)) {
+    boxHabilitar.style.display = "block";
+  } else {
+    boxHabilitar.style.display = "none";
+    const chk = document.getElementById("habilitar-validade");
+    if (chk) chk.checked = false;
+    const campoVal = document.getElementById("campo-validade");
+    if (campoVal) campoVal.style.display = "none";
+    const fimEl = document.getElementById("validade");
+    const iniEl = document.getElementById("validade-inicio");
+    if (fimEl) fimEl.value = "";
+    if (iniEl) iniEl.value = "";
+    atualizarPreviewValidade();
+  }
+}
+
+// Toggle do checkbox "Mostrar validade" para parcelamentos sem taxa
+window.toggleHabilitarValidade = function(label) {
+  const chk = document.getElementById("habilitar-validade");
+  if (!chk) return;
+  const mostrar = chk.checked;
+  const extrasEl = document.getElementById("extra-campos");
+  const campoVal = document.getElementById("campo-validade");
+  if (mostrar) {
+    if (extrasEl) extrasEl.style.display = "block";
+    if (campoVal) campoVal.style.display = "block";
+  } else {
+    if (campoVal) campoVal.style.display = "none";
+    const fimEl = document.getElementById("validade");
+    const iniEl = document.getElementById("validade-inicio");
+    if (fimEl) fimEl.value = "";
+    if (iniEl) iniEl.value = "";
+    atualizarPreviewValidade();
+  }
+};
+
+// Atualiza o preview do texto de validade em tempo real
+window.atualizarPreviewValidade = function() {
+  const fimEl  = document.getElementById("validade");
+  const iniEl  = document.getElementById("validade-inicio");
+  const prevEl = document.getElementById("validade-preview");
+  const txtEl  = document.getElementById("validade-preview-texto");
+  if (!fimEl || !prevEl || !txtEl) return;
+  const texto = formatDateExtended(fimEl.value, iniEl?.value || '');
+  if (texto) {
+    txtEl.textContent = texto;
+    prevEl.classList.add("active");
+  } else {
+    prevEl.classList.remove("active");
+  }
+};
 
 // Cálculo automático de parcela com lógicas especiais por parcelamento
 function recalcularParcela() {
@@ -2961,6 +3019,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (labelTaxa) labelTaxa.textContent = `Aplicar taxa em ${metodoVal}`;
         // Mostrar checkbox "Sem juros?"
         if (checkboxSemJuros) checkboxSemJuros.style.display = "flex";
+        // Mostrar checkbox de validade
+        _sincValidadeCheckbox(metodoVal);
 
         if (!habilitarTaxa1x.checked) {
           // Remover required e desabilitar juros
@@ -2989,6 +3049,8 @@ document.addEventListener("DOMContentLoaded", () => {
         jurosSelect.setAttribute("required", "required");
         parcelaInput.disabled = false;
         parcelaInput.removeAttribute("readonly");
+        // Esconder checkbox de validade para métodos com taxa obrigatória
+        _sincValidadeCheckbox(metodoVal);
       }
     });
 
