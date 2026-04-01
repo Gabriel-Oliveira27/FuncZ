@@ -4323,8 +4323,9 @@ body.mobile-detected {
 
 /* ------------------------------------------------------------------
    HP - A5
-   Posição: 2cm abaixo do HP padrão  →  --ge-shift-y: -6.73%
-            (negativo = desce, pois bottom aumenta para cima)
+   Posição: 1cm abaixo do HP padrão + 0,5cm para a direita
+            Vertical:   -1cm   → --ge-shift-y: -3.367%  (1/29.7×100)
+            Horizontal: +0.5cm → --ge-shift-x: +2.381%  (0.5/21.0×100)
    Fonte: 8.5pt  (HP padrão = 6.5pt, +2pt)
 
    ← AJUSTE HP-A5 VERTICAL:   altere --ge-shift-y abaixo.
@@ -4333,8 +4334,8 @@ body.mobile-detected {
      Fórmula: 1cm para direita = +4.76% | 1cm para esquerda = -4.76%
    ------------------------------------------------------------------ */
 .poster-ge-hp-a5 {
-  --ge-shift-y: -6.73%;  /* ← AJUSTE VERTICAL HP-A5: 2cm abaixo do HP padrão */
-  --ge-shift-x: 0%;       /* ← AJUSTE HORIZONTAL HP-A5 */
+  --ge-shift-y: -3.367%;  /* ← AJUSTE VERTICAL HP-A5: 1cm abaixo do HP padrão */
+  --ge-shift-x: 2.381%;   /* ← AJUSTE HORIZONTAL HP-A5: 0.5cm para a direita */
 }
 
 /* Aumenta fonte 2pt para HP-A5 */
@@ -4424,12 +4425,13 @@ body.mobile-detected {
 
 /* ---- Coluna +3 ANOS (+36 meses) ---- */
 
-.g36-n   { left: calc(73.6% + var(--ge-shift-x)); bottom: calc(10.4% + var(--ge-shift-y)); }
-.g36-vrc { left: calc(82.7% + var(--ge-shift-x)); bottom: calc(10.4% + var(--ge-shift-y)); }
-.g36-vtp { left: calc(82.7% + var(--ge-shift-x)); bottom: calc( 8.6% + var(--ge-shift-y)); font-weight: 400; }
-.g36-vi  { left: calc(82.7% + var(--ge-shift-x)); bottom: calc( 6.9% + var(--ge-shift-y)); }
-.g36-tx1 { left: calc(75.8% + var(--ge-shift-x)); bottom: calc( 5.0% + var(--ge-shift-y)); font-weight: 400; font-size: 5.5pt; }
-.g36-tx2 { left: calc(85% + var(--ge-shift-x)); bottom: calc( 5.0% + var(--ge-shift-y)); font-weight: 400; font-size: 5.5pt; }
+/* ---- Coluna +3 ANOS (+36 meses) — deslocada +0,4cm para a direita (1.905%) ---- */
+.g36-n   { left: calc(75.5% + var(--ge-shift-x)); bottom: calc(10.4% + var(--ge-shift-y)); }
+.g36-vrc { left: calc(84.6% + var(--ge-shift-x)); bottom: calc(10.4% + var(--ge-shift-y)); }
+.g36-vtp { left: calc(84.6% + var(--ge-shift-x)); bottom: calc( 8.6% + var(--ge-shift-y)); font-weight: 400; }
+.g36-vi  { left: calc(84.6% + var(--ge-shift-x)); bottom: calc( 6.9% + var(--ge-shift-y)); }
+.g36-tx1 { left: calc(77.7% + var(--ge-shift-x)); bottom: calc( 5.0% + var(--ge-shift-y)); font-weight: 400; font-size: 5.5pt; }
+.g36-tx2 { left: calc(86.9% + var(--ge-shift-x)); bottom: calc( 5.0% + var(--ge-shift-y)); font-weight: 400; font-size: 5.5pt; }
 
 /* ====================================================================
    CONTROLES DE POSIÇÃO GE NO CARD DE PREVIEW

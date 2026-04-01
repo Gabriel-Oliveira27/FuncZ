@@ -2091,6 +2091,8 @@ document
 
         document.body.appendChild(clone);
 
+        // Após append, o browser resolve mm → px. offsetWidth/Height é consistente
+        // entre Chrome e Firefox (scrollWidth pode diferir em Firefox).
         const canvas = await html2canvas(clone, {
           scale: 2,
           backgroundColor: "#fff",
@@ -2099,9 +2101,8 @@ document
           logging: false,
           removeContainer: false,
           imageTimeout: 0,
-          // 🔧 FIX CROSS-BROWSER: Força rendering consistente
-          windowWidth: clone.scrollWidth,
-          windowHeight: clone.scrollHeight,
+          windowWidth:  clone.offsetWidth,
+          windowHeight: clone.offsetHeight,
         });
         const img = canvas.toDataURL("image/jpeg", 1.0);
 

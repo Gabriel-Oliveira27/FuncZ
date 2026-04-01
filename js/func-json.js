@@ -1156,10 +1156,7 @@ function controlarVisibilidadeSuporte() {
     
     if (verificarPermissaoSuporte()) {
         suporteSection.style.display = 'block';
-        console.log('✅ Usuário tem permissão de suporte/admin');
-    } else {
-        suporteSection.style.display = 'none';
-        console.log('ℹ️ Usuário sem permissão de suporte');
+        console.log('Permitido suporte/admin');
     }
 }
 
@@ -1256,7 +1253,7 @@ async function buscarJSONNaCloud(user, filial) {
 
     try {
         const url = `${CLOUD_WORKER_ENDPOINT}?user=${encodeURIComponent(user)}&filial=${encodeURIComponent(filial)}`;
-        console.log('[Cloud] Fetching URL:', url);
+        console.log('Procurando', url);
 
         const response = await fetch(url);
         // debug rápido
