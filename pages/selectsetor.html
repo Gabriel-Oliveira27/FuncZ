@@ -4,265 +4,1113 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="../image/zenirlogo.png">
-    <link rel="icon" type="image/png" href="Imagens/zenirlogo.png" />
-    <title>Ínicio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <title>Início</title>
     <link rel="stylesheet" href="../css/ss.css" />
 </head>
 <body>
-    <!-- Toast container (reutilizável) -->
-    <div id="toastContainer" class="toast-container"></div>
 
-    <!-- Header -->
-    <header>
-     <div class="logo-container">
-        <div class="logo">
-            <img id="companyLogo" src="../image/zenirlogo.png" alt="Zenir" onerror="this.style.display='none';" /></div>
-     </div>
-        
-        <div class="header-actions">
-            <button class="header-btn" id="themeToggle" aria-label="Alternar tema">
-                <svg class="icon" id="themeIcon" viewBox="0 0 24 24">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                </svg>
-                <span id="themeText">Tema Escuro</span>
-            </button>
-            
-            <button class="header-btn" id="lockButton" aria-label="Bloquear tela">
-                <svg class="icon" viewBox="0 0 24 24">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
-                <span>Bloquear</span>
-            </button>
-            
-            <button class="header-btn" id="loginButton" aria-label="Fazer login">
-                <svg class="icon" viewBox="0 0 24 24">
-                    <path d="M14 4L17.5 4C20.5577 4 20.5 8 20.5 12C20.5 16 20.5577 20 17.5 20H14M15 12L3 12M15 12L11 16M15 12L11 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span>Login</span>
-            </button>
-            
-            <button class="header-btn header-btn-destructive" id="logoutButton" aria-label="Sair">
-                <svg class="icon" viewBox="0 0 24 24">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                </svg>
-                <span>Sair</span>
-            </button>
-        </div>
-    </header>
+<!-- Mesh background -->
+<div class="mesh-bg" aria-hidden="true">
+    <div class="mesh-blob mesh-blob-1"></div>
+    <div class="mesh-blob mesh-blob-2"></div>
+    <div class="mesh-blob mesh-blob-3"></div>
+</div>
 
-    <!-- Main Content -->
-    <main>
-        <!-- Welcome Section with Quick Reactions -->
-        <div class="welcome-section">
-            <h2 id="welcomeHeadline" class="welcome-title">Olá, <span id="userName">Usuário</span>!</h2>          
-            <!-- Quick Reactions (Frases Dinâmicas) -->
-            <div class="quick-reactions" id="quickReactions">
-                <!-- Populated by JS -->
-            </div>
-        </div>
+<!-- Toast -->
+<div id="toastContainer" class="toast-container"></div>
 
-        <!-- Cards Grid (Bento Grid) -->
-        <div class="cards-grid">
-            <!-- Card Vendas -->
-            <div class="card" id="card-vendas" data-feature="vendas" role="button" tabindex="0">
-                <div class="card-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
-                        <line x1="7" y1="7" x2="7.01" y2="7"></line>
-                    </svg>
-                </div>
-                <div class="card-body">
-                    <h3 class="card-title">Vendas</h3>
-                    <p class="card-description">Gerar cartazes</p>
-                </div>
-                <div class="card-arrow">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                        <polyline points="12 5 19 12 12 19"></polyline>
-                    </svg>
-                </div>
-            </div>
+<!-- ═══════════════════════════════════════════════
+     FLOATING WIDGET — Clima · Meta · Dica
+═══════════════════════════════════════════════ -->
+<div class="fw-wrapper" id="floatingWidget">
 
-            <!-- Card Faturamento -->
-            <div class="card" id="card-faturamento" data-feature="faturamento" role="button" tabindex="0">
-                <div class="card-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="16" y1="13" x2="8" y2="13"></line>
-                        <line x1="16" y1="17" x2="8" y2="17"></line>
-                        <polyline points="10 9 9 9 8 9"></polyline>
-                    </svg>
-                </div>
-                <div class="card-body">
-                    <h3 class="card-title">Faturamento</h3>
-                    <p class="card-description">Declarações de devolução</p>
-                </div>
-                <div class="card-arrow">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                        <polyline points="12 5 19 12 12 19"></polyline>
-                    </svg>
-                </div>
-            </div>
-
-            <!-- Card Administração -->
-            <div class="card" id="card-admin" data-feature="admin" role="button" tabindex="0" style="display:none;">
-                <div class="card-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <!-- Boneco (pessoa) -->
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                        <!-- Engrenagem no canto -->
-                        <circle cx="18" cy="8" r="3" fill="white" stroke="currentColor" stroke-width="1.5"></circle>
-                        <path d="M18 6.5v3M16.5 8h3" stroke-width="1.5"></path>
-                    </svg>
-                </div>
-                <div class="card-body">
-                    <h3 class="card-title">Administração</h3>
-                    <p class="card-description">Gerenciar sistema</p>
-                </div>
-                <div class="card-arrow">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                        <polyline points="12 5 19 12 12 19"></polyline>
-                    </svg>
-                </div>
-            </div>
-
-            <!-- Card Suporte -->
-            <div class="card" id="card-suporte" data-feature="suporte" role="button" tabindex="0">
-                <div class="card-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <!-- Headset de suporte -->
-                        <path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5a9 9 0 0 1 18 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"></path>
-                    </svg>
-                </div>
-                <div class="card-body">
-                    <h3 class="card-title">Suporte</h3>
-                    <p class="card-description">Central de ajuda</p>
-                </div>
-                <div class="card-arrow">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                        <polyline points="12 5 19 12 12 19"></polyline>
-                    </svg>
-                </div>
-            </div>
-        </div>
-
-        <!-- Buttons (Sobre mantido no final) -->
-        <div class="buttons-container">
-            <button class="btn btn-outline" id="btn-sobre">
-                <svg class="icon" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="16" x2="12" y2="12"></line>
-                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                </svg>
-                <span>Sobre</span>
-            </button>
-        </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3 class="footer-title">Sistema de Gestão</h3>
-                <p class="footer-description">Plataforma moderna para geração de cartazes, declarações e outras funcionalidades.</p>
-            </div>
-            
-            <div class="footer-section">
-                <h4 class="footer-subtitle">Links Rápidos</h4>
-                <ul class="footer-links">
-                    <li><a href="sobre.html" class="footer-link" id="footer-sobre">
-                        <img src="../image/informacoes.png" alt="info" class="footer-icon">
-                        Sobre o Sistema
-                    </a></li>
-                    <li><a href="../suporte/suporte.html" class="footer-link" id="footer-help">
-                        <img src="../image/help.png" alt="ajuda" width="25" style="margin-left: -4px;">
-                        Ajuda
-                    </a></li>
-                </ul>
-            </div>
-            
-            <div class="footer-section">
-                <h4 class="footer-subtitle">Informações</h4>
-                <div class="footer-info">
-                    <div class="footer-info-item">
-                        <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                            <line x1="16" y1="2" x2="16" y2="6"></line>
-                            <line x1="8" y1="2" x2="8" y2="6"></line>
-                            <line x1="3" y1="10" x2="21" y2="10"></line>
-                        </svg>
-                        <span id="footer-year">2024</span>
-                    </div>
-                    <div class="footer-info-item">
-                        <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                        <span id="footer-user">Usuário</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="footer-bottom">
-            <p class="footer-copyright">© <span id="footer-copyright-year">2024</span> Gabriel Oliveira. Todos os direitos reservados.</p>
-        </div>
-    </footer>
-
-    <!-- Lock Screen (mantido do original) -->
-    <div class="lock-screen" id="lockScreen" aria-hidden="true" role="dialog">
-        <div class="bg-circle bg-circle-1"></div>
-        <div class="bg-circle bg-circle-2"></div>
-        
-        <div class="lock-screen-content">
-            <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+    <button class="fw-fab" id="fwFab" aria-label="Painel rápido">
+        <span class="fw-fab-icon fw-fab-closed">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
             </svg>
+        </span>
+        <span class="fw-fab-icon fw-fab-open" style="display:none">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+        </span>
+    </button>
 
-            <div class="lock-time" id="lockTime">00:00</div>
-            <div class="lock-date" id="lockDate"></div>
+    <div class="fw-panel" id="fwPanel" aria-hidden="true">
 
-            <div class="lock-quote">
-                <p id="lockQuote"></p>
+        <!-- ── Clima ── -->
+        <div class="fw-block fw-block-weather">
+            <div class="fw-block-header">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                Clima · <span id="fwCity">Iguatu, CE</span>
+                <button class="fw-icon-btn" id="fwWeatherRefresh" title="Atualizar clima">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                </button>
             </div>
-
-            <div class="lock-info-grid">
-                <div class="lock-info-card">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="weatherIcon">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
+            <div class="fw-weather-body" id="fwWeatherBody">
+                <div class="fw-weather-main">
+                    <span class="fw-weather-icon" id="fwWeatherEmoji">⛅</span>
+                    <span class="fw-weather-temp" id="fwWeatherTemp">--°</span>
                 </div>
+                <div class="fw-weather-desc" id="fwWeatherDesc">Carregando...</div>
+                <div class="fw-weather-extra" id="fwWeatherExtra"></div>
+            </div>
+        </div>
 
-                <div class="lock-info-card" id="infoCard">
-                    <div id="infoCardContainer">
-                        <!-- Conteúdo inicial carregado pelo JS -->
-                        <div class="info-loading">Carregando...</div>
+        <div class="fw-divider"></div>
+
+        <!-- ── Meta do dia ── -->
+        <div class="fw-block fw-block-meta">
+            <div class="fw-block-header">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Meta do dia
+                <button class="fw-icon-btn" id="fwMetaReset" title="Zerar">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                </button>
+            </div>
+            <div class="fw-meta-body">
+                <div class="fw-meta-row">
+                    <span class="fw-meta-label">Cartazes gerados</span>
+                    <div class="fw-meta-controls">
+                        <button class="fw-counter-btn fw-counter-minus" data-key="cartazes">−</button>
+                        <span class="fw-counter-val" id="fwCartazes">0</span>
+                        <button class="fw-counter-btn fw-counter-plus" data-key="cartazes">+</button>
                     </div>
                 </div>
+                <div class="fw-meta-row">
+                    <span class="fw-meta-label">Declarações</span>
+                    <div class="fw-meta-controls">
+                        <button class="fw-counter-btn fw-counter-minus" data-key="declaracoes">−</button>
+                        <span class="fw-counter-val" id="fwDeclaracoes">0</span>
+                        <button class="fw-counter-btn fw-counter-plus" data-key="declaracoes">+</button>
+                    </div>
+                </div>
+                <div class="fw-meta-bar-wrap">
+                    <div class="fw-meta-bar" id="fwMetaBar" style="width:0%"></div>
+                </div>
+                <div class="fw-meta-hint" id="fwMetaHint">Nenhuma atividade ainda hoje</div>
             </div>
+        </div>
 
-            <button class="unlock-button" id="unlockButton">Desbloquear</button>
+        <div class="fw-divider"></div>
+
+        <!-- ── Curiosidade / Dica ── -->
+        <div class="fw-block fw-block-tip">
+            <div class="fw-block-header">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                Dica do dia
+                <button class="fw-icon-btn" id="fwTipNext" title="Próxima dica">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+            </div>
+            <p class="fw-tip-text" id="fwTipText">Carregando...</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- Header -->
+<header>
+    <div class="logo-container">
+        <div class="logo">
+            <img id="companyLogo" src="../image/zenirlogo.png" alt="Zenir" onerror="this.style.display='none';" />
         </div>
     </div>
+    <div class="header-actions">
+        <button class="header-btn" id="themeToggle" aria-label="Alternar tema">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            <span id="themeText">Tema Escuro</span>
+        </button>
+        <button class="header-btn" id="lockButton" aria-label="Bloquear tela">
+            <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <span>Bloquear</span>
+        </button>
+        <button class="header-btn" id="loginButton" aria-label="Fazer login">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M14 4L17.5 4C20.5577 4 20.5 8 20.5 12C20.5 16 20.5577 20 17.5 20H14M15 12L3 12M15 12L11 16M15 12L11 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>Login</span>
+        </button>
+        <button class="header-btn header-btn-destructive" id="logoutButton" aria-label="Sair">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            <span>Sair</span>
+        </button>
+    </div>
+</header>
 
-    <script src="../js/ss.js"></script>
-    <script src="../js/session-guard.js"></script>
+<!-- Main -->
+<main>
+    <!-- Welcome -->
+    <div class="welcome-section">
+        <div class="welcome-badge">
+            <span class="status-dot"></span>
+            Sistema Online
+        </div>
+        <h2 id="welcomeHeadline" class="welcome-title">
+            Olá, <span id="userName" class="user-name-highlight">Usuário</span>!
+        </h2>
+        <p id="welcomeSub" class="welcome-subtitle">Selecione um setor para continuar</p>
+
+        <!-- Perguntas motivacionais -->
+        <div class="quick-reactions" id="quickReactions"></div>
+    </div>
+
+    <!-- Cards -->
+    <div class="cards-grid">
+
+        <div class="card" id="card-vendas" data-feature="vendas" data-color="blue" role="button" tabindex="0">
+            <div class="card-glow"></div>
+            <div class="card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                    <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                </svg>
+            </div>
+            <div class="card-body">
+                <h3 class="card-title">Vendas</h3>
+                <p class="card-description">Gerar cartazes e etiquetas de preço</p>
+            </div>
+            <div class="card-footer">
+                <span class="card-tag">Cartazista</span>
+                <div class="card-arrow">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" id="card-faturamento" data-feature="faturamento" data-color="red" role="button" tabindex="0">
+            <div class="card-glow"></div>
+            <div class="card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+            </div>
+            <div class="card-body">
+                <h3 class="card-title">Faturamento</h3>
+                <p class="card-description">Declarações de devolução e NF</p>
+            </div>
+            <div class="card-footer">
+                <span class="card-tag">Fiscal</span>
+                <div class="card-arrow">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" id="card-admin" data-feature="admin" data-color="slate" role="button" tabindex="0" style="display:none;">
+            <div class="card-glow"></div>
+            <div class="card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                    <circle cx="18" cy="8" r="2.5" fill="none" stroke-width="1.5"></circle>
+                    <path d="M18 6v4M16 8h4" stroke-width="1.5"></path>
+                </svg>
+            </div>
+            <div class="card-body">
+                <h3 class="card-title">Administração</h3>
+                <p class="card-description">Gerenciar usuários e sistema</p>
+            </div>
+            <div class="card-footer">
+                <span class="card-tag">Admin</span>
+                <div class="card-arrow">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" id="card-suporte" data-feature="suporte" data-color="blue-light" role="button" tabindex="0">
+            <div class="card-glow"></div>
+            <div class="card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5a9 9 0 0 1 18 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"></path>
+                </svg>
+            </div>
+            <div class="card-body">
+                <h3 class="card-title">Suporte</h3>
+                <p class="card-description">Central de ajuda e chamados</p>
+            </div>
+            <div class="card-footer">
+                <span class="card-tag">Help</span>
+                <div class="card-arrow">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JS compat -->
+    <div class="buttons-container">
+        <button class="btn btn-outline" id="btn-sobre"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg><span>Sobre</span></button>
+    </div>
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="footer-content">
+        <div class="footer-section">
+            <h3 class="footer-title">Sistema de Gestão</h3>
+            <p class="footer-description">Ferramenta online de criação de cartazes pronta e parada para o dia a dia.</p>
+        </div>
+        <div class="footer-section">
+            <h4 class="footer-subtitle">Links Rápidos</h4>
+            <ul class="footer-links">
+                <li><a href="sobre.html" class="footer-link" id="footer-sobre"><img src="../image/informacoes.png" alt="info" class="footer-icon-img"> Sobre o Sistema</a></li>
+                <li><a href="../suporte/suporte.html" class="footer-link" id="footer-help"><img src="../image/help.png" alt="ajuda" class="footer-icon-img"> Ajuda</a></li>
+            </ul>
+        </div>
+        <div class="footer-section">
+            <h4 class="footer-subtitle">Informações</h4>
+            <div class="footer-info">
+                <div class="footer-info-item">
+                    <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <span id="footer-year">2024</span>
+                </div>
+                <div class="footer-info-item">
+                    <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    <span id="footer-user">Usuário</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p class="footer-copyright">© <span id="footer-copyright-year">2024</span> Gabriel Oliveira. Todos os direitos reservados.</p>
+    </div>
+</footer>
+
+<!-- ═══════════════════════════════════════════════
+     LOCK SCREEN
+═══════════════════════════════════════════════ -->
+<div class="lock-screen" id="lockScreen" aria-hidden="true" role="dialog">
+    <div class="bg-circle bg-circle-1"></div>
+    <div class="bg-circle bg-circle-2"></div>
+
+    <!-- ✈️ CENA DO AVIÃO — canvas infinito -->
+    <canvas class="plane-canvas" id="planeCanvas" aria-hidden="true"></canvas>
+
+    <!-- Conteúdo do lock -->
+    <div class="lock-screen-content">
+        <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        <div class="lock-time" id="lockTime">00:00</div>
+        <div class="lock-date" id="lockDate"></div>
+        <div class="lock-quote"><p id="lockQuote"></p></div>
+        <div class="lock-info-grid">
+            <div class="lock-info-card">
+                <svg class="icon" id="weatherIcon" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+            </div>
+            <div class="lock-info-card" id="infoCard">
+                <div id="infoCardContainer"><div class="info-loading">Carregando...</div></div>
+            </div>
+        </div>
+        <button class="unlock-button" id="unlockButton">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            Desbloquear
+        </button>
+    </div>
+</div>
+
+<script src="../js/ss.js"></script>
+<script src="../js/session-guard.js"></script>
+
+<!-- ═══════════════════════════════════════════════
+     ENHANCEMENTS
+═══════════════════════════════════════════════ -->
+<script>
+(function () {
+'use strict';
+
+/* ══════════════════════════════════════
+   1. 3D TILT + SHINE + RIPPLE
+══════════════════════════════════════ */
+function initCardFX() {
+    document.querySelectorAll('.card:not(.locked)').forEach(card => {
+        if (card._tiltInit) return;
+        card._tiltInit = true;
+        let shine = card.querySelector('.card-shine');
+        if (!shine) { shine = document.createElement('div'); shine.className = 'card-shine'; card.appendChild(shine); }
+        card.addEventListener('mousemove', e => {
+            const r = card.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+            card.style.transition = 'box-shadow .12s ease';
+            card.style.transform = `translateY(-8px) rotateX(${((y-r.height/2)/r.height/2)*-6}deg) rotateY(${((x-r.width/2)/r.width/2)*6}deg) scale(1.01)`;
+            shine.style.background = `radial-gradient(circle at ${(x/r.width)*100}% ${(y/r.height)*100}%, rgba(255,255,255,0.17) 0%, transparent 65%)`;
+            shine.style.opacity = '1';
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.transition = 'all .44s cubic-bezier(.34,1.56,.64,1)';
+            card.style.transform = ''; shine.style.opacity = '0';
+        });
+    });
+}
+document.addEventListener('click', e => {
+    const card = e.target.closest('.card[data-feature]:not(.locked)');
+    if (!card) return;
+    const r = card.getBoundingClientRect(), rp = document.createElement('span');
+    rp.className = 'card-ripple';
+    rp.style.cssText = `left:${e.clientX-r.left}px;top:${e.clientY-r.top}px`;
+    card.appendChild(rp);
+    rp.addEventListener('animationend', () => rp.remove());
+}, true);
+new MutationObserver(() => setTimeout(initCardFX, 80))
+    .observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class'] });
+
+/* ══════════════════════════════════════
+   2. ✈️ AVIÃO INFINITO NO CANVAS
+   Paisagem: céu gradiente, nuvens, chão,
+   prédios e montanhas desfilam da direita
+══════════════════════════════════════ */
+let planeRAF = null;
+let planeActive = false;
+
+const PlaneScene = (function () {
+    let canvas, ctx, W, H;
+    let t = 0; // tempo global
+
+    /* -- Avião -- */
+    const plane = { x: 0, y: 0, angle: 0, trail: [] };
+
+    /* -- Nuvens (parallax 3 camadas) -- */
+    const CLOUD_LAYERS = [
+        { speed: 0.18, scale: 0.55, y: 0.15, opacity: 0.45, clouds: [] },
+        { speed: 0.30, scale: 0.80, y: 0.25, opacity: 0.60, clouds: [] },
+        { speed: 0.50, scale: 1.05, y: 0.38, opacity: 0.75, clouds: [] },
+    ];
+
+    /* -- Objetos de chão (prédios + montanhas) -- */
+    const GROUND = { items: [], speed: 0.9 };
+
+    function rng(min, max) { return min + Math.random() * (max - min); }
+
+    function initClouds() {
+        CLOUD_LAYERS.forEach(layer => {
+            layer.clouds = [];
+            for (let i = 0; i < 5; i++) {
+                layer.clouds.push({ x: rng(0, W), size: rng(55, 110) * layer.scale });
+            }
+        });
+    }
+
+    function spawnGround() {
+        /* spawn prédio ou montanha */
+        const type = Math.random() < 0.52 ? 'building' : 'mountain';
+        const groundY = H * 0.74; // linha do chão
+        if (type === 'building') {
+            const w = rng(28, 62);
+            const h = rng(40, 130);
+            GROUND.items.push({
+                type: 'building',
+                x: W + rng(0, 80),
+                y: groundY - h,
+                w, h,
+                windows: Math.floor(rng(2, 6)),
+                color: `hsl(${rng(200,225)},${rng(18,35)}%,${rng(30,50)}%)`
+            });
+        } else {
+            const w = rng(90, 200);
+            const h = rng(60, 160);
+            GROUND.items.push({
+                type: 'mountain',
+                x: W + rng(0, 60),
+                y: groundY,
+                w, h,
+                color: `hsl(${rng(195,215)},${rng(15,28)}%,${rng(28,44)}%)`
+            });
+        }
+        /* schedule next */
+        const delay = rng(1200, 3000);
+        if (planeActive) setTimeout(spawnGround, delay);
+    }
+
+    function drawCloud(cx, cy, size, opacity) {
+        ctx.save();
+        ctx.globalAlpha = opacity;
+        ctx.fillStyle = 'rgba(255,255,255,0.92)';
+        ctx.shadowColor = 'rgba(255,255,255,0.4)';
+        ctx.shadowBlur = 10;
+        const puffs = [
+            { dx: 0, dy: 0, r: size * 0.50 },
+            { dx: -size * 0.38, dy: size * 0.10, r: size * 0.36 },
+            { dx:  size * 0.38, dy: size * 0.10, r: size * 0.36 },
+            { dx: -size * 0.18, dy: -size * 0.20, r: size * 0.28 },
+            { dx:  size * 0.18, dy: -size * 0.20, r: size * 0.28 },
+        ];
+        puffs.forEach(p => {
+            ctx.beginPath();
+            ctx.arc(cx + p.dx, cy + p.dy, p.r, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        ctx.restore();
+    }
+
+    function drawBuilding(item) {
+        ctx.save();
+        /* main body */
+        ctx.fillStyle = item.color;
+        ctx.fillRect(item.x, item.y, item.w, item.h);
+        /* roof accent */
+        ctx.fillStyle = `hsl(210,25%,22%)`;
+        ctx.fillRect(item.x, item.y, item.w, 6);
+        /* windows grid */
+        ctx.fillStyle = `rgba(255,220,100,0.55)`;
+        const cols = item.windows, rows = Math.floor(item.h / 22);
+        const ww = (item.w - 10) / cols, wh = 10;
+        for (let row = 1; row <= rows; row++) {
+            for (let col = 0; col < cols; col++) {
+                if (Math.random() > 0.28) {
+                    ctx.fillRect(item.x + 5 + col * ww, item.y + row * 18, ww - 4, wh);
+                }
+            }
+        }
+        ctx.restore();
+    }
+
+    function drawMountain(item) {
+        ctx.save();
+        /* shadow mountain behind */
+        ctx.fillStyle = `hsl(210,18%,22%)`;
+        ctx.beginPath();
+        ctx.moveTo(item.x - item.w * 0.2, item.y);
+        ctx.lineTo(item.x + item.w * 0.55, item.y - item.h * 1.1);
+        ctx.lineTo(item.x + item.w * 1.1, item.y);
+        ctx.closePath();
+        ctx.fill();
+        /* main mountain */
+        ctx.fillStyle = item.color;
+        ctx.beginPath();
+        ctx.moveTo(item.x, item.y);
+        ctx.lineTo(item.x + item.w / 2, item.y - item.h);
+        ctx.lineTo(item.x + item.w, item.y);
+        ctx.closePath();
+        ctx.fill();
+        /* snow cap */
+        ctx.fillStyle = 'rgba(255,255,255,0.75)';
+        ctx.beginPath();
+        ctx.moveTo(item.x + item.w * 0.35, item.y - item.h * 0.72);
+        ctx.lineTo(item.x + item.w * 0.5, item.y - item.h);
+        ctx.lineTo(item.x + item.w * 0.65, item.y - item.h * 0.72);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+
+    function drawPlane(px, py, angle) {
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.rotate(angle);
+        ctx.scale(0.85, 0.85);
+
+        /* fuselagem */
+        ctx.fillStyle = 'rgba(255,255,255,0.96)';
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 34, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        /* nariz */
+        ctx.beginPath();
+        ctx.moveTo(28, -3);
+        ctx.quadraticCurveTo(44, 0, 28, 3);
+        ctx.closePath();
+        ctx.fill();
+
+        /* asa principal */
+        ctx.fillStyle = 'rgba(255,255,255,0.88)';
+        ctx.beginPath();
+        ctx.moveTo(5, -2);
+        ctx.lineTo(-8, -22);
+        ctx.lineTo(-18, -22);
+        ctx.lineTo(-12, -2);
+        ctx.closePath();
+        ctx.fill();
+        /* asa direita (espelho) */
+        ctx.beginPath();
+        ctx.moveTo(5, 2);
+        ctx.lineTo(-8, 22);
+        ctx.lineTo(-18, 22);
+        ctx.lineTo(-12, 2);
+        ctx.closePath();
+        ctx.fill();
+
+        /* cauda vertical */
+        ctx.fillStyle = 'rgba(255,255,255,0.75)';
+        ctx.beginPath();
+        ctx.moveTo(-28, -2);
+        ctx.lineTo(-22, -14);
+        ctx.lineTo(-14, -2);
+        ctx.closePath();
+        ctx.fill();
+
+        /* cauda horizontal */
+        ctx.beginPath();
+        ctx.moveTo(-26, 0);
+        ctx.lineTo(-22, -8);
+        ctx.lineTo(-14, 0);
+        ctx.lineTo(-14, 4);
+        ctx.lineTo(-22, 4);
+        ctx.closePath();
+        ctx.fill();
+
+        /* janelas */
+        ctx.fillStyle = '#1a4fd6';
+        [-8, 0, 8, 16].forEach(dx => {
+            ctx.globalAlpha = 0.65;
+            ctx.fillRect(dx, -5, 7, 5);
+        });
+        ctx.globalAlpha = 1;
+
+        /* motor */
+        ctx.fillStyle = 'rgba(200,210,230,0.8)';
+        ctx.fillRect(-6, -26, 14, 6);
+        ctx.fillRect(-6,  20, 14, 6);
+
+        ctx.restore();
+    }
+
+    function drawTrail() {
+        if (plane.trail.length < 2) return;
+        ctx.save();
+        for (let i = 1; i < plane.trail.length; i++) {
+            const alpha = (i / plane.trail.length) * 0.22;
+            const size  = (i / plane.trail.length) * 5;
+            ctx.beginPath();
+            ctx.arc(plane.trail[i].x, plane.trail[i].y, size, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+
+    let lastSpawn = 0;
+
+    function frame(ts) {
+        if (!planeActive) return;
+        t += 0.016;
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* -- SKY GRADIENT -- */
+        const sky = ctx.createLinearGradient(0, 0, 0, H * 0.75);
+        sky.addColorStop(0, '#060f2a');
+        sky.addColorStop(0.45, '#0c2060');
+        sky.addColorStop(1, '#1a4fd6');
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, W, H * 0.75);
+
+        /* stars (tiny, only in top half) */
+        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        for (let s = 0; s < 55; s++) {
+            const sx = ((s * 137.5 + t * 4) % W);
+            const sy = (s * 29.3) % (H * 0.4);
+            const sr = (Math.sin(t * 2 + s) * 0.5 + 0.7) * 1.2;
+            ctx.beginPath();
+            ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        /* -- CLOUDS (parallax) -- */
+        CLOUD_LAYERS.forEach(layer => {
+            layer.clouds.forEach(c => {
+                c.x -= layer.speed;
+                if (c.x + c.size * 1.5 < 0) { c.x = W + c.size; c.size = rng(55, 110) * layer.scale; }
+                drawCloud(c.x, H * layer.y, c.size, layer.opacity);
+            });
+        });
+
+        /* -- GROUND -- */
+        const groundY = H * 0.74;
+
+        /* ground band */
+        const grd = ctx.createLinearGradient(0, groundY, 0, H);
+        grd.addColorStop(0, '#0a1a3a');
+        grd.addColorStop(0.4, '#071228');
+        grd.addColorStop(1, '#040c1e');
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, groundY, W, H - groundY);
+
+        /* horizon glow */
+        const hglow = ctx.createLinearGradient(0, groundY - 18, 0, groundY + 12);
+        hglow.addColorStop(0, 'rgba(26,79,214,0.55)');
+        hglow.addColorStop(1, 'transparent');
+        ctx.fillStyle = hglow;
+        ctx.fillRect(0, groundY - 18, W, 30);
+
+        /* city lights on ground */
+        for (let l = 0; l < 60; l++) {
+            const lx = ((l * 211.3 + t * 110) % W);
+            const ly = groundY + rng(8, 30);
+            const bright = Math.sin(t * 3 + l) * 0.3 + 0.7;
+            ctx.fillStyle = `rgba(255,220,80,${bright * 0.5})`;
+            ctx.fillRect(lx, ly, 2, 2);
+        }
+
+        /* ground objects */
+        GROUND.items.forEach(item => {
+            item.x -= GROUND.speed;
+            if (item.type === 'building') drawBuilding(item);
+            else drawMountain(item);
+        });
+        /* remove off-screen */
+        for (let i = GROUND.items.length - 1; i >= 0; i--) {
+            if (GROUND.items[i].x + (GROUND.items[i].w || 200) < -20) GROUND.items.splice(i, 1);
+        }
+
+        /* -- PLANE PATH (gentle sine wave) -- */
+        const baseY = H * 0.36;
+        const ampY  = H * 0.10;
+        const freq  = 0.28;
+        const px = W * 0.30;
+        const py = baseY + Math.sin(t * freq) * ampY;
+        const py2 = baseY + Math.sin((t + 0.12) * freq) * ampY;
+        const angle = Math.atan2(py2 - py, 12) * 0.6;
+
+        /* store trail */
+        plane.trail.push({ x: px, y: py });
+        if (plane.trail.length > 42) plane.trail.shift();
+
+        drawTrail();
+        drawPlane(px, py, angle);
+
+        planeRAF = requestAnimationFrame(frame);
+    }
+
+    return {
+        start() {
+            canvas = document.getElementById('planeCanvas');
+            if (!canvas) return;
+            ctx = canvas.getContext('2d');
+            W = canvas.width  = window.innerWidth;
+            H = canvas.height = window.innerHeight;
+            planeActive = true;
+            plane.trail = [];
+            GROUND.items = [];
+            initClouds();
+            /* first ground objects */
+            for (let i = 0; i < 4; i++) {
+                const type = Math.random() < 0.5 ? 'building' : 'mountain';
+                const gY = H * 0.74;
+                if (type === 'building') {
+                    const w = rng(28,62), h = rng(40,130);
+                    GROUND.items.push({ type:'building', x: rng(W*0.1, W*0.95), y:gY-h, w, h, windows:Math.floor(rng(2,6)), color:`hsl(${rng(200,225)},${rng(18,35)}%,${rng(30,50)}%)` });
+                } else {
+                    const w = rng(90,200), h = rng(60,160);
+                    GROUND.items.push({ type:'mountain', x: rng(W*0.1, W*0.95), y:gY, w, h, color:`hsl(${rng(195,215)},${rng(15,28)}%,${rng(28,44)}%)` });
+                }
+            }
+            /* spawn loop */
+            setTimeout(spawnGround, 1800);
+            planeRAF = requestAnimationFrame(frame);
+        },
+        stop() {
+            planeActive = false;
+            if (planeRAF) { cancelAnimationFrame(planeRAF); planeRAF = null; }
+            if (canvas) { ctx && ctx.clearRect(0, 0, W, H); }
+        },
+        resize() {
+            if (!canvas || !planeActive) return;
+            W = canvas.width  = window.innerWidth;
+            H = canvas.height = window.innerHeight;
+            initClouds();
+        }
+    };
+})();
+
+/* Hook lock screen */
+const _ls = document.getElementById('lockScreen');
+if (_ls) {
+    let _planeStarted = false;
+    new MutationObserver(() => {
+        if (_ls.classList.contains('active')) {
+            if (!_planeStarted) { _planeStarted = true; setTimeout(() => PlaneScene.start(), 3500); }
+        } else {
+            PlaneScene.stop(); _planeStarted = false;
+        }
+    }).observe(_ls, { attributes: true, attributeFilter: ['class'] });
+}
+window.addEventListener('resize', () => PlaneScene.resize());
+
+/* ══════════════════════════════════════
+   3. WIDGET — Clima · Meta · Dica
+══════════════════════════════════════ */
+const OW_KEY = '7dcc8dd07bbafc102b2844c88b1dc6b8'; // usa a mesma chave do ss.js
+
+/* -- Clima -- */
+const WEATHER_ICONS = {
+    '01':['☀️','Céu limpo'], '02':['🌤','Poucas nuvens'], '03':['⛅','Nublado parcial'],
+    '04':['☁️','Encoberto'], '09':['🌧','Chuva'], '10':['🌦','Chuva leve'],
+    '11':['⛈','Tempestade'], '13':['❄️','Neve'], '50':['🌫','Névoa'],
+};
+function weatherIconFor(code) {
+    const k = code.slice(0,2);
+    return WEATHER_ICONS[k] || ['🌡',''];
+}
+
+async function fetchWeather() {
+    const tempEl = document.getElementById('fwWeatherTemp');
+    const descEl = document.getElementById('fwWeatherDesc');
+    const emojiEl= document.getElementById('fwWeatherEmoji');
+    const extraEl= document.getElementById('fwWeatherExtra');
+    const cityEl = document.getElementById('fwCity');
+
+    /* Try Iguatu by name first */
+    const tryCity = async (q) => {
+        const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(q)}&units=metric&lang=pt_br&appid=${OW_KEY}`;
+        const r = await fetch(url); if (!r.ok) throw new Error(r.status); return r.json();
+    };
+    const tryCoords = async (lat, lon) => {
+        const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&lang=pt_br&appid=${OW_KEY}`;
+        const r = await fetch(url); if (!r.ok) throw new Error(r.status); return r.json();
+    };
+
+    let data = null;
+    try { data = await tryCity('Iguatu,CE,BR'); }
+    catch {
+        /* fallback: geolocation -> coords */
+        try {
+            const pos = await new Promise((res,rej) => navigator.geolocation
+                ? navigator.geolocation.getCurrentPosition(res, rej, { timeout:8000 })
+                : rej('no geo'));
+            data = await tryCoords(pos.coords.latitude, pos.coords.longitude);
+        } catch {
+            /* last resort: CEP 63500-000 (Iguatu) via geocode */
+            try {
+                const gc = await fetch(`https://api.openweathermap.org/geo/1.0/zip?zip=63500-000,BR&appid=${OW_KEY}`);
+                if (gc.ok) { const g = await gc.json(); data = await tryCoords(g.lat, g.lon); }
+            } catch { /* give up */ }
+        }
+    }
+
+    if (!data) {
+        if (descEl) descEl.textContent = 'Sem conexão com clima';
+        if (tempEl) tempEl.textContent = '--°';
+        return;
+    }
+
+    const temp = Math.round(data.main.temp);
+    const feels = Math.round(data.main.feels_like);
+    const humid = data.main.humidity;
+    const icon  = data.weather[0].icon;
+    const desc  = data.weather[0].description;
+    const city  = data.name;
+    const [emoji] = weatherIconFor(icon);
+
+    if (cityEl) cityEl.textContent = city;
+    if (emojiEl) emojiEl.textContent = emoji;
+    if (tempEl) tempEl.textContent = temp + '°';
+    if (descEl) descEl.textContent = desc.charAt(0).toUpperCase() + desc.slice(1);
+    if (extraEl) extraEl.textContent = `Sensação ${feels}° · Umidade ${humid}%`;
+}
+
+document.getElementById('fwWeatherRefresh')?.addEventListener('click', () => { fetchWeather(); });
+
+/* -- Meta do dia (localStorage) -- */
+const META_KEY = 'fw_meta_' + new Date().toDateString();
+let metaData = JSON.parse(localStorage.getItem(META_KEY) || '{"cartazes":0,"declaracoes":0}');
+
+function saveAndRenderMeta() {
+    localStorage.setItem(META_KEY, JSON.stringify(metaData));
+    document.getElementById('fwCartazes').textContent    = metaData.cartazes;
+    document.getElementById('fwDeclaracoes').textContent = metaData.declaracoes;
+
+    const total = metaData.cartazes + metaData.declaracoes;
+    const goal  = 20; // meta diária combinada
+    const pct   = Math.min(100, (total / goal) * 100);
+    const bar   = document.getElementById('fwMetaBar');
+    const hint  = document.getElementById('fwMetaHint');
+    if (bar) bar.style.width = pct + '%';
+    if (hint) {
+        if (total === 0) hint.textContent = 'Nenhuma atividade ainda hoje';
+        else if (pct < 50) hint.textContent = `${total} atividade${total>1?'s':''} · Bora continuar! 💪`;
+        else if (pct < 100) hint.textContent = `${total} atividade${total>1?'s':''} · Mais da metade! 🔥`;
+        else hint.textContent = `Meta atingida! 🎉 Total: ${total}`;
+    }
+}
+saveAndRenderMeta();
+
+document.querySelectorAll('.fw-counter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const k = btn.dataset.key;
+        if (btn.classList.contains('fw-counter-plus')) metaData[k] = Math.min(999, metaData[k] + 1);
+        else metaData[k] = Math.max(0, metaData[k] - 1);
+        /* pop animation */
+        const val = document.getElementById('fw' + k.charAt(0).toUpperCase() + k.slice(1));
+        if (val) { val.style.transform='scale(1.5)'; val.style.transition='transform .15s'; setTimeout(()=>{ val.style.transform=''; }, 180); }
+        saveAndRenderMeta();
+    });
+});
+document.getElementById('fwMetaReset')?.addEventListener('click', () => {
+    if (!confirm('Zerar contadores do dia?')) return;
+    metaData = { cartazes:0, declaracoes:0 };
+    saveAndRenderMeta();
+});
+
+/* -- Dicas -- */
+const TIPS = [
+    'Confira sempre a data do cartaz antes de imprimir. Erros de data geram retrabalho.',
+    'Organize os cartazes por seção do mercado para facilitar a reposição.',
+    'Ao gerar declarações, revise o número da NF antes de confirmar.',
+    'Um ambiente organizado aumenta a produtividade em até 20%.',
+    'Comunique ao admin se encontrar produto sem cadastro no sistema.',
+    'Mantenha o navegador atualizado para evitar falhas no sistema.',
+    'Intervalos curtos durante o trabalho ajudam a manter o foco.',
+    'Dúvidas sobre permissões? Acesse o Suporte no menu principal.',
+    'Cartazes gerados corretamente evitam reclamações na frente de caixa.',
+    'Salve seus relatórios com frequência para não perder progresso.',
+    'Um bom dia começa com organização. Separe as tarefas por prioridade.',
+    'Verifique as promoções do dia antes de gerar os cartazes.',
+];
+let tipIdx = Math.floor(Math.random() * TIPS.length);
+function showTip() {
+    const el = document.getElementById('fwTipText');
+    if (!el) return;
+    el.style.opacity = '0';
+    setTimeout(() => { el.textContent = TIPS[tipIdx]; el.style.opacity = '1'; }, 180);
+}
+showTip();
+document.getElementById('fwTipNext')?.addEventListener('click', () => {
+    tipIdx = (tipIdx + 1) % TIPS.length; showTip();
+});
+
+/* -- Toggle Widget -- */
+const _fab   = document.getElementById('fwFab');
+const _panel = document.getElementById('fwPanel');
+const _ico   = document.querySelector('.fw-fab-closed');
+const _icoO  = document.querySelector('.fw-fab-open');
+let _wOpen = false;
+
+function toggleWidget() {
+    _wOpen = !_wOpen;
+    _panel?.classList.toggle('active', _wOpen);
+    _panel?.setAttribute('aria-hidden', String(!_wOpen));
+    if (_ico)  _ico.style.display  = _wOpen ? 'none' : '';
+    if (_icoO) _icoO.style.display = _wOpen ? ''     : 'none';
+    if (_wOpen) fetchWeather();
+}
+_fab?.addEventListener('click', toggleWidget);
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && _wOpen) toggleWidget(); });
+
+/* ══════════════════════════════════════
+   4. PERGUNTAS MOTIVACIONAIS (welcome)
+══════════════════════════════════════ */
+function getUserFirstName() {
+    try {
+        const raw = localStorage.getItem('authSession') || localStorage.getItem('auth');
+        if (!raw) return 'Usuário';
+        const s = JSON.parse(raw);
+        const full = s.fullName || s.user || 'Usuário';
+        return full.trim().split(/\s+/)[0];
+    } catch { return 'Usuário'; }
+}
+
+function getPhrase(name) {
+    const h = new Date().getHours();
+
+    const morning = [
+        {
+            text: `Bom dia, ${name}! ☀️ Como você está chegando hoje?`,
+            buttons: [
+                { emoji: '⚡', text: 'Com tudo!' },
+                { emoji: '😴', text: 'Ainda acordando' },
+                { emoji: '☕', text: 'Precisando de café' },
+            ]
+        },
+        {
+            text: `O dia mal começou e já tem muito a fazer. Como está a energia?`,
+            buttons: [
+                { emoji: '🔥', text: 'Alta demais' },
+                { emoji: '😐', text: 'Normal' },
+                { emoji: '🥱', text: 'Baixa ainda' },
+            ]
+        },
+        {
+            text: `Bom dia! O que vamos priorizar primeiro hoje?`,
+            buttons: [
+                { emoji: '🏷️', text: 'Cartazes' },
+                { emoji: '📄', text: 'Declarações' },
+                { emoji: '🗂️', text: 'Tá tudo no caos' },
+            ]
+        },
+    ];
+
+    const afternoon = [
+        {
+            text: `Como está o movimento por aí agora?`,
+            buttons: [
+                { emoji: '🍃', text: 'Tranquilo' },
+                { emoji: '😐', text: 'Normal' },
+                { emoji: '🌪️', text: 'Uma loucura' },
+            ]
+        },
+        {
+            text: `${name}, o dia tá mais pra Black Friday ou segunda chuvosa?`,
+            buttons: [
+                { emoji: '🛒', text: 'Black Friday!' },
+                { emoji: '🌧️', text: 'Segunda chuvosa' },
+                { emoji: '🤷', text: 'No meio' },
+            ]
+        },
+        {
+            text: `Metade do expediente se foi. Como estão as atividades?`,
+            buttons: [
+                { emoji: '✅', text: 'Produtivo' },
+                { emoji: '😬', text: 'Poderia ser melhor' },
+                { emoji: '🚀', text: 'Voando!' },
+            ]
+        },
+    ];
+
+    const evening = [
+        {
+            text: `A reta final chegou! Como foi o dia hoje?`,
+            buttons: [
+                { emoji: '💪', text: 'Ótimo' },
+                { emoji: '😮‍💨', text: 'Puxado mas ok' },
+                { emoji: '😅', text: 'Pesado demais' },
+            ]
+        },
+        {
+            text: `Antes de fechar, ${name}: como estão as pendências?`,
+            buttons: [
+                { emoji: '✅', text: 'Tudo certo' },
+                { emoji: '📋', text: 'Ainda tenho coisas' },
+                { emoji: '🙏', text: 'Que acabe logo' },
+            ]
+        },
+    ];
+
+    const night = [
+        { text: `Olá, ${name}! Trabalhando tarde hoje?`, buttons: [
+            { emoji: '🌙', text: 'Plantão noturno' },
+            { emoji: '😅', text: 'Urgência' },
+        ]},
+    ];
+
+    let pool;
+    if (h >= 5  && h < 12) pool = morning;
+    else if (h >= 12 && h < 18) pool = afternoon;
+    else if (h >= 18 && h < 22) pool = evening;
+    else pool = night;
+
+    return pool[Math.floor(Math.random() * pool.length)];
+}
+
+/* Respostas motivacionais após clique */
+const FOLLOW_UPS = {
+    '⚡': ['Isso aí! Bora aproveitar esse pique! 🚀', 'Energia assim contagia a equipe toda! 💥'],
+    '😴': ['Café na veia e logo passa! ☕', 'Devagar e sempre — o importante é chegar! 🐢'],
+    '☕': ['Café é o combustível do sistema! ☕🔥', 'Vai lá tomar esse café, merece!'],
+    '🔥': ['Canaliza essa energia pra entrega! 💪', 'Com essa disposição o dia vai voar!'],
+    '😐': ['Normal é bom — constância é tudo. 👊', 'Um passo de cada vez, o resultado vem!'],
+    '🥱': ['Respira fundo. Começo devagar, final forte! 🌱', 'Isso passa — você consegue! 💪'],
+    '🏷️': ['Foco nos cartazes! Vai sair perfeito. 🎯', 'Cartazes bem feitos evitam dor de cabeça. ✅'],
+    '📄': ['Declarações primeiro, depois fica mais leve! 📋', 'Bora resolver isso logo! 💼'],
+    '🗂️': ['Calma — um de cada vez e organiza tudo! 🧹', 'Respira. Vamos por partes. ✅'],
+    '🍃': ['Aproveita pra adiantar os pendentes! ⏰', 'Calma é boa — aproveita enquanto dura!'],
+    '🌪️': ['Bora firme! Caos hoje, vitória depois! 🏆', 'Segura a onda! Você dá conta! 💪'],
+    '🛒': ['Black Friday mode ON! 🚀', 'Nessas horas a equipe brilha! ✨'],
+    '🌧️': ['Chuva esfria o movimento mas não o ânimo! ☔💙', 'Use o tempo calmo pra organizar! 📋'],
+    '🤷': ['Equilíbrio é bom! Segue em frente. 😊', 'No meio tem trabalho honesto! 👊'],
+    '✅': ['Que dia produtivo! 🎉', 'Isso é compromisso de verdade! 🏅'],
+    '😬': ['Amanhã compensa! Hoje já valeu. 💪', 'Toda luta tem seu valor. 🤝'],
+    '🚀': ['Voando mesmo! Arrasa! 🚀🔥', 'Continue assim, é inspirador! ✨'],
+    '💪': ['Mereceu o descanso! 🎊', 'Dia de guerreiro! Orgulho. 🏆'],
+    '😮‍💨': ['Puxado mas você deu conta — isso conta! 🙌', 'Descanso merecido hoje. 💙'],
+    '😅': ['Ainda bem que acabou! Amanhã é novo dia. 🌅', 'Você resistiu — isso é força! 💪'],
+    '📋': ['Termina logo pra descansar com a consciência limpa! 💪', 'Foco total até o fim! 🎯'],
+    '🙏': ['Quase lá! Segura mais um pouco! 🏁', 'A linha de chegada está perto! 🎯'],
+    '🌙': ['Plantão noturno merece reconhecimento! 🌟', 'Dedicação de outro nível! 💙'],
+    '😅': ['Urgências acontecem — você dá conta! 💪', 'Está aqui quando precisa. Isso é comprometimento! 🤝'],
+};
+
+function setupQuickReactions() {
+    /* ss.js também chama setupQuickReactions — deixamos o original funcionar via override */
+    const container = document.getElementById('quickReactions');
+    if (!container) return;
+    const name   = getUserFirstName();
+    const phrase = getPhrase(name);
+    container.innerHTML = '';
+
+    const textDiv = document.createElement('p');
+    textDiv.className = 'reaction-phrase';
+    textDiv.textContent = phrase.text;
+    container.appendChild(textDiv);
+
+    if (!phrase.buttons?.length) return;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'reaction-buttons-wrapper';
+
+    phrase.buttons.forEach(btn => {
+        const b = document.createElement('button');
+        b.className = 'reaction-btn';
+        b.innerHTML = `<span class="reaction-emoji">${btn.emoji}</span><span class="reaction-text">${btn.text}</span>`;
+
+        b.addEventListener('click', function () {
+            if (this.classList.contains('selected')) return;
+            /* mark selected */
+            this.classList.add('selected');
+            /* fade others */
+            wrap.querySelectorAll('.reaction-btn:not(.selected)').forEach(o => {
+                o.style.transition = 'opacity .3s,transform .3s';
+                o.style.opacity = '0'; o.style.transform = 'scale(.8)';
+                setTimeout(() => o.style.display = 'none', 300);
+            });
+            /* show follow-up after brief delay */
+            const replies = FOLLOW_UPS[btn.emoji] || ['Obrigado pela resposta! 😊'];
+            const reply   = replies[Math.floor(Math.random() * replies.length)];
+            setTimeout(() => {
+                const followDiv = document.createElement('p');
+                followDiv.className = 'reaction-followup';
+                followDiv.textContent = reply;
+                followDiv.style.cssText = 'opacity:0;transform:translateY(8px)';
+                container.appendChild(followDiv);
+                requestAnimationFrame(() => {
+                    followDiv.style.transition = 'opacity .4s ease, transform .4s ease';
+                    followDiv.style.opacity = '1';
+                    followDiv.style.transform = 'translateY(0)';
+                });
+            }, 350);
+        });
+
+        wrap.appendChild(b);
+    });
+
+    container.appendChild(wrap);
+}
+
+/* Override do ss.js (chamado depois do DOMContentLoaded) */
+window._ssSetupQuickReactions = setupQuickReactions;
+
+/* ══════════════════════════════════════
+   5. BOOT
+══════════════════════════════════════ */
+const ready = fn => document.readyState === 'loading'
+    ? document.addEventListener('DOMContentLoaded', fn) : fn();
+
+ready(() => {
+    setTimeout(initCardFX, 500);
+    /* Override a função do ss.js */
+    if (typeof setupQuickReactions === 'function') {
+        /* já será chamado pelo initWelcomeAndUi do ss.js — mas redefine globalmente */
+    }
+    /* Garante que nossa versão rode */
+    setTimeout(setupQuickReactions, 200);
+});
+
+})();
+</script>
 </body>
 </html>
