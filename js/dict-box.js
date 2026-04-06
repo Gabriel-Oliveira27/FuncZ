@@ -39,7 +39,9 @@ var _DB_NOISE = /\b(eps|pillow|touch|molas|espuma|mola|casal|queen|king|solteiro
  */
 function _db_extrairInfo(descricao) {
   var norm      = _db_normStr(descricao);
-  var isColchao = /^colch[ao]o?\b/.test(norm);
+  // Após _db_normStr: "colchão" → "colchao", "colchon" → "colchon"
+  // Regex cobre: colchao, colchon, colcho, colchaozinho, etc.
+  var isColchao = /^colch[ao][on]?\b/.test(norm);
   var isBase    = /^base\s*box\b/.test(norm);
 
   // Marca = último segmento após " - " ou " – "
@@ -56,7 +58,7 @@ function _db_extrairInfo(descricao) {
 
   // Modelo normalizado (sem tipo, tamanho e ruído)
   var modelNorm = _db_normStr(semMarca)
-    .replace(/^(colch[ao]o?|base\s*box)\s*/, '')
+    .replace(/^(colch[ao][on]?|base\s*box)\s*/, '')
     .replace(/\b\d{2,3}\s*[x\u00d7]\s*\d{2,3}\b/g, '')
     .replace(_DB_NOISE, ' ')
     .replace(/\s{2,}/g, ' ')
@@ -94,7 +96,7 @@ function _db_simModelo(a, b) {
  */
 function _db_detectarPares(lista) {
   var colchoes = lista.filter(function(p) {
-    return /^colch[ao]o?\b/i.test(_db_normStr(p.descricao || ''));
+    return /^colch[ao][on]?\b/i.test(_db_normStr(p.descricao || ''));
   });
   var bases = lista.filter(function(p) {
     return /^base\s*box\b/i.test(_db_normStr(p.descricao || ''));
@@ -168,145 +170,6 @@ window.DICT_BOX = {
 // §C · HELP MODAL — tabela de encartes (imagem)
 // ─────────────────────────────────────────────────────────────────────────────
 
-(function _injectHelpModal() {
-  if (document.getElementById('encarte-help-overlay')) return;
-
-  var style = document.createElement('style');
-  style.id = 'encarte-help-styles';
-  style.textContent = `
-    #encarte-help-overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,.82); backdrop-filter: blur(7px);
-      z-index: 16000; align-items: center; justify-content: center; padding: 16px;
-    }
-    #encarte-help-overlay.open { display: flex; }
-    #encarte-help-box {
-      background: white; border-radius: 16px;
-      max-width: 920px; width: 100%; max-height: 93vh;
-      overflow: hidden; display: flex; flex-direction: column;
-      box-shadow: 0 28px 72px rgba(0,0,0,.4);
-      animation: encHelpIn .25s cubic-bezier(.16,1,.3,1);
-    }
-    @keyframes encHelpIn {
-      from { opacity:0; transform:scale(.92) translateY(20px); }
-      to   { opacity:1; transform:scale(1)   translateY(0); }
-    }
-    .enc-help-hdr {
-      display:flex; align-items:center; justify-content:space-between;
-      padding:15px 22px; border-bottom:1.5px solid #e5e7eb;
-      background:#f9fafb; flex-shrink:0;
-    }
-    .enc-help-hdr h4 {
-      font-size:15px; font-weight:700; color:#111827; margin:0;
-      display:flex; align-items:center; gap:8px;
-    }
-    .enc-help-hdr h4 i { color:#2563eb; }
-    .enc-help-hdr p { font-size:12px; color:#6b7280; margin:3px 0 0; }
-    .enc-help-close {
-      background:#f3f4f6; border:none; width:34px; height:34px;
-      border-radius:8px; cursor:pointer; font-size:19px; color:#6b7280;
-      display:flex; align-items:center; justify-content:center; transition:all .15s;
-    }
-    .enc-help-close:hover { background:#fee2e2; color:#ef4444; }
-    .enc-help-body {
-      flex:1; overflow-y:auto; padding:20px;
-      display:flex; align-items:flex-start; justify-content:center;
-      background:#f0f2f7;
-    }
-    .enc-help-body img {
-      max-width:100%; height:auto; border-radius:10px;
-      box-shadow:0 6px 24px rgba(0,0,0,.18); display:block;
-    }
-    .enc-img-error {
-      padding:48px 24px; text-align:center; color:#9ca3af; font-size:14px;
-    }
-    .enc-img-error i { font-size:44px; margin-bottom:14px; display:block; color:#d1d5db; }
-
-    /* ── BOTÃO AJUDA (header principal + mass.js) ── */
-    .btn-ajuda-encarte {
-      display:inline-flex; align-items:center; gap:6px;
-      padding:7px 13px; background:#fffbeb; border:1.5px solid #fde68a;
-      border-radius:8px; font-size:12px; font-weight:600;
-      color:#92400e; cursor:pointer; transition:all .15s; white-space:nowrap;
-    }
-    .btn-ajuda-encarte:hover {
-      background:#fef3c7; border-color:#f59e0b;
-      transform:translateY(-1px); box-shadow:0 2px 8px rgba(245,158,11,.2);
-    }
-    .btn-ajuda-encarte i { font-size:12px; }
-
-    /* ── TOGGLE DE CAPITALIZAÇÃO ── */
-    .cap-mode-wrap {
-      display:inline-flex; align-items:center;
-      border:1.5px solid #e5e7eb; border-radius:8px; overflow:hidden; flex-shrink:0;
-    }
-    .cap-mode-btn {
-      padding:7px 12px; border:none; background:white;
-      font-size:11px; font-weight:600; color:#6b7280;
-      cursor:pointer; transition:all .15s; line-height:1;
-      display:flex; align-items:center; gap:4px; white-space:nowrap;
-    }
-    .cap-mode-btn + .cap-mode-btn { border-left:1.5px solid #e5e7eb; }
-    .cap-mode-btn:hover { background:#f9fafb; color:#374151; }
-    .cap-mode-btn.active { background:#eff6ff; color:#1d4ed8; }
-
-    /* ── FEEDBACK VISUAL DE CAMPOS PREENCHIDOS PELO DICT ── */
-    @keyframes dictFillPulse {
-      0%   { box-shadow:0 0 0 0 rgba(37,99,235,.5); background:white; }
-      35%  { box-shadow:0 0 0 5px rgba(37,99,235,.14); background:#eff6ff; }
-      100% { box-shadow:0 0 0 0 rgba(37,99,235,0); background:white; }
-    }
-    .dict-field-flash {
-      animation:dictFillPulse 1.4s ease forwards;
-      border-color:#2563eb !important;
-    }
-    .dict-field-badge {
-      position:absolute; top:-9px; right:10px;
-      padding:1px 7px; border-radius:8px;
-      background:#eff6ff; color:#1d4ed8;
-      font-size:10px; font-weight:700; pointer-events:none;
-      animation:dictBadgeIn .2s ease; z-index:5; white-space:nowrap;
-    }
-    @keyframes dictBadgeIn {
-      from { opacity:0; transform:translateY(-5px); }
-      to   { opacity:1; transform:translateY(0); }
-    }
-  `;
-  document.head.appendChild(style);
-
-  var wrap = document.createElement('div');
-  wrap.id = 'encarte-help-overlay';
-  wrap.innerHTML = `
-    <div id="encarte-help-box">
-      <div class="enc-help-hdr">
-        <div>
-          <h4><i class="fa-solid fa-table-list"></i> Tabela de Tamanhos de Encartes</h4>
-          <p>Consulte antes de gerar cartazes para evitar incompatibilidades de tamanho</p>
-        </div>
-        <button class="enc-help-close" id="encarte-help-close">×</button>
-      </div>
-      <div class="enc-help-body">
-        <img
-          src="../image/encarte.png"
-          alt="Tabela de tamanhos de encartes"
-          onerror="this.outerHTML='<div class=\\'enc-img-error\\'><i class=\\'fa-solid fa-image\\'></i><p>Imagem não encontrada.<br><small>Caminho esperado: ../image/encarte.png</small></p></div>'"
-        >
-      </div>
-    </div>
-  `;
-  document.body.appendChild(wrap);
-
-  document.getElementById('encarte-help-close').addEventListener('click', function() {
-    wrap.classList.remove('open');
-  });
-  wrap.addEventListener('click', function(e) {
-    if (e.target === wrap) wrap.classList.remove('open');
-  });
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && wrap.classList.contains('open')) wrap.classList.remove('open');
-  });
-}());
-
 /** Abre o modal de encartes — compartilhado com mass.js */
 window._abrirHelpEncarte = function() {
   var el = document.getElementById('encarte-help-overlay');
@@ -314,20 +177,31 @@ window._abrirHelpEncarte = function() {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// §D · BOTÃO DE AJUDA NO HEADER PRINCIPAL
+// §D · BOTÃO DE AJUDA — event listener para o botão do header e fechar modal
 // ─────────────────────────────────────────────────────────────────────────────
 
-function _db_injectMainHelpButton() {
-  if (document.getElementById('btn-ajuda-encarte-main')) return;
-  var header = document.querySelector('.global-header');
-  if (!header) return;
-  var btn = document.createElement('button');
-  btn.id = 'btn-ajuda-encarte-main';
-  btn.className = 'btn-ajuda-encarte';
-  btn.title = 'Ver tabela de tamanhos de encartes';
-  btn.innerHTML = '<i class="fa-solid fa-table-list"></i> Tabela de encartes';
-  btn.addEventListener('click', window._abrirHelpEncarte);
-  header.appendChild(btn);
+function _db_wireHelpModal() {
+  // Botão de ajuda injetado dinamicamente no header pelo dict-box
+  var btnHeader = document.getElementById('btn-ajuda-encarte-main');
+  if (btnHeader) btnHeader.addEventListener('click', window._abrirHelpEncarte);
+
+  // Fechar o modal (botão X e clique fora)
+  var overlay = document.getElementById('encarte-help-overlay');
+  var closeBtn = document.getElementById('encarte-help-close');
+  if (overlay) {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) overlay.classList.remove('open');
+    });
+  }
+  if (closeBtn) {
+    closeBtn.addEventListener('click', function() {
+      if (overlay) overlay.classList.remove('open');
+    });
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && overlay && overlay.classList.contains('open'))
+      overlay.classList.remove('open');
+  });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -385,7 +259,7 @@ function _db_injectCapToggle() {
 
   var label = document.createElement('span');
   label.style.cssText = 'font-size:11px;font-weight:600;color:#9ca3af;white-space:nowrap;';
-  label.textContent = 'Caixa:';
+  label.textContent = 'Estilo:';
 
   var group = document.createElement('div');
   group.className = 'cap-mode-wrap';
@@ -592,7 +466,35 @@ function _db_verificarBoxNosProducts() {
     var key = String(par.col.id || par.col.codigo) + '|' + String(par.base.id || par.base.codigo);
     if (_db_paresNotificados.has(key)) return;
     _db_paresNotificados.add(key);
-    _db_mostrarToastBox(par);
+    // Usar dialog de confirmação se disponível, senão fallback para toast
+    if (typeof showConfirm === 'function') {
+      _db_mostrarDialogBox(par);
+    } else {
+      _db_mostrarToastBox(par);
+    }
+  });
+}
+
+/** Dialog de confirmação de mesclagem — usa o sistema confirm-overlay do script.js */
+function _db_mostrarDialogBox(par) {
+  var mesclado  = _db_mesclarPar(par);
+  var fmt       = function(n) { return (n || 0).toFixed(2).replace('.', ','); };
+  var colLabel  = (par.col.descricao  || '').split(' - ')[0].substring(0, 44);
+  var baseLabel = (par.base.descricao || '').split(' - ')[0].substring(0, 44);
+
+  var msg = colLabel + '\n+ ' + baseLabel
+    + '\n\n→ ' + mesclado.descricao
+    + (mesclado.subdescricao ? ' · ' + mesclado.subdescricao : '')
+    + '  ·  R$ ' + fmt(mesclado.avista) + ' à vista';
+
+  showConfirm({
+    title:        'Conjunto Box detectado!',
+    subtitle:     'Par colchão + base box identificado automaticamente',
+    message:      msg,
+    confirmText:  'Mesclar em Conj. Box',
+    cancelText:   'Manter separados',
+    iconType:     'info',
+    onConfirm: function() { _db_executarMesclagem(par, mesclado); },
   });
 }
 
@@ -734,7 +636,7 @@ function _db_toastUndo(label, backup) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', function() {
-  _db_injectMainHelpButton();
+  _db_wireHelpModal();
   _db_injectCapToggle();
   _db_hookBlurCap();
 
@@ -745,6 +647,34 @@ document.addEventListener('DOMContentLoaded', function() {
       setTimeout(_db_verificarBoxNosProducts, 450);
     }, false);
   }
+
+  // Verificar ao restaurar produtos do localStorage
+  setTimeout(function() {
+    if (typeof products !== 'undefined' && products.length >= 2) {
+      _db_verificarBoxNosProducts();
+    }
+  }, 1500);
+
+  _db_patchAdicionarProdutoDaBusca();
 });
+
+/** Envolve adicionarProdutoDaBusca para rodar detecção de Box após adicionar via modal */
+function _db_patchAdicionarProdutoDaBusca() {
+  // Pode ser que dict.js ainda não fez seu próprio patch; tentar algumas vezes
+  var tentativas = 0;
+  var interval = setInterval(function() {
+    tentativas++;
+    if (tentativas > 15) { clearInterval(interval); return; }
+    if (typeof window.adicionarProdutoDaBusca !== 'function') return;
+    clearInterval(interval);
+
+    var prev = window.adicionarProdutoDaBusca;
+    window.adicionarProdutoDaBusca = function(codigo) {
+      prev(codigo);
+      // Detectar pares após o modal de busca adicionar o produto
+      setTimeout(_db_verificarBoxNosProducts, 600);
+    };
+  }, 200);
+}
 
 console.log('✅ dict-box.js v2 carregado — Box, Help, Capitalização e Feedback visual ativos.');

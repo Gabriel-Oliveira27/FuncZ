@@ -1,40 +1,6 @@
 'use strict';
 
 // ═══════════════════════════════════════════════════════════════
-// §1  CSS INJETADO — estilos da garantia
-// ═══════════════════════════════════════════════════════════════
-
-(function _injectCSS() {
-  if (document.getElementById('dict-styles')) return;
-  const s = document.createElement('style');
-  s.id = 'dict-styles';
-  s.textContent = `
-    /* ── Toast action btn (compatibilidade) ── */
-    .toast-action-btn.primary {
-      background: var(--primary);
-      color: white;
-      padding: 6px 12px;
-      border-radius: 6px;
-      border: none;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-    }
-    .toast-action-btn.secondary {
-      background: var(--gray-200);
-      color: var(--gray-700);
-      padding: 6px 12px;
-      border-radius: 6px;
-      border: none;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-    }
-  `;
-  document.head.appendChild(s);
-}());
-
-// ═══════════════════════════════════════════════════════════════
 // §2  DICIONÁRIO NATIVO
 // ═══════════════════════════════════════════════════════════════
 
@@ -352,45 +318,13 @@ function _classificarErro(err) {
   return 'Internet oscilando';
 }
 
-async function _fetchAPI(ms) {
-  ms = ms || 8000;
-  var ctrl = new AbortController();
-  var tid  = setTimeout(function() { ctrl.abort(); }, ms);
-  try {
-    var res = await fetch(API_URL, { signal: ctrl.signal, cache: 'no-cache' });
-    clearTimeout(tid);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    return await res.json();
-  } catch(e) {
-    clearTimeout(tid);
-    throw e;
-  }
-}
-
-function _popularCache(dados) {
-  if (typeof todosProdutos === 'undefined' || todosProdutos.length > 0) return;
-  ['Gabriel', 'Júlia', 'Giovana'].forEach(function(nome) {
-    if (!dados[nome]) return;
-    dados[nome].forEach(function(item) {
-      if (item.Código && item.Descrição) {
-        todosProdutos.push({
-          codigo:     item.Código,
-          descricao:  item.Descrição,
-          avista:     item['Total à vista'] || '0,00',
-          garantia12: item['Tot. G.E 12'] || '',
-        });
-      }
-    });
-  });
-}
-
+// ── Cache via inicializarProdutos (produtos.json) ────────────
+// Mantém _garantirCache como wrapper para compatibilidade interna.
 async function _garantirCache() {
-  if (typeof todosProdutos === 'undefined') return false;
-  if (todosProdutos.length > 0) return true;
-  try {
-    _popularCache(await _fetchAPI(10000));
-    return true;
-  } catch(_) { return false; }
+  if (typeof inicializarProdutos === 'function') {
+    await inicializarProdutos();
+  }
+  return typeof todosProdutos !== 'undefined' && todosProdutos.length > 0;
 }
 
 // ── Toast de retry ──────────────────────────────────────────
@@ -433,48 +367,32 @@ function _toastRetry(codigo, motivo) {
 async function _buscarCodigo(codigo) {
   mostrarOverlayBusca('Buscando informações', 'Procurando código ' + codigo + '…');
 
-  var dados = null, lastErr = null;
-
-  for (var t = 1; t <= 2; t++) {
-    try {
-      dados = await _fetchAPI(8000);
-      break;
-    } catch(err) {
-      lastErr = err;
-      if (t === 1) { atualizarOverlayTexto('Reconectando…'); await _esperar(1500); }
-    }
-  }
-
-  if (!dados) {
+  var ok = await _garantirCache();
+  if (!ok) {
     ocultarOverlay();
-    _toastRetry(codigo, _classificarErro(lastErr));
+    showToast('error', 'Erro ao carregar', 'Não foi possível acessar produtos.json.');
     return;
   }
 
-  _popularCache(dados);
-
   var item = null;
-  ['Gabriel', 'Júlia', 'Giovana'].forEach(function(nome) {
-    if (!dados[nome]) return;
-    dados[nome].forEach(function(i) {
-      if (!item && String(i.Código) === String(codigo)) item = i;
-    });
-  });
+  for (var i = 0; i < todosProdutos.length; i++) {
+    if (String(todosProdutos[i].codigo) === String(codigo)) { item = todosProdutos[i]; break; }
+  }
 
   if (item) {
     mostrarOverlaySucesso('Informações encontradas', 'Preenchendo campos…');
     await _esperar(600);
 
-    var partes = (item.Descrição || '').split(' - ');
+    var partes = (item.descricao || '').split(' - ');
     document.getElementById('descricao').value    = (partes[0] || '').trim().toUpperCase();
     document.getElementById('subdescricao').value = (partes[1] || '').trim().toUpperCase();
 
-    var avVal = parseCurrency(item['Total à vista']);
+    var avVal = parseCurrency(item.avista);
     document.getElementById('avista').value = formatCurrency(avVal.toFixed(2));
 
-    if (item['Tot. G.E 12']) {
+    if (item.garantia12) {
       document.getElementById('garantia12').value =
-        formatCurrency(parseCurrency(item['Tot. G.E 12']).toFixed(2));
+        formatCurrency(parseCurrency(item.garantia12).toFixed(2));
     }
 
     ocultarOverlay();
@@ -512,6 +430,62 @@ async function _buscarMesclar(cod1, cod2) {
   mostrarOverlaySucesso('Produtos encontrados', 'Preenchendo campos…');
   await _esperar(600);
 
+  // ── Detecção de tipo: colchão / base box ─────────────────
+  var _norm = function(s) {
+    return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  };
+  var norm1 = _norm(prod1.descricao);
+  var norm2 = _norm(prod2.descricao);
+
+  var isColchao1 = /^colch[ao][on]?\b/.test(norm1);
+  var isBase1    = /^base\s*box\b/.test(norm1);
+  var isColchao2 = /^colch[ao][on]?\b/.test(norm2);
+  var isBase2    = /^base\s*box\b/.test(norm2);
+
+  var duasBasesPairType = (isBase1 && isBase2)
+    ? 'duas bases box'
+    : (isColchao1 && isColchao2)
+      ? 'dois colchões'
+      : null;
+
+  if (duasBasesPairType) {
+    ocultarOverlay();
+    showToast('error', 'Combinação inválida',
+      'Você adicionou ' + duasBasesPairType + '. Não é possível criar um encarte de Conjunto Box assim. Verifique os códigos.');
+    return;
+  }
+
+  // ── Par colchão + base → Conj. Box ──────────────────────
+  var isBoxPair = (isColchao1 && isBase2) || (isBase1 && isColchao2);
+
+  if (isBoxPair && typeof window.DICT_BOX !== 'undefined') {
+    var colProd  = isColchao1 ? prod1 : prod2;
+    var baseProd = isBase1    ? prod1 : prod2;
+
+    var pair = {
+      col:      { codigo: colProd.codigo,  descricao: colProd.descricao,  avista: parseCurrency(colProd.avista)  },
+      base:     { codigo: baseProd.codigo, descricao: baseProd.descricao, avista: parseCurrency(baseProd.avista) },
+      colInfo:  window.DICT_BOX.extrairInfo(colProd.descricao),
+      baseInfo: window.DICT_BOX.extrairInfo(baseProd.descricao),
+    };
+
+    var mesclado = window.DICT_BOX.mesclar(pair);
+
+    document.getElementById('codigo').value       = cod1 + '/' + cod2;
+    document.getElementById('descricao').value    = mesclado.descricao;
+    document.getElementById('subdescricao').value = mesclado.subdescricao;
+
+    var av1 = parseCurrency(prod1.avista), av2 = parseCurrency(prod2.avista);
+    document.getElementById('avista').value = formatCurrency((av1 + av2).toFixed(2));
+
+    ocultarOverlay();
+    setTimeout(function() { window.aplicarDicionarioAoCampos(); }, 100);
+    showToast('success', 'Conj. Box detectado!',
+      'Mesclado automaticamente como ' + mesclado.descricao);
+    return;
+  }
+
+  // ── Mesclagem padrão ─────────────────────────────────────
   var p1 = (prod1.descricao || '').split(' - ');
   var p2 = (prod2.descricao || '').split(' - ');
 
@@ -677,25 +651,15 @@ function _fixDescricaoErro() {
   descEl.parentElement.appendChild(el);
 }
 
-// ── Fix 3: views importar-json e ver-json sem navegação ──────
-// O objeto `views` em script.js não inclui essas duas views.
-function _fixNavViewsExtras() {
-  var mapa = {
-    'importar-json': 'Importe cartazes a partir de um arquivo JSON',
-    'ver-json':      'Visualize e edite o JSON dos cartazes salvos',
-  };
-  document.querySelectorAll('.nav-item[data-view]').forEach(function(btn) {
-    var name = btn.getAttribute('data-view');
-    if (!mapa[name]) return;
-    btn.addEventListener('click', function() {
-      document.querySelectorAll('.view').forEach(function(v)    { v.classList.remove('active'); });
-      document.querySelectorAll('.nav-item').forEach(function(b) { b.classList.remove('active'); });
-      var target = document.getElementById('view-' + name);
-      if (target) target.classList.add('active');
-      btn.classList.add('active');
-      var sub = document.getElementById('header-subtitle');
-      if (sub) sub.textContent = mapa[name];
-    });
+// ── Fix 3: ver-json navigation com carregarViewVerJSON ───────
+// Garante que ao navegar para ver-json os dados são carregados.
+function _fixNavVerJson() {
+  var btn = document.querySelector('[data-view="ver-json"]');
+  if (!btn) return;
+  btn.addEventListener('click', function() {
+    setTimeout(function() {
+      if (typeof carregarViewVerJSON === 'function') carregarViewVerJSON();
+    }, 50);
   });
 }
 
@@ -715,10 +679,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // Bugs estruturais
   _fixProductsActions();
   _fixDescricaoErro();
-  _fixNavViewsExtras();
+  _fixNavVerJson();
 
-  // Pré-aquece o cache do modal em background (após 3 s)
-  // → Primeira busca por "/" ou pelo modal já é instantânea
+  // Pré-aquece os produtos em background
   setTimeout(function() { _garantirCache(); }, 3000);
 });
 

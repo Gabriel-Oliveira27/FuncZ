@@ -1,389 +1,8 @@
-'use strict';
 // ════════════════════════════════════════════════════════════════════════════
-//  MASS.JS v2.1 — Gerador de Cartazes em Massa
+//  MASS.JS v2.2 — Gerador de Cartazes em Massa
 //  Depende de: script.js · dict.js · dict-box.js · mass-extra.css
-//              Font Awesome 6, jsPDF, html2canvas
+//  O HTML do overlay e o botão da sidebar estão em cartazes.html.
 // ════════════════════════════════════════════════════════════════════════════
-
-// ── §1 · LINK CSS ────────────────────────────────────────────────────────────
-(function _linkCSS() {
-  if (document.getElementById('mass-css-link')) return;
-  const link = document.createElement('link');
-  link.id   = 'mass-css-link';
-  link.rel  = 'stylesheet';
-  link.href = '../css/mass-extra.css';
-  document.head.appendChild(link);
-}());
-
-// ── §2 · HTML ────────────────────────────────────────────────────────────────
-(function _html() {
-  if (document.getElementById('mass-overlay')) return;
-  document.body.insertAdjacentHTML('beforeend', `
-
-  <!-- ═══ MASS OVERLAY ═══ -->
-  <div id="mass-overlay">
-    <div id="mass-modal">
-
-      <!-- HEADER -->
-      <div id="mass-header">
-        <div class="mass-hdr-icon default" id="mass-hdr-icon">
-          <i class="fa-solid fa-layer-group"></i>
-        </div>
-        <div class="mass-hdr-text">
-          <h2 id="mass-hdr-title">Gerador em Massa</h2>
-          <p  id="mass-hdr-sub">Selecione o tipo de encarte</p>
-        </div>
-        <div class="mass-steps" id="mass-steps">
-          <div class="mass-step active" data-step="0">
-            <div class="mass-step-dot">1</div><span>Tipo</span>
-          </div>
-          <div class="mass-step-line"></div>
-          <div class="mass-step" data-step="1">
-            <div class="mass-step-dot">2</div><span>Produtos</span>
-          </div>
-          <div class="mass-step-line"></div>
-          <div class="mass-step" data-step="2">
-            <div class="mass-step-dot">3</div><span>Confirmação</span>
-          </div>
-        </div>
-        <button id="mass-btn-back"><i class="fa-solid fa-arrow-left"></i> Voltar</button>
-        <button id="mass-btn-help" class="btn-ajuda-encarte" title="Ver tabela de tamanhos de encartes">
-          <i class="fa-solid fa-table-list"></i> Tabela de encartes
-        </button>
-        <button id="mass-btn-close">×</button>
-      </div>
-
-      <!-- ══ SCREEN 0 — TIPO ══ -->
-      <div id="mass-screen-type" class="mass-screen active">
-        <div class="mass-type-title">
-          <h3>Qual tipo de encarte deseja gerar?</h3>
-          <p>Cada tipo possui configuração específica de juros e opções.</p>
-        </div>
-        <div class="mass-type-cards">
-
-          <div class="mass-type-card padrao" data-type="padrao">
-            <div class="mass-type-icon"><i class="fa-solid fa-receipt"></i></div>
-            <h4>Encarte Tabela Padrão</h4>
-            <p>Geração padrão com carnê. Ideal para tabela fixa de preços parcelados.</p>
-            <div class="mass-type-tags">
-              <span class="mass-type-tag">Sempre Carnê</span>
-              <span class="mass-type-tag">Sem desconto</span>
-              <span class="mass-type-tag">Sem validade</span>
-            </div>
-          </div>
-
-          <div class="mass-type-card promo" data-type="promocional">
-            <div class="mass-type-icon"><i class="fa-solid fa-credit-card"></i></div>
-            <h4>Encarte Promocional</h4>
-            <p>Cartão de crédito com opção de validade. Ideal para campanhas.</p>
-            <div class="mass-type-tags">
-              <span class="mass-type-tag">Sempre Cartão</span>
-              <span class="mass-type-tag">Com validade</span>
-              <span class="mass-type-tag">Sem desconto</span>
-            </div>
-          </div>
-
-          <div class="mass-type-card feirao" data-type="feirao">
-            <div class="mass-type-icon"><i class="fa-solid fa-fire"></i></div>
-            <h4>Encarte Feirão</h4>
-            <p>Taxa livre, desconto automático 5% com arredondamento especial e validade.</p>
-            <div class="mass-type-tags">
-              <span class="mass-type-tag">Taxa livre</span>
-              <span class="mass-type-tag">Desconto 5%</span>
-              <span class="mass-type-tag">Com validade</span>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- ══ SCREEN 1 — SELEÇÃO ══ -->
-      <div id="mass-screen-select" class="mass-screen">
-
-        <div id="mass-list-panel">
-
-          <div id="mass-toolbar">
-            <div class="mass-search-wrap">
-              <i class="fa-solid fa-magnifying-glass"></i>
-              <input id="mass-search" type="text" placeholder="Buscar código ou descrição...">
-            </div>
-            <div class="mass-size-badge" id="mass-size-badge">
-              <i class="fa-solid fa-ruler"></i>
-              <span id="mass-size-badge-txt">A4</span>
-            </div>
-            <button id="mass-sel-all">
-              <i class="fa-solid fa-check-double"></i>
-              <span id="mass-sel-all-txt">Selecionar todos</span>
-            </button>
-          </div>
-
-          <div id="mass-filter-chips">
-            <span class="mass-chip active" data-f="all">Todos <span class="mass-chip-count" id="chip-cnt-all">0</span></span>
-            <span class="mass-chip" data-f="selected">Selecionados <span class="mass-chip-count" id="chip-cnt-sel">0</span></span>
-            <span class="mass-chip" data-f="A4">A4 <span class="mass-chip-count" id="chip-cnt-a4">0</span></span>
-            <span class="mass-chip" data-f="A5">A5 <span class="mass-chip-count" id="chip-cnt-a5">0</span></span>
-            <span class="mass-chip" data-f="A6">A6 <span class="mass-chip-count" id="chip-cnt-a6">0</span></span>
-          </div>
-
-          <div class="mass-state-block" id="mass-loading">
-            <div class="mass-spinner"></div>
-            <p>Carregando produtos da API...</p>
-          </div>
-          <div class="mass-state-block" id="mass-empty" style="display:none;">
-            <i class="fa-solid fa-box-open" style="color:#d1d5db;"></i>
-            <p>Nenhum produto encontrado para este filtro.</p>
-          </div>
-
-          <div id="mass-tbl-wrap" style="display:none;">
-            <table id="mass-tbl">
-              <thead>
-                <tr>
-                  <th style="width:36px;"></th>
-                  <th style="width:88px;">Código</th>
-                  <th>Descrição</th>
-                  <th style="width:110px;">Valor à vista</th>
-                  <th style="width:56px;">Tam.</th>
-                </tr>
-              </thead>
-              <tbody id="mass-tbody"></tbody>
-            </table>
-          </div>
-
-          <div id="mass-pagination" style="display:none;"></div>
-        </div>
-
-        <!-- Config panel -->
-        <div id="mass-config-panel">
-
-          <div class="mass-cfg-section">
-            <div class="mass-cfg-title"><i class="fa-solid fa-list-ol"></i> Parcelamento</div>
-            <div class="mass-cfg-field">
-              <label>Nº de parcelas *</label>
-              <select id="mass-metodo">
-                <option value="">Selecione...</option>
-                <option value="1x">1x (à vista)</option>
-                <option value="3x">3x</option>
-                <option value="5x">5x</option>
-                <option value="10x">10x</option>
-                <option value="12x">12x</option>
-              </select>
-            </div>
-            <div class="mass-cfg-field" id="mass-juros-field">
-              <label>Taxa</label>
-              <!-- Preenchido dinamicamente por _selectType() -->
-            </div>
-          </div>
-
-          <!-- Desconto — só feirão -->
-          <div class="mass-cfg-section" id="mass-cfg-desconto" style="display:none;">
-            <div class="mass-cfg-title"><i class="fa-solid fa-percent"></i> Desconto Feirão</div>
-            <div class="mass-cfg-field">
-              <label for="mass-desconto-pct">Desconto (%) <small style="color:#9ca3af;">— padrão 5%</small></label>
-              <input type="number" id="mass-desconto-pct" value="5" min="0" max="99" step="0.5">
-            </div>
-            <div class="mass-disc-preview show" id="mass-disc-prev">
-              <i class="fa-solid fa-tag"></i>
-              Aplicando <strong id="mass-disc-pct-lbl">5%</strong> · fórmula de arredondamento X9 ativa
-            </div>
-          </div>
-
-          <!-- Validade — promo e feirão -->
-          <div class="mass-cfg-section" id="mass-cfg-validade" style="display:none;">
-            <div class="mass-cfg-title"><i class="fa-solid fa-calendar-days"></i> Validade</div>
-            <div class="mass-toggle-row">
-              <label class="mass-sw">
-                <input type="checkbox" id="mass-val-toggle">
-                <span class="mass-sw-slider"></span>
-              </label>
-              <span class="mass-sw-label">Adicionar validade</span>
-            </div>
-            <div id="mass-val-fields" style="display:none;">
-              <div class="mass-cfg-field">
-                <label>Início (opcional)</label>
-                <input type="date" id="mass-val-ini">
-              </div>
-              <div class="mass-cfg-field">
-                <label>Fim *</label>
-                <input type="date" id="mass-val-fim">
-              </div>
-            </div>
-          </div>
-
-          <!-- Aviso GE -->
-          <div class="mass-cfg-section">
-            <p class="mass-notice">
-              <i class="fa-solid fa-shield-halved"></i>
-              <strong>Garantia estendida indisponível</strong> no modo em massa.
-              Os valores de G.E. da API serão ignorados.
-            </p>
-          </div>
-
-          <div style="flex:1;"></div>
-
-          <div id="mass-counter">
-            <div class="mass-counter-row">
-              <span class="mass-cnt-badge" id="mass-cnt-badge">0</span>
-              <span class="mass-cnt-label" id="mass-cnt-label">produtos selecionados</span>
-            </div>
-            <button id="mass-btn-next" disabled>
-              <i class="fa-solid fa-arrow-right"></i>
-              Revisar e gerar cartazes
-            </button>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- ══ SCREEN 2 — CONFIRMAÇÃO ══ -->
-      <div id="mass-screen-confirm" class="mass-screen">
-        <div class="mass-confirm-header">
-          <h3 id="mass-confirm-title">Confirmar produtos e valores</h3>
-          <p id="mass-confirm-sub">Revise os valores. Você pode editar o valor à vista diretamente na tabela.</p>
-        </div>
-        <div class="mass-confirm-body">
-          <table class="mass-confirm-table">
-            <thead>
-              <tr>
-                <th style="width:90px;">Código</th>
-                <th>Descrição</th>
-                <th style="width:130px;">Valor à vista</th>
-                <th id="mass-confirm-th-novo"  style="width:130px;display:none;">Valor Feirão</th>
-                <th id="mass-confirm-th-val"   style="width:160px;display:none;">Validade</th>
-              </tr>
-            </thead>
-            <tbody id="mass-confirm-tbody"></tbody>
-          </table>
-        </div>
-        <div class="mass-confirm-footer">
-          <div class="mass-confirm-summary">
-            <strong id="mass-confirm-count">0</strong> produtos ·
-            <span id="mass-confirm-info"></span>
-          </div>
-          <div class="mass-confirm-actions">
-            <button class="mass-dlg-btn sec" id="mass-btn-back2">
-              <i class="fa-solid fa-arrow-left"></i> Voltar
-            </button>
-            <button id="mass-btn-confirm" class="mass-dlg-btn prim">
-              <i class="fa-solid fa-bolt"></i> Confirmar e gerar PDF
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ══ SCREEN 3 — PROGRESSO ══ -->
-      <div id="mass-screen-progress" class="mass-screen">
-        <div class="mass-prog-circle">
-          <svg width="90" height="90" viewBox="0 0 90 90">
-            <circle class="mass-prog-bg"   cx="45" cy="45" r="40"/>
-            <circle class="mass-prog-fill" id="mass-prog-circle" cx="45" cy="45" r="40"/>
-          </svg>
-          <div id="mass-prog-pct">0%</div>
-        </div>
-        <p id="mass-prog-label">Iniciando geração...</p>
-        <p id="mass-prog-sub">Aguarde, processando produtos</p>
-      </div>
-
-      <!-- FOOTER -->
-      <div id="mass-footer">
-        <span><strong id="mass-total-api">0</strong> produtos na API · <strong id="mass-total-filtered">0</strong> exibidos</span>
-        <span>Dica: filtre por tamanho antes de selecionar todos</span>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ═══ DIALOG: TAMANHO INDEFINIDO ═══ -->
-  <div class="mass-dialog-overlay" id="mass-dlg-size">
-    <div class="mass-dialog">
-      <div class="mass-dialog-hdr">
-        <div class="mass-dialog-ico warn"><i class="fa-solid fa-triangle-exclamation"></i></div>
-        <div>
-          <h4>Tamanho não definido</h4>
-          <p>Este produto não tem tamanho registrado na API</p>
-        </div>
-      </div>
-      <div class="mass-dialog-body">
-        <p>O produto <strong id="mass-dlg-size-prod">—</strong> não possui tamanho de cartaz definido pela API.</p>
-        <p>Adicionar está <strong>por sua conta e risco</strong> — o cartaz pode ter tamanho incompatível com os demais.</p>
-        <p>Prefere verificar a tabela de encartes primeiro?</p>
-      </div>
-      <div class="mass-dialog-footer">
-        <button class="mass-dlg-btn sec" id="mass-dlg-size-help">
-          <i class="fa-solid fa-table-list"></i> Ver tabela
-        </button>
-        <button class="mass-dlg-btn sec" id="mass-dlg-size-no">Cancelar</button>
-        <button class="mass-dlg-btn warn" id="mass-dlg-size-yes">Adicionar mesmo assim</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══ DIALOG: TAMANHO DIFERENTE ═══ -->
-  <div class="mass-dialog-overlay" id="mass-dlg-mismatch">
-    <div class="mass-dialog">
-      <div class="mass-dialog-hdr">
-        <div class="mass-dialog-ico error"><i class="fa-solid fa-ban"></i></div>
-        <div>
-          <h4>Tamanhos incompatíveis</h4>
-          <p>Não é possível misturar tamanhos no mesmo lote</p>
-        </div>
-      </div>
-      <div class="mass-dialog-body">
-        <p id="mass-dlg-mismatch-msg"></p>
-        <p>Use o filtro de tamanhos para trabalhar com grupos separados.</p>
-      </div>
-      <div class="mass-dialog-footer">
-        <button class="mass-dlg-btn prim" id="mass-dlg-mismatch-ok">Entendido</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══ DIALOG: CAMA BOX ═══ -->
-  <div class="mass-dialog-overlay" id="mass-dlg-box">
-    <div class="mass-dialog" style="max-width:540px;">
-      <div class="mass-dialog-hdr">
-        <div class="mass-dialog-ico box"><i class="fa-solid fa-bed"></i></div>
-        <div>
-          <h4>Conjunto Box detectado</h4>
-          <p>Alta probabilidade de par colchão + base box entre os selecionados</p>
-        </div>
-      </div>
-      <div class="mass-dialog-body">
-        <p>Os produtos abaixo parecem formar um <strong>Conj. Box</strong>. Deseja combiná-los em um único cartaz?</p>
-        <div id="mass-box-pairs-list" style="margin:12px 0;"></div>
-        <p style="font-size:11px;color:#9ca3af;">
-          Os valores à vista serão somados. Em caso de feirão, o desconto será aplicado sobre o valor total do conjunto.
-        </p>
-      </div>
-      <div class="mass-dialog-footer">
-        <button class="mass-dlg-btn sec"  id="mass-dlg-box-no">Não, manter separados</button>
-        <button class="mass-dlg-btn succ" id="mass-dlg-box-yes">
-          <i class="fa-solid fa-object-group"></i> Sim, combinar
-        </button>
-      </div>
-    </div>
-  </div>
-
-  `);
-}());
-
-// ── §3 · BOTÃO NA SIDEBAR ────────────────────────────────────────────────────
-(function _btn() {
-  const inject = () => {
-    if (document.getElementById('btn-mass-open')) return;
-    const nav = document.querySelector('.sidebar-nav');
-    if (!nav) return;
-    const btn = document.createElement('button');
-    btn.id = 'btn-mass-open';
-    btn.className = 'nav-item mass-nav-btn';
-    btn.innerHTML = `<i class="fa-solid fa-layer-group"></i><span>Cartazes em Massa</span>`;
-    btn.addEventListener('click', massOpen);
-    const extra = nav.querySelector('.nav-section');
-    extra ? nav.insertBefore(btn, extra) : nav.appendChild(btn);
-  };
-  document.readyState === 'loading'
-    ? document.addEventListener('DOMContentLoaded', inject)
-    : inject();
-}());
 
 // ── §4 · ESTADO ──────────────────────────────────────────────────────────────
 const MS = {
@@ -505,59 +124,26 @@ function msFeatures(descricao) {
 
 // ── §7 · CARREGAR API ────────────────────────────────────────────────────────
 async function msLoadAPI() {
-  // Reutilizar cache do script.js se disponível
+  // Garantir que produtos.json está carregado via inicializarProdutos (script.js)
+  if (typeof inicializarProdutos === 'function') {
+    await inicializarProdutos();
+  }
+
   if (typeof todosProdutos !== 'undefined' && todosProdutos.length > 0) {
     MS.all = todosProdutos.map(p => ({
       codigo:    String(p.codigo),
       descricao: p.descricao || '',
       avista:    msParseR(p.avista),
-      tamanho:   (p.tamanho || '').toUpperCase().replace(/\s/g,'') || null,
+      tamanho:   p.tamanho || null,
     }));
     MS.loaded = true;
     _updateChipCounts();
     _massRender();
     _$('mass-total-api').textContent = MS.all.length;
-    return;
-  }
-
-  const apiUrl = typeof API_URL !== 'undefined' ? API_URL : null;
-  if (!apiUrl) {
-    _$('mass-loading').innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;font-size:36px;"></i><p>API_URL não configurada.</p>`;
-    return;
-  }
-
-  try {
-    const ctrl = new AbortController();
-    const tid  = setTimeout(() => ctrl.abort(), 14000);
-    const res  = await fetch(apiUrl, { signal: ctrl.signal, cache: 'no-cache' });
-    clearTimeout(tid);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-
-    MS.all = [];
-    ['Gabriel','Júlia','Giovana'].forEach(n => {
-      (data[n] || []).forEach(item => {
-        if (!item.Código || !item.Descrição) return;
-        let tam = (item['Tamanho cartaz'] || item['Tamanho'] || '').toString().toUpperCase().trim();
-        tam = ['A4','A5','A6'].includes(tam) ? tam : null;
-        MS.all.push({
-          codigo:    String(item.Código),
-          descricao: item.Descrição,
-          avista:    msParseR(item['Total à vista']),
-          tamanho:   tam,
-        });
-      });
-    });
-
-    MS.loaded = true;
-    _$('mass-total-api').textContent = MS.all.length;
-    _updateChipCounts();
-    _massRender();
-
-  } catch(err) {
+  } else {
     _$('mass-loading').innerHTML = `
       <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;font-size:36px;"></i>
-      <p>${err.name==='AbortError' ? 'Tempo esgotado. Tente novamente.' : 'Erro ao carregar a API: '+err.message}</p>
+      <p>Nenhum produto carregado. Verifique o arquivo <strong>../data/produtos.json</strong>.</p>
     `;
   }
 }
@@ -1141,8 +727,9 @@ async function _gerarPDF(lista, subEl) {
 
     const ehA5Novo = prod.layoutPersonalizado === 'a5-loja53-novo';
     const ehA5Conf = prod.layoutPersonalizado === 'a5-loja53';
+    const ehJuazeiro2A6 = prod.layoutPersonalizado === 'juazeiro2-a6';
 
-    if (ehA5Novo || ehA5Conf) {
+    if (ehA5Novo || ehA5Conf || ehJuazeiro2A6) {
       clone.style.cssText = 'position:absolute;left:-99999px;top:0;width:210mm;height:297mm;background:#fff;margin:0;padding:0;box-sizing:border-box;overflow:hidden;';
     } else {
       clone.style.cssText = 'position:absolute;left:-99999px;top:0;width:182.6mm;height:258.3mm;background:#fff;margin:0;padding:0;box-sizing:border-box;overflow:hidden;';
@@ -1190,6 +777,12 @@ function massOpen() {
 function massClose() {
   _$('mass-overlay').classList.remove('active');
 }
+
+// Conectar o botão da sidebar ao massOpen
+document.addEventListener('DOMContentLoaded', function() {
+  var btnMass = document.getElementById('btn-mass-open');
+  if (btnMass) btnMass.addEventListener('click', massOpen);
+});
 
 // ── §16 · EVENTOS ────────────────────────────────────────────────────────────
 function _massBindEvents() {
@@ -1303,4 +896,4 @@ function _massBindEvents() {
 window.massOpen  = massOpen;
 window.massClose = massClose;
 
-console.log('✅ mass.js v2.1 carregado — Gerador em Massa com DICT_BOX ativo.');
+console.log('✅ mass.js v2.2 carregado — HTML estático, Gerador em Massa com DICT_BOX ativo.');

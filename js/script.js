@@ -1,6 +1,96 @@
 const API_URL =
   "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLic4iE63JAJ0j4KpGWfRFINeiD4uyCsMjfF_uLkUNzhOsJMzO4uiiZpWV3xzDjbduZK8kU_wWw3ZSCs6cODW2gdFnIGb6pZ0Lz0cBqMpiV-SBOJroENJHqO1XML_YRs_41KFfQOKEehUQmf-Xg6Xhh-bKiYpPxxwQhQzEMP5g0DdJHN4sgG_Fc9cdvRRU4abxlz_PzeQ_5eJ7NtCfxWuP-ET0DEzUyiWhWITlXMZKJMfwmZQg5--gKmAEGpwSr0yXi3eycr23BCGltlXGIWtYZ3I0WkWg&lib=M38uuBDbjNiNXY1lAK2DF9n3ltsPa6Ver";
 
+// ── FONTE DE DADOS LOCAL ──────────────────────────────────────
+// Caminho do arquivo servido estaticamente junto ao código.
+// Formatos suportados:
+//   Flat:   { "produtos": [{codigo, descricao, avista, garantia12?, tamanho?}] }
+//   Legado: { "Gabriel":[...], "Júlia":[...], "Giovana":[...] }
+const PRODUTOS_LOCAL_URL = '../data/produtos.json';
+let _produtosPromise = null; // garante um único fetch simultâneo
+
+async function inicializarProdutos() {
+  if (todosProdutos.length > 0) return;
+  if (_produtosPromise) return _produtosPromise;
+  _produtosPromise = (async () => {
+    try {
+      const ctrl = new AbortController();
+      const tid  = setTimeout(() => ctrl.abort(), 8000);
+      const res  = await fetch(PRODUTOS_LOCAL_URL, { signal: ctrl.signal, cache: 'no-cache' });
+      clearTimeout(tid);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const dados = await res.json();
+      todosProdutos = [];
+
+      // Helper: converte qualquer valor numérico/string para string BRL
+      const toBRL = (v) => {
+        if (v === null || v === undefined || v === '') return '';
+        if (typeof v === 'number') return v.toFixed(2).replace('.', ',');
+        return String(v).replace('.', ',');
+      };
+
+      if (Array.isArray(dados.produtos)) {
+        // ── Formato flat (recomendado) ────────────────────────
+        dados.produtos.forEach(p => {
+          if (!p.codigo || !p.descricao) return;
+          todosProdutos.push({
+            codigo:          String(p.codigo),
+            descricao:       p.descricao,
+            avista:          toBRL(p.avista) || '0,00',
+            garantia12:      toBRL(p.garantia12),
+            tamanho:         (p.tamanho || '').toUpperCase().trim() || null,
+            // campos extras preservados para feirão e parcela
+            parcela:         typeof p.parcela === 'number' ? p.parcela : null,
+            parcelaFeirao:   typeof p.parcelaFeirao === 'number' ? p.parcelaFeirao : null,
+            precoFeirao:     typeof p.precoFeirao === 'number' ? p.precoFeirao : null,
+          });
+        });
+      } else {
+        // ── Formato legado Google Sheets (estrutura real) ─────
+        // Campos mapeados do JSON:
+        //   Código, Descrição, Tamanho cartaz, Total à vista,
+        //   Parcela, Total à prazo, Preço de feirão (5%), Parcela 5%
+        ['Gabriel', 'Júlia', 'Giovana'].forEach(nome => {
+          (dados[nome] || []).forEach(item => {
+            if (!item['Código'] || !item['Descrição']) return;
+
+            const avista      = item['Total à vista'];
+            const parcela     = item['Parcela'];
+            const precoFeirao = item['Preço de feirão (5%)'];
+            const parcelaF5   = item['Parcela 5%'];
+            const totalPrazo  = item['Total à prazo'];
+            const g12         = item['Tot. G.E 12'] || '';
+            let tamStr        = (item['Tamanho cartaz'] || '').toString().toUpperCase().trim();
+            const tamanho     = ['A4', 'A5', 'A6'].includes(tamStr) ? tamStr : null;
+
+            // "Total à prazo" pode ser 'Sem juros!' (string) ou número
+            const semJuros = (typeof totalPrazo === 'string' &&
+                              totalPrazo.toLowerCase().includes('sem juros'));
+
+            todosProdutos.push({
+              codigo:          String(item['Código']),
+              descricao:       item['Descrição'],
+              avista:          toBRL(avista) || '0,00',
+              garantia12:      toBRL(g12),
+              tamanho,
+              // Parcela calculada pela planilha (referência)
+              parcela:         typeof parcela === 'number' ? parcela : null,
+              totalPrazo:      semJuros ? null : (typeof totalPrazo === 'number' ? totalPrazo : null),
+              semJurosPlanilha: semJuros,
+              // Feirão (5%)
+              precoFeirao:     typeof precoFeirao === 'number' ? precoFeirao : null,
+              parcelaFeirao:   typeof parcelaF5   === 'number' ? parcelaF5   : null,
+            });
+          });
+        });
+      }
+      console.log('[Produtos] ' + todosProdutos.length + ' produto(s) carregado(s).');
+    } catch (err) {
+      console.warn('[Produtos] Falha ao carregar produtos.json:', err.message);
+    }
+  })();
+  return _produtosPromise;
+}
 
 let modeloAtual = "padrao";
 
@@ -224,20 +314,32 @@ window.addEventListener("resize", () => {
 // SISTEMA DE PERMISSÕES E LOCALSTORAGE
 // ==================================================
 
-// Definir tipo de usuário (admin/suporte/usuario)
-// Para teste, defina manualmente. Em produção, isso viria de autenticação
-const TIPO_USUARIO = "admin"; // ou 'suporte' ou 'usuario'
+/**
+ * Lê a sessão de autenticação salva pelo sistema de login.
+ * Estrutura esperada: { user, filial, perm }
+ * onde perm pode ser 'admin', 'suporte' ou 'usuario'.
+ */
+function getAuthSession() {
+  try {
+    const s = localStorage.getItem('authSession');
+    return s ? JSON.parse(s) : null;
+  } catch (e) {
+    return null;
+  }
+}
 
-// Validar se usuário tem permissão admin/suporte
 function isAdminOuSuporte() {
-  return TIPO_USUARIO === "admin" || TIPO_USUARIO === "suporte";
+  const session = getAuthSession();
+  if (!session || !session.perm) return false;
+  return session.perm === 'admin' || session.perm === 'suporte';
 }
 
-// Mostrar/ocultar aba Suporte baseado em permissão
-if (isAdminOuSuporte()) {
-  document.getElementById("suporte-section").style.display =
-    "block";
-}
+// Mostrar/ocultar aba Suporte baseado na sessão real
+(function aplicarPermissaoSuporteSection() {
+  const el = document.getElementById('suporte-section');
+  if (!el) return;
+  el.style.display = isAdminOuSuporte() ? 'block' : 'none';
+}());
 
 // Timer de inatividade (30 minutos = 1800000ms)
 let inactivityTimer;
@@ -467,6 +569,8 @@ const views = {
   gerar: document.getElementById("view-gerar"),
   produtos: document.getElementById("view-produtos"),
   calculadora: document.getElementById("view-calculadora"),
+  'importar-json': document.getElementById("view-importar-json"),
+  'ver-json': document.getElementById("view-ver-json"),
 };
 
 navButtons.forEach((btn) => {
@@ -474,11 +578,9 @@ navButtons.forEach((btn) => {
     const viewName = btn.getAttribute("data-view");
     if (!viewName) return;
 
-    // Atualiza botões ativos
     navButtons.forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
 
-    // Atualiza views ativas
     Object.values(views).forEach(
       (v) => v && v.classList.remove("active"),
     );
@@ -486,10 +588,8 @@ navButtons.forEach((btn) => {
       views[viewName].classList.add("active");
     }
 
-    // Atualiza header
     updateHeader(viewName);
     
-    // Sincroniza switch ao voltar para aba "Gerar"
     if (viewName === "gerar") {
       const switchModelo = document.getElementById("switch-modelo");
       if (switchModelo) {
@@ -504,8 +604,9 @@ function updateHeader(viewName) {
   const subtitles = {
     gerar: "Preencha os dados do produto para criar o cartaz",
     produtos: `${products.length} produto(s) adicionado(s)`,
-    calculadora:
-      "Calcule o valor das parcelas com base no fator de multiplicação",
+    calculadora: "Calcule o valor das parcelas com base no fator de multiplicação",
+    'importar-json': "Importe cartazes a partir de um arquivo JSON",
+    'ver-json': "JSON atual dos cartazes salvos",
   };
   subtitle.textContent =
     subtitles[viewName] || "Bem-vindo ao sistema";
@@ -768,117 +869,38 @@ btnBuscar.addEventListener("click", async () => {
     return;
   }
 
-  // ✅ ETAPA 1: Buscando informações
-  mostrarOverlayBusca(
-    "Buscando informações",
-    `Procurando produto código ${codigo}...`,
-  );
+  mostrarOverlayBusca("Buscando informações", `Procurando código ${codigo}...`);
 
   try {
-    // 🔧 FIX: Adiciona timeout de 10 segundos para evitar travamento
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    await inicializarProdutos();
 
-    const resposta = await fetch(API_URL, { 
-      signal: controller.signal,
-      cache: 'no-cache'
-    });
-    clearTimeout(timeoutId);
+    const item = todosProdutos.find(p => String(p.codigo) === String(codigo));
 
-    if (!resposta.ok) throw new Error("Erro ao acessar a API");
+    if (item) {
+      mostrarOverlaySucesso("Informações encontradas", "Preenchendo campos automaticamente...");
+      await new Promise(r => setTimeout(r, 600));
 
-    const dados = await resposta.json();
-    let encontrado = false;
-    let primeiroItem = null;
-
-    ["Gabriel", "Júlia", "Giovana"].forEach((nome) => {
-      if (dados[nome]) {
-        dados[nome].forEach((item) => {
-          if (item.Código == codigo) {
-            encontrado = true;
-            if (!primeiroItem) primeiroItem = item;
-          }
-        });
-      }
-    });
-
-    if (encontrado && primeiroItem) {
-      // ✅ ETAPA 2: Informações encontradas
-      mostrarOverlaySucesso(
-        "Informações encontradas",
-        "Preenchendo campos automaticamente...",
-      );
-
-      // Aguardar um pouco para mostrar o sucesso
-      await new Promise((res) => setTimeout(res, 800));
-
-      const partes = (primeiroItem.Descrição || "").split(
-        " - ",
-      );
-      document.getElementById("descricao").value = (
-        partes[0] || ""
-      ).trim();
-      // Marca vai para subdescricao automaticamente
-      document.getElementById("subdescricao").value = (
-        partes[1] || ""
-      ).trim();
-
-      const avistaValor = parseCurrency(
-        primeiroItem["Total à vista"],
-      );
-      document.getElementById("avista").value = formatCurrency(
-        avistaValor.toFixed(2),
-      );
-
-      if (primeiroItem["Tot. G.E 12"]) {
+      const partes = (item.descricao || "").split(" - ");
+      document.getElementById("descricao").value    = (partes[0] || "").trim();
+      document.getElementById("subdescricao").value = (partes[1] || "").trim();
+      const avistaValor = parseCurrency(item.avista);
+      document.getElementById("avista").value = formatCurrency(avistaValor.toFixed(2));
+      if (item.garantia12) {
         document.getElementById("garantia12").value =
-          formatCurrency(
-            parseCurrency(primeiroItem["Tot. G.E 12"]).toFixed(
-              2,
-            ),
-          );
+          formatCurrency(parseCurrency(item.garantia12).toFixed(2));
       }
-
-      await new Promise((res) => setTimeout(res, 600));
-      showToast(
-        "success",
-        "Produto encontrado",
-        "Dados preenchidos automaticamente.",
-      );
+      await new Promise(r => setTimeout(r, 400));
+      showToast("success", "Produto encontrado", "Dados preenchidos automaticamente.");
     } else {
-      // ✅ ETAPA 3: Informações inexistentes
-      mostrarOverlayErro(
-        "Informações inexistentes",
-        `Código ${codigo} não encontrado`,
-      );
-      await new Promise((res) => setTimeout(res, 1500));
-      showToast(
-        "warning",
-        "Produto não encontrado",
-        "Código não cadastrado. Preencha manualmente.",
-      );
+      mostrarOverlayErro("Informações inexistentes", `Código ${codigo} não encontrado`);
+      await new Promise(r => setTimeout(r, 1200));
+      showToast("warning", "Produto não encontrado", "Código não cadastrado. Preencha manualmente.");
     }
   } catch (e) {
     console.error(e);
-    
-    // 🔧 FIX: Mensagens de erro mais específicas
-    let errorTitle = "Erro na busca";
-    let errorMessage = "Não foi possível acessar o banco de dados";
-    let toastMessage = "Verifique sua internet e tente novamente.";
-    
-    if (e.name === 'AbortError') {
-      errorTitle = "Tempo esgotado";
-      errorMessage = "A conexão demorou muito para responder";
-      toastMessage = "O servidor está demorando. Tente novamente em alguns instantes.";
-    } else if (e.message.includes('fetch')) {
-      errorTitle = "Erro de conexão";
-      errorMessage = "Não foi possível conectar ao servidor";
-      toastMessage = "Verifique sua conexão com a internet.";
-    }
-    
-    mostrarOverlayErro(errorTitle, errorMessage);
-    await new Promise((res) => setTimeout(res, 1500));
-    showToast("error", errorTitle, toastMessage);
+    mostrarOverlayErro("Erro ao carregar dados", "Verifique o arquivo produtos.json");
+    await new Promise(r => setTimeout(r, 1200));
+    showToast("error", "Erro ao carregar", "Não foi possível acessar produtos.json.");
   } finally {
     ocultarOverlay();
   }
@@ -893,26 +915,26 @@ const descricaoErro = document.getElementById("descricao-erro");
 if (descricaoInput) {
   descricaoInput.addEventListener("input", () => {
     const len = descricaoInput.value.length;
-    if (len >= 38) {
-      // Hard cap: trava em 38 caracteres
-      descricaoInput.value = descricaoInput.value.substring(0, 38);
-    }
-    const lenAtual = descricaoInput.value.length;
-    if (lenAtual > 35) {
-      // Aviso visual: entre 36 e 38 (zona de alerta)
+    if (len > 38) {
       if (descricaoErro) {
         descricaoErro.style.display = "block";
-        descricaoErro.textContent = `${lenAtual}/38 — Atenção: descrição longa pode cortar no cartaz!`;
-        descricaoErro.style.color = lenAtual >= 38 ? "var(--danger)" : "#d97706";
+        descricaoErro.textContent = `${len}/38 — Muito longa! Reduza antes de adicionar.`;
+        descricaoErro.style.color = "var(--danger)";
       }
-      descricaoInput.style.borderColor = lenAtual >= 38 ? "var(--danger)" : "#f59e0b";
-      descricaoInput.style.boxShadow = lenAtual >= 38
-        ? "0 0 0 3px rgba(239,68,68,0.15)"
-        : "0 0 0 3px rgba(245,158,11,0.15)";
+      descricaoInput.style.borderColor = "var(--danger)";
+      descricaoInput.style.boxShadow   = "0 0 0 3px rgba(239,68,68,0.15)";
+    } else if (len > 35) {
+      if (descricaoErro) {
+        descricaoErro.style.display = "block";
+        descricaoErro.textContent = `${len}/38 — Atenção: descrição longa pode cortar no cartaz.`;
+        descricaoErro.style.color = "#d97706";
+      }
+      descricaoInput.style.borderColor = "#f59e0b";
+      descricaoInput.style.boxShadow   = "0 0 0 3px rgba(245,158,11,0.15)";
     } else {
       if (descricaoErro) descricaoErro.style.display = "none";
       descricaoInput.style.borderColor = "";
-      descricaoInput.style.boxShadow = "";
+      descricaoInput.style.boxShadow   = "";
     }
   });
 }
@@ -1234,11 +1256,14 @@ productForm.addEventListener("submit", (e) => {
   );
 
   if (!codigo || !descricao) {
-    showToast(
-      "warning",
-      "Campos obrigatórios",
-      "Preencha código e descrição!",
-    );
+    showToast("warning", "Campos obrigatórios", "Preencha código e descrição!");
+    return;
+  }
+
+  if (descricao.length > 38) {
+    showToast("error", "Descrição longa demais",
+      `Máximo 38 caracteres (atual: ${descricao.length}). Reduza antes de adicionar.`);
+    document.getElementById("descricao").focus();
     return;
   }
 
@@ -1540,6 +1565,7 @@ function renderProducts() {
                             <option value="">Padrão</option>
                             <option value="a5-loja53" ${product.layoutPersonalizado === 'a5-loja53' ? 'selected' : ''}>A5 - Config</option>
                             <option value="a5-loja53-novo" ${product.layoutPersonalizado === 'a5-loja53-novo' ? 'selected' : ''}>A5 - Loja 53 (novo)</option>
+                            <option value="juazeiro2-a6" ${product.layoutPersonalizado === 'juazeiro2-a6' ? 'selected' : ''}>Juazeiro II - A6</option>
                         </select>
                         <button class="btn-delete" style="margin-top: 0;" onclick="deleteProduct(${product.id})">
                             <i class="fa-solid fa-trash"></i> Remover
@@ -1623,6 +1649,11 @@ function generatePosterHTML(product, isPreview = false) {
   // Lógica para 3x/5x/10x sem taxa (juros vazio)
   const semTaxaNx = ["3x", "5x", "10x"].includes(product.metodo) && (!product.juros || product.juros === "");
 
+  // Taxa realmente aplicada (fator × valor)
+  const hasTaxApplied = mostrar1xComTaxa || (product.metodo !== "1x" && !semTaxaNx);
+  // "Sem juros!" centralizado APENAS quando NÃO há taxa aplicada
+  const semJurosSemTaxa = product.semJuros && !hasTaxApplied;
+
   // Validade por extenso
   const validadeExtensa = product.validade
     ? formatDateExtended(product.validade, product.validadeInicio || '')
@@ -1652,12 +1683,13 @@ function generatePosterHTML(product, isPreview = false) {
   if (mostrar1xComTaxa || (product.metodo !== "1x" && !semTaxaNx)) {
     // Com taxa aplicada (12x, ou 1x/3x/5x/10x com taxa ativa)
     if (product.semJuros) {
-      paymentInfoSection = `<div class="poster-payment-info"><div class="poster-payment-type" style="font-family: var(--font-lato); font-weight: 400; font-size: 20pt; line-height: 1.2;">Sem juros!</div></div>`;
+      // Mostrar tipo do parcelamento + "Sem juros!" no lugar da taxa numérica
+      paymentInfoSection = `<div class="poster-payment-info"><div class="poster-payment-type">no ${tipoParcelamento}</div><div class="poster-payment-rate" style="font-weight:700;font-size:6pt;">Sem juros!</div></div>`;
     } else {
       paymentInfoSection = `<div class="poster-payment-info"><div class="poster-payment-type">no ${tipoParcelamento}</div><div class="poster-payment-rate">${taxaTexto}</div></div>`;
     }
   } else if (semTaxaNx && product.semJuros) {
-    // 3x/5x/10x sem taxa mas com "Sem juros!" marcado
+    // 3x/5x/10x sem taxa mas com "Sem juros!" marcado (semJurosSemTaxa=true → tratado no rodapé)
     paymentInfoSection = `<div class="poster-payment-info"><div class="poster-payment-type" style="font-family: var(--font-lato); font-weight: 400; font-size: 20pt; line-height: 1.2;">Sem juros!</div></div>`;
   }
 
@@ -1708,9 +1740,9 @@ function generatePosterHTML(product, isPreview = false) {
             ${validadeExtensa ? `<div class="poster-validity${product.moverValidade ? ' poster-validity-baixo' : ''}">${validadeExtensa}</div>` : ""}
             
             <div class="poster-footer-table">
-                <div class="poster-table-left" ${product.semJuros ? 'style="align-items: center;"' : ''}>
-                    <div class="poster-price-line" ${product.semJuros ? 'style="width: 100%; justify-content: center;"' : ''}>
-                        ${product.semJuros
+                <div class="poster-table-left" ${semJurosSemTaxa ? 'style="align-items: center;"' : ''}>
+                    <div class="poster-price-line" ${semJurosSemTaxa ? 'style="width: 100%; justify-content: center;"' : ''}>
+                        ${semJurosSemTaxa
                           ? `<div class="poster-table-main-text" style="font-family: var(--font-lato); font-weight: 400; font-size: 20pt; line-height: 1.2; text-align: center;">Sem juros!</div>`
                           : (product.metodo === "1x" && !mostrar1xComTaxa
                               ? ''
@@ -1734,6 +1766,8 @@ function generatePosterHTML(product, isPreview = false) {
     posterHTML = `<div class="poster-wrapper-a5loja53">${posterHTML}</div>`;
   } else if (product.layoutPersonalizado === 'a5-loja53-novo') {
     posterHTML = `<div class="poster-wrapper-a5loja53novo">${posterHTML}</div>`;
+  } else if (product.layoutPersonalizado === 'juazeiro2-a6') {
+    posterHTML = `<div class="poster-wrapper-juazeiro2-a6">${posterHTML}</div>`;
   }
 
   return posterHTML;
@@ -2036,12 +2070,13 @@ document
         // Verificar se é layout personalizado A5
         const ehA5Loja53 = products[i].layoutPersonalizado === 'a5-loja53';
         const ehA5Loja53Novo = products[i].layoutPersonalizado === 'a5-loja53-novo';
+        const ehJuazeiro2A6 = products[i].layoutPersonalizado === 'juazeiro2-a6';
 
         // Verificar se é modelo cameba
         const ehCameba = clone.querySelector('.poster-cameba') !== null;
 
-        if (ehA5Loja53 || ehA5Loja53Novo) {
-          // A5 Config / A5 Loja 53 (novo): o wrapper já contém o poster escalado via CSS
+        if (ehA5Loja53 || ehA5Loja53Novo || ehJuazeiro2A6) {
+          // A5 Config / A5 Loja 53 (novo) / Juazeiro II - A6: o wrapper cuida de todo posicionamento
           clone.style.cssText =
             "position:absolute;left:-99999px;top:0;width:210mm;height:297mm;background:#fff;margin:0;padding:0;box-sizing:border-box;overflow:hidden;";
           // Não aplicar zoom extra nem reposicionar footer-table — o CSS do wrapper cuida de tudo
@@ -2525,68 +2560,26 @@ async function abrirModalBuscaTexto() {
     return;
   }
 
-  // ✅ PRIMEIRA VEZ: CARREGAR PRODUTOS DA API
+  // ✅ PRIMEIRA VEZ: Carregar de produtos.json
   loading.style.display = "block";
   results.style.display = "none";
   empty.style.display = "none";
 
   try {
-    // 🔧 FIX: Adiciona timeout de 10 segundos para evitar travamento
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    await inicializarProdutos();
+    if (todosProdutos.length === 0) throw new Error("Nenhum produto carregado");
 
-    const resposta = await fetch(API_URL, { 
-      signal: controller.signal,
-      cache: 'no-cache'
-    });
-    clearTimeout(timeoutId);
-
-    if (!resposta.ok) throw new Error("Erro ao acessar a API");
-
-    const dados = await resposta.json();
-    todosProdutos = [];
-
-    // Processar dados de todas as planilhas (Gabriel, Júlia, Giovana)
-    ["Gabriel", "Júlia", "Giovana"].forEach((nome) => {
-      if (dados[nome]) {
-        dados[nome].forEach((item) => {
-          if (item.Código && item.Descrição) {
-            todosProdutos.push({
-              codigo: item.Código,
-              descricao: item.Descrição,
-              avista: item["Total à vista"] || "0,00",
-              garantia12: item["Tot. G.E 12"] || "",
-            });
-          }
-        });
-      }
-    });
-
-    // Mostrar todos os produtos inicialmente
     produtosFiltrados = [...todosProdutos];
     paginaAtual = 1;
     renderizarProdutos();
-
     loading.style.display = "none";
     results.style.display = "block";
-
-    // Focar no input de busca
     setTimeout(() => inputBusca.focus(), 100);
   } catch (error) {
     console.error("Erro ao carregar produtos:", error);
     loading.style.display = "none";
     empty.style.display = "block";
-    
-    // 🔧 FIX: Mensagens de erro mais específicas
-    let errorMessage = "Não foi possível carregar os produtos da API.";
-    
-    if (error.name === 'AbortError') {
-      errorMessage = "Tempo esgotado. O servidor está demorando. Tente novamente.";
-    } else if (error.message.includes('fetch')) {
-      errorMessage = "Erro de conexão. Verifique sua internet.";
-    }
-    
-    showToast("error", "Erro ao carregar", errorMessage);
+    showToast("error", "Erro ao carregar", "Verifique o arquivo em ../data/produtos.json.");
   }
 }
 
@@ -2852,6 +2845,9 @@ function adicionarProdutoDaBusca(codigo) {
 // ==================================================
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Pré-carregar produtos.json em background
+  inicializarProdutos();
+
   // Carregar cartazes salvos do localStorage (se existir)
   const dadosSalvos = carregarCartazesLocalStorage();
   if (
@@ -3318,35 +3314,34 @@ function showToast(
   type = "info",
   title,
   message,
-  duration = 4000,
+  duration = 2500,
 ) {
   const container = document.getElementById("toast-container");
   const toast = document.createElement("div");
   toast.className = `toast ${type}`;
 
-  // Ícones diferentes por tipo
   const icons = {
     success: '<i class="fa-solid fa-circle-check"></i>',
-    error: '<i class="fa-solid fa-circle-xmark"></i>',
+    error:   '<i class="fa-solid fa-circle-xmark"></i>',
     warning: '<i class="fa-solid fa-triangle-exclamation"></i>',
-    info: '<i class="fa-solid fa-circle-info"></i>',
+    info:    '<i class="fa-solid fa-circle-info"></i>',
   };
 
   toast.innerHTML = `
-        <div class="toast-icon">${icons[type] || icons.info}</div>
-        <div class="toast-content">
-            <div class="toast-title">${title}</div>
-            ${message ? `<div class="toast-message">${message}</div>` : ""}
-        </div>
-        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
-    `;
+    <div class="toast-icon">${icons[type] || icons.info}</div>
+    <div class="toast-content">
+      <div class="toast-title">${title}</div>
+      ${message ? `<div class="toast-message">${message}</div>` : ""}
+    </div>
+    <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+  `;
 
   container.appendChild(toast);
 
   if (duration > 0) {
     setTimeout(() => {
       toast.classList.add("removing");
-      setTimeout(() => toast.remove(), 300);
+      setTimeout(() => toast.remove(), 250);
     }, duration);
   }
 
@@ -3542,16 +3537,9 @@ function showConfirm(options) {
 }
 
 // ==================================================
-// SIDEBAR: TOGGLE EXTRAS E BOTÃO HOME
+// SIDEBAR: BOTÃO HOME
 // ==================================================
-const toggleExtras = document.getElementById("toggle-extras");
-const extrasContent = document.getElementById("extras-content");
 const btnHome = document.getElementById("btn-home");
-
-toggleExtras.addEventListener("click", () => {
-  toggleExtras.classList.toggle("active");
-  extrasContent.classList.toggle("active");
-});
 
 btnHome.addEventListener("click", () => {
   const isHomeActive =
@@ -4096,99 +4084,27 @@ window.fecharModalBuscaTexto = function() {
 // ============================================================================
 
 async function buscarEMesclarProdutos(codigo1, codigo2) {
-  
-  // ✅ MOSTRAR OVERLAY DE BUSCA
-  mostrarOverlayBusca(
-    "Buscando produtos",
-    `Procurando códigos ${codigo1} e ${codigo2}...`
-  );
-  
+  mostrarOverlayBusca("Buscando produtos", `Procurando ${codigo1} e ${codigo2}...`);
   try {
-    // ✅ CARREGAR PRODUTOS DA API SE NECESSÁRIO
-    if (!window.todosProdutos || todosProdutos.length === 0) {
-      
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-      const resposta = await fetch(API_URL, { 
-        signal: controller.signal,
-        cache: 'no-cache'
-      });
-      clearTimeout(timeoutId);
-
-      if (!resposta.ok) throw new Error("Erro ao acessar a API");
-
-      const dados = await resposta.json();
-      window.todosProdutos = [];
-
-      ["Gabriel", "Júlia", "Giovana"].forEach((nome) => {
-        if (dados[nome]) {
-          dados[nome].forEach((item) => {
-            if (item.Código && item.Descrição) {
-              todosProdutos.push({
-                codigo: item.Código,
-                descricao: item.Descrição,
-                avista: item["Total à vista"] || "0,00",
-                garantia12: item["Tot. G.E 12"] || "",
-              });
-            }
-          });
-        }
-      });
-      
-    }
-    
-    // ✅ BUSCAR PRODUTOS
-    const produto1 = todosProdutos.find(p => p.codigo.toString() === codigo1);
-    const produto2 = todosProdutos.find(p => p.codigo.toString() === codigo2);
-    
-    if (!produto1) {
-      esconderOverlay();
-      showToast("error", "Produto não encontrado", `Código ${codigo1} não existe`);
-      return false;
-    }
-    
-    if (!produto2) {
-      esconderOverlay();
-      showToast("error", "Produto não encontrado", `Código ${codigo2} não existe`);
-      return false;
-    }
-
-    
-    // ✅ MOSTRAR SUCESSO
-    mostrarOverlaySucesso(
-      "Produtos encontrados",
-      "Preenchendo campos automaticamente..."
-    );
-    
-    await new Promise(res => setTimeout(res, 800));
-  
-  // Separar descrição e marca
-  const partes1 = (produto1.descricao || "").split(" - ");
-  const partes2 = (produto2.descricao || "").split(" - ");
-  
-  const desc1 = (partes1[0] || "").trim();
-  const desc2 = (partes2[0] || "").trim();
-  const marca = (partes1[1] || partes2[1] || "").trim();
-  
-  // Preencher campos
-  document.getElementById("codigo").value = `${codigo1}/${codigo2}`;
-  document.getElementById("descricao").value = `${desc1}/${desc2}`;
-  document.getElementById("subdescricao").value = marca;
-  
-  // Somar valores
-  const avista1 = parseCurrency(produto1.avista);
-  const avista2 = parseCurrency(produto2.avista);
-  const avistaTotal = avista1 + avista2;
-  
-  document.getElementById("avista").value = formatCurrency(avistaTotal.toFixed(2));
-  
-  esconderOverlay();
-  showToast("success", "Produtos mesclados", `Códigos ${codigo1} e ${codigo2} encontrados e mesclados!`);
-  
-  return true;
+    await inicializarProdutos();
+    const produto1 = todosProdutos.find(p => String(p.codigo) === String(codigo1));
+    const produto2 = todosProdutos.find(p => String(p.codigo) === String(codigo2));
+    if (!produto1) { esconderOverlay(); showToast("error", "Não encontrado", `Código ${codigo1} não existe`); return false; }
+    if (!produto2) { esconderOverlay(); showToast("error", "Não encontrado", `Código ${codigo2} não existe`); return false; }
+    mostrarOverlaySucesso("Produtos encontrados", "Preenchendo campos...");
+    await new Promise(r => setTimeout(r, 600));
+    const p1 = (produto1.descricao || "").split(" - ");
+    const p2 = (produto2.descricao || "").split(" - ");
+    document.getElementById("codigo").value       = `${codigo1}/${codigo2}`;
+    document.getElementById("descricao").value    = `${(p1[0]||"").trim()}/${(p2[0]||"").trim()}`;
+    document.getElementById("subdescricao").value = (p1[1] || p2[1] || "").trim();
+    const av1 = parseCurrency(produto1.avista), av2 = parseCurrency(produto2.avista);
+    document.getElementById("avista").value = formatCurrency((av1 + av2).toFixed(2));
+    esconderOverlay();
+    showToast("success", "Produtos mesclados", `Códigos ${codigo1} e ${codigo2} combinados!`);
+    return true;
   } catch (error) {
-    console.error("❌ Erro ao buscar produtos:", error);
+    console.error("❌ Erro:", error);
     esconderOverlay();
     showToast("error", "Erro", "Não foi possível buscar os produtos");
     return false;
@@ -4242,63 +4158,32 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     
-    mostrarOverlayBusca(
-      "Buscando informações",
-      `Procurando produto código ${codigoValue}...`
-    );
-    
+    mostrarOverlayBusca("Buscando informações", `Procurando código ${codigoValue}...`);
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-      const resposta = await fetch(API_URL, { 
-        signal: controller.signal,
-        cache: 'no-cache'
-      });
-      clearTimeout(timeoutId);
-
-      if (!resposta.ok) throw new Error("Erro ao acessar a API");
-
-      const dados = await resposta.json();
-      let encontrado = false;
-      let primeiroItem = null;
-
-      ["Gabriel", "Júlia", "Giovana"].forEach((nome) => {
-        if (dados[nome]) {
-          dados[nome].forEach((item) => {
-            if (item.Código == codigoValue) {
-              encontrado = true;
-              if (!primeiroItem) primeiroItem = item;
-            }
-          });
-        }
-      });
-
-      if (encontrado && primeiroItem) {
-        mostrarOverlaySucesso(
-          "Informações encontradas",
-          "Preenchendo campos automaticamente..."
-        );
-
-        await new Promise(res => setTimeout(res, 800));
-
-        const partes = (primeiroItem.Descrição || "").split(" - ");
-        document.getElementById("descricao").value = (partes[0] || "").trim();
+      await inicializarProdutos();
+      const item = todosProdutos.find(p => String(p.codigo) === String(codigoValue));
+      if (item) {
+        mostrarOverlaySucesso("Informações encontradas", "Preenchendo campos...");
+        await new Promise(r => setTimeout(r, 600));
+        const partes = (item.descricao || "").split(" - ");
+        document.getElementById("descricao").value    = (partes[0] || "").trim();
         document.getElementById("subdescricao").value = (partes[1] || "").trim();
-
-        const avistaValor = parseCurrency(primeiroItem["Total à vista"]);
-        document.getElementById("avista").value = formatCurrency(avistaValor.toFixed(2));
-
+        const av = parseCurrency(item.avista);
+        document.getElementById("avista").value = formatCurrency(av.toFixed(2));
+        if (item.garantia12) {
+          document.getElementById("garantia12").value =
+            formatCurrency(parseCurrency(item.garantia12).toFixed(2));
+        }
         esconderOverlay();
-        showToast("success", "Produto encontrado", `Código ${codigoValue} carregado com sucesso!`);
+        showToast("success", "Produto encontrado", `Código ${codigoValue} carregado!`);
       } else {
         esconderOverlay();
-        showToast("error", "Produto não encontrado", `O código ${codigoValue} não foi encontrado.`);
+        showToast("warning", "Produto não encontrado", `Código ${codigoValue} não encontrado.`);
       }
     } catch (error) {
       console.error("❌ Erro:", error);
       esconderOverlay();
-      showToast("error", "Erro ao buscar", "Não foi possível acessar a API");
+      showToast("error", "Erro ao carregar", "Não foi possível acessar produtos.json.");
     }
   });
   

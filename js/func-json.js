@@ -717,15 +717,20 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Toggle seção Suporte
+// Toggle seção Suporte — mantido para compatibilidade, mas seção agora é flat
 document.getElementById('toggle-suporte')?.addEventListener('click', function() {
     const content = document.getElementById('suporte-content');
-    this.classList.toggle('active');
-    content.classList.toggle('active');
+    if (content) { this.classList.toggle('active'); content.classList.toggle('active'); }
 });
 
-// Botão Debug - abre menu dropdown
-document.getElementById('btn-debug')?.addEventListener('click', toggleDebugMenu);
+// Botões de Debug na sidebar (novos)
+document.getElementById('btn-debug-cartazes')?.addEventListener('click', () => {
+    gerarCartazesDebug();
+});
+
+document.getElementById('btn-debug-sessao')?.addEventListener('click', () => {
+    showToastComContador();
+});
 
 // Botão Limpar Todos
 document.getElementById('btn-limpar-todos')?.addEventListener('click', () => {
@@ -1153,11 +1158,8 @@ function verificarPermissaoSuporte() {
 function controlarVisibilidadeSuporte() {
     const suporteSection = document.getElementById('suporte-section');
     if (!suporteSection) return;
-    
-    if (verificarPermissaoSuporte()) {
-        suporteSection.style.display = 'block';
-        console.log('Permitido suporte/admin');
-    }
+    // Exibe SOMENTE para admin e suporte; esconde para qualquer outro perfil
+    suporteSection.style.display = verificarPermissaoSuporte() ? 'block' : 'none';
 }
 
 // ==================================================
@@ -1542,38 +1544,37 @@ subImportTabs.forEach(tab => {
 // SEÇÃO 10: INICIALIZAÇÃO
 // ==================================================
 setTimeout(() => {
-    // COMENTADO: recriarAbasImportacao() estava sobrescrevendo o HTML estático
-    // recriarAbasImportacao();
-    
     atualizarBotoesAcao();
-    
-    // Controlar visibilidade da seção Suporte
     controlarVisibilidadeSuporte();
-    
-    // Atualizar informações do usuário na aba Cloud
     atualizarInfoUsuarioCloud();
-    
-    // Conectar eventos de importação manualmente
     conectarEventosImportacaoEstatica();
-    
-    // Patch: Adicionar listener para navegação manual das views JSON
+
+    // Navegação manual para view importar-json
     const btnImportarNav = document.querySelector('[data-view="importar-json"]');
     if (btnImportarNav) {
         btnImportarNav.addEventListener('click', () => {
             esconderTodasViews();
             desativarTodosNavButtons();
-            
             const viewImportar = document.getElementById('view-importar-json');
-            if (viewImportar) {
-                viewImportar.classList.add('active');
-            }
-            
+            if (viewImportar) viewImportar.classList.add('active');
             btnImportarNav.classList.add('active');
-            
             const headerSubtitle = document.getElementById('header-subtitle');
-            if (headerSubtitle) {
-                headerSubtitle.textContent = 'Importar cartazes através de arquivo JSON';
-            }
+            if (headerSubtitle) headerSubtitle.textContent = 'Importar cartazes através de arquivo JSON';
+        });
+    }
+
+    // Ver JSON como view (não modal)
+    const btnVerJson = document.getElementById('btn-ver-json');
+    if (btnVerJson) {
+        btnVerJson.addEventListener('click', () => {
+            esconderTodasViews();
+            desativarTodosNavButtons();
+            const viewVerJson = document.getElementById('view-ver-json');
+            if (viewVerJson) viewVerJson.classList.add('active');
+            btnVerJson.classList.add('active');
+            const headerSubtitle = document.getElementById('header-subtitle');
+            if (headerSubtitle) headerSubtitle.textContent = 'JSON atual dos cartazes salvos';
+            carregarViewVerJSON();
         });
     }
 }, 500);

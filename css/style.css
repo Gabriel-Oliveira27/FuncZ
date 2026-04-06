@@ -1804,6 +1804,47 @@ input:checked + .slider:before {
   transform-origin: top left;
 }
 
+/* ------------------------------------------------------------------
+   LAYOUT JUAZEIRO II - A6
+   Desloca todo o conteúdo do poster 1.5cm para cima dentro do A4.
+   Útil quando a impressora posiciona a impressão 1.5cm abaixo do
+   esperado (ex: papel A6 centralizado em bandeja A4).
+   Para ajuste fino altere o valor -1.5cm abaixo.
+   ------------------------------------------------------------------ */
+.poster-wrapper-juazeiro2-a6 {
+  position: relative;
+  width: 210mm;
+  height: 297mm;
+  background: #fff;
+  overflow: hidden;
+}
+.poster-wrapper-juazeiro2-a6 > .poster,
+.poster-wrapper-juazeiro2-a6 > .poster.poster-carne {
+  position: absolute;
+  top: -1.5cm;   /* ← sobe 1.5 cm; edite aqui para calibrar */
+  left: 0;
+  width: 210mm;
+  height: 297mm;
+}
+
+/* Preview miniatura — wrapper escala a 0.28, poster interno NÃO redimensiona */
+.product-preview .poster-wrapper-juazeiro2-a6 {
+  transform: scale(0.28);
+  transform-origin: top left;
+  width: 210mm;
+  height: 297mm;
+  transition: transform 0.3s ease;
+}
+.product-preview .poster-wrapper-juazeiro2-a6 > .poster,
+.product-preview .poster-wrapper-juazeiro2-a6 > .poster.poster-carne {
+  transform: none !important;
+  position: absolute;
+  top: -1.5cm;
+  left: 0;
+  width: 210mm;
+  height: 297mm;
+}
+
 /* Tabela do rodapé - centralizada na folha (posição unificada carnê) */
 /* top: calculado para ~1cm abaixo do fim visual da parcela por nº de dígitos */
 .poster-footer-table {
@@ -2432,65 +2473,63 @@ input:checked + .slider:before {
    ================================================== */
 .toast-container {
   position: fixed;
-  top: 24px;
-  right: 24px;
+  top: 16px;
+  right: 16px;
   z-index: 10001;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   pointer-events: none;
 }
 
 .toast {
   background: white;
-  border-radius: 10px;
-  padding: 16px 20px;
+  border-radius: 8px;
+  padding: 10px 14px;
   box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.15),
-    0 2px 6px rgba(0, 0, 0, 0.08);
-  min-width: 340px;
-  max-width: 450px;
+    0 4px 14px rgba(0, 0, 0, 0.12),
+    0 1px 4px rgba(0, 0, 0, 0.06);
+  min-width: 260px;
+  max-width: 360px;
   display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  align-items: center;
+  gap: 10px;
+  animation: slideInRight 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: all;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.07);
 }
 
 /* Cores por tipo de toast */
 .toast.success {
   background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
-  border-left: 4px solid #10b981;
+  border-left: 3px solid #10b981;
 }
 
 .toast.error {
   background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);
-  border-left: 4px solid #ef4444;
+  border-left: 3px solid #ef4444;
 }
 
 .toast.warning {
   background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);
-  border-left: 4px solid #f59e0b;
+  border-left: 3px solid #f59e0b;
 }
 
 .toast.info {
   background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
-  border-left: 4px solid #3b82f6;
+  border-left: 3px solid #3b82f6;
 }
 
 /* Ícone do toast com Font Awesome */
 .toast-icon {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 2px;
-  font-size: 16px;
+  font-size: 12px;
 }
 
 .toast.success .toast-icon {
@@ -2515,21 +2554,24 @@ input:checked + .slider:before {
 
 .toast-content {
   flex: 1;
-  padding-top: 2px;
+  min-width: 0;
 }
 
 .toast-title {
   font-weight: 600;
-  font-size: 15px;
+  font-size: 13px;
   color: var(--gray-900);
-  margin-bottom: 3px;
+  margin-bottom: 1px;
   letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .toast-message {
-  font-size: 13px;
+  font-size: 11.5px;
   color: var(--gray-600);
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .toast-close {
@@ -2538,46 +2580,43 @@ input:checked + .slider:before {
   color: var(--gray-400);
   cursor: pointer;
   padding: 0;
-  font-size: 18px;
+  font-size: 15px;
   line-height: 1;
-  transition: all 0.15s;
-  width: 24px;
-  height: 24px;
+  transition: color 0.12s;
+  width: 18px;
+  height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
-  margin-top: 2px;
+  flex-shrink: 0;
 }
 
 .toast-close:hover {
-  background: rgba(0, 0, 0, 0.06);
   color: var(--gray-700);
 }
 
 @keyframes slideInRight {
   from {
-    transform: translateX(calc(100% + 24px)) scale(0.95);
+    transform: translateX(calc(100% + 16px));
     opacity: 0;
   }
   to {
-    transform: translateX(0) scale(1);
+    transform: translateX(0);
     opacity: 1;
   }
 }
 
 .toast.removing {
-  animation: slideOutRight 0.2s cubic-bezier(0.4, 0, 1, 1)
-    forwards;
+  animation: slideOutRight 0.18s ease forwards;
 }
 
 @keyframes slideOutRight {
   from {
-    transform: translateX(0) scale(1);
+    transform: translateX(0);
     opacity: 1;
   }
   to {
-    transform: translateX(calc(100% + 24px)) scale(0.95);
+    transform: translateX(calc(100% + 16px));
     opacity: 0;
   }
 }
@@ -4664,4 +4703,117 @@ body.mobile-detected {
   color: #3b82f6;
   flex-shrink: 0;
   font-size: 13px;
+}
+
+/* ==================================================
+   NAV DIVIDER — separador de seção na sidebar
+   ================================================== */
+.nav-divider {
+  padding: 14px 16px 5px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--gray-400);
+  user-select: none;
+  margin-top: 4px;
+}
+
+/* ==================================================
+   ENCARTE HELP OVERLAY — modal de tabela de encartes
+   ================================================== */
+#encarte-help-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.82); backdrop-filter: blur(7px);
+  z-index: 16000; align-items: center; justify-content: center; padding: 16px;
+}
+#encarte-help-overlay.open { display: flex; }
+#encarte-help-box {
+  background: white; border-radius: 16px;
+  max-width: 920px; width: 100%; max-height: 93vh;
+  overflow: hidden; display: flex; flex-direction: column;
+  box-shadow: 0 28px 72px rgba(0,0,0,.4);
+  animation: encHelpIn .25s cubic-bezier(.16,1,.3,1);
+}
+@keyframes encHelpIn {
+  from { opacity:0; transform:scale(.92) translateY(20px); }
+  to   { opacity:1; transform:scale(1)   translateY(0); }
+}
+.enc-help-hdr {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:15px 22px; border-bottom:1.5px solid #e5e7eb;
+  background:#f9fafb; flex-shrink:0;
+}
+.enc-help-hdr h4 {
+  font-size:15px; font-weight:700; color:#111827; margin:0;
+  display:flex; align-items:center; gap:8px;
+}
+.enc-help-hdr h4 i { color:#2563eb; }
+.enc-help-hdr p { font-size:12px; color:#6b7280; margin:3px 0 0; }
+.enc-help-close {
+  background:#f3f4f6; border:none; width:34px; height:34px;
+  border-radius:8px; cursor:pointer; font-size:19px; color:#6b7280;
+  display:flex; align-items:center; justify-content:center; transition:all .15s;
+}
+.enc-help-close:hover { background:#fee2e2; color:#ef4444; }
+.enc-help-body {
+  flex:1; overflow-y:auto; padding:20px;
+  display:flex; align-items:flex-start; justify-content:center;
+  background:#f0f2f7;
+}
+.enc-help-body img {
+  max-width:100%; height:auto; border-radius:10px;
+  box-shadow:0 6px 24px rgba(0,0,0,.18); display:block;
+}
+.enc-img-error {
+  padding:48px 24px; text-align:center; color:#9ca3af; font-size:14px;
+}
+.enc-img-error i { font-size:44px; margin-bottom:14px; display:block; color:#d1d5db; }
+
+/* ==================================================
+   DICT-BOX — Botão ajuda, capitalização e feedback
+   ================================================== */
+.btn-ajuda-encarte {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:7px 13px; background:#fffbeb; border:1.5px solid #fde68a;
+  border-radius:8px; font-size:12px; font-weight:600;
+  color:#92400e; cursor:pointer; transition:all .15s; white-space:nowrap;
+}
+.btn-ajuda-encarte:hover {
+  background:#fef3c7; border-color:#f59e0b;
+  transform:translateY(-1px); box-shadow:0 2px 8px rgba(245,158,11,.2);
+}
+.btn-ajuda-encarte i { font-size:12px; }
+.cap-mode-wrap {
+  display:inline-flex; align-items:center;
+  border:1.5px solid #e5e7eb; border-radius:8px; overflow:hidden; flex-shrink:0;
+}
+.cap-mode-btn {
+  padding:7px 12px; border:none; background:white;
+  font-size:11px; font-weight:600; color:#6b7280;
+  cursor:pointer; transition:all .15s; line-height:1;
+  display:flex; align-items:center; gap:4px; white-space:nowrap;
+}
+.cap-mode-btn + .cap-mode-btn { border-left:1.5px solid #e5e7eb; }
+.cap-mode-btn:hover { background:#f9fafb; color:#374151; }
+.cap-mode-btn.active { background:#eff6ff; color:#1d4ed8; }
+@keyframes dictFillPulse {
+  0%   { box-shadow:0 0 0 0 rgba(37,99,235,.5); background:white; }
+  35%  { box-shadow:0 0 0 5px rgba(37,99,235,.14); background:#eff6ff; }
+  100% { box-shadow:0 0 0 0 rgba(37,99,235,0); background:white; }
+}
+.dict-field-flash {
+  animation:dictFillPulse 1.4s ease forwards;
+  border-color:#2563eb !important;
+}
+.dict-field-badge {
+  position:absolute; top:-9px; right:10px;
+  padding:1px 7px; border-radius:8px;
+  background:#eff6ff; color:#1d4ed8;
+  font-size:10px; font-weight:700; pointer-events:none;
+  animation:dictBadgeIn .2s ease; z-index:5; white-space:nowrap;
+}
+@keyframes dictBadgeIn {
+  from { opacity:0; transform:translateY(-5px); }
+  to   { opacity:1; transform:translateY(0); }
 }

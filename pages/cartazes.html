@@ -91,6 +91,13 @@
                     <span>Produtos adicionados/Previews</span>
                 </button>
 
+                <div class="nav-divider">Mais ações</div>
+
+                <button class="nav-item" data-view="importar-json">
+                    <i class="fa-solid fa-file-import"></i>
+                    <span>Importar por JSON</span>
+                </button>
+
                 <button class="nav-item" data-view="calculadora">
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7zm6 7a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1zm-3 3a1 1 0 100 2h.01a1 1 0 100-2H10zm-4 1a1 1 0 011-1h.01a1 1 0 110 2H7a1 1 0 01-1-1zm1-4a1 1 0 100 2h.01a1 1 0 100-2H7zm2 1a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1zm4-4a1 1 0 100 2h.01a1 1 0 100-2H13zM9 9a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1zM7 8a1 1 0 000 2h.01a1 1 0 000-2H7z" clip-rule="evenodd"/>
@@ -98,46 +105,35 @@
                     <span>Calculadora de fator</span>
                 </button>
 
-                <!-- Seção Expansível: Extras -->
-                <div class="nav-section">
-                    <button class="nav-section-toggle" id="toggle-extras">
-                        <i class="fa-solid fa-grid-2-plus"></i>
-                        <span>Campos Extras</span>
-                        <i class="fa-solid fa-chevron-down nav-section-arrow"></i>
-                    </button>
-                    <div class="nav-section-content" id="extras-content">
-                        <button class="nav-item sub-item" id="btn-campos-obrigatorios">
-                            <i class="fa-solid fa-asterisk"></i>
-                            <span>Campos obrigatórios</span>
-                        </button>
-                        <button class="nav-item sub-item" data-view="importar-json">
-                            <i class="fa-solid fa-file-import"></i>
-                            <span>Importar cartazes por JSON</span>
-                        </button>
-                    </div>
-                </div>
+                <button class="nav-item" id="btn-campos-obrigatorios">
+                    <i class="fa-solid fa-asterisk"></i>
+                    <span>Campos obrigatórios</span>
+                </button>
+
+                <button class="nav-item mass-nav-btn" id="btn-mass-open">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <span>Cartazes em Massa</span>
+                </button>
 
                 <!-- Seção Suporte (apenas admin/suporte) -->
-                <div class="nav-section" id="suporte-section" style="display: none;">
-                    <button class="nav-section-toggle" id="toggle-suporte">
-                        <i class="fa-solid fa-headset"></i>
-                        <span>Suporte</span>
-                        <i class="fa-solid fa-chevron-down nav-section-arrow"></i>
+                <div id="suporte-section" style="display: none;">
+                    <div class="nav-divider">Área de testes</div>
+                    <button class="nav-item" id="btn-debug-cartazes">
+                        <i class="fa-solid fa-flask"></i>
+                        <span>Debug · Cartazes</span>
                     </button>
-                    <div class="nav-section-content" id="suporte-content">
-                        <button class="nav-item sub-item" id="btn-debug">
-                            <i class="fa-solid fa-bug"></i>
-                            <span>Debug</span>
-                        </button>
-                        <button class="nav-item sub-item" id="btn-ver-json">
-                            <i class="fa-solid fa-code"></i>
-                            <span>Ver JSON dos cartazes</span>
-                        </button>
-                        <button class="nav-item sub-item" id="btn-gerar-json">
-                            <i class="fa-solid fa-file-code"></i>
-                            <span>Gerar JSON de cartazes</span>
-                        </button>
-                    </div>
+                    <button class="nav-item" id="btn-debug-sessao">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        <span>Debug · Encerramento</span>
+                    </button>
+                    <button class="nav-item" data-view="ver-json" id="btn-ver-json">
+                        <i class="fa-solid fa-code"></i>
+                        <span>Ver JSON atual</span>
+                    </button>
+                    <button class="nav-item" id="btn-gerar-json">
+                        <i class="fa-solid fa-file-code"></i>
+                        <span>Gerar JSON de cartazes</span>
+                    </button>
                 </div>
             </nav>
 
@@ -182,7 +178,7 @@
 
                             <div class="form-group">
                                 <label for="descricao">Descrição *</label>
-                                <input type="text" id="descricao" required placeholder="TV PHP 4K 65''GOOGLE Smart TV" maxlength="38">
+                                <input type="text" id="descricao" required placeholder="TV PHP 4K 65''GOOGLE Smart TV" maxlength="">
                                 <span id="descricao-erro" style="display:none;font-size:12px;margin-top:4px;display:none;"></span>
                             </div>
 
@@ -899,31 +895,273 @@
         </div>
     </div>
 
-    <!-- Menu Dropdown do Debug -->
-    <div id="debug-menu" class="debug-dropdown" style="display: none;">
-        <div class="debug-dropdown-header">
-            <i class="fa-solid fa-bug"></i>
-            <span>Ferramentas de Debug</span>
+    </div><!-- /main-content -->
+
+    <!-- ═══ MASS OVERLAY ═══ -->
+    <div id="mass-overlay">
+      <div id="mass-modal">
+        <div id="mass-header">
+          <div class="mass-hdr-icon default" id="mass-hdr-icon"><i class="fa-solid fa-layer-group"></i></div>
+          <div class="mass-hdr-text">
+            <h2 id="mass-hdr-title">Gerador em Massa</h2>
+            <p id="mass-hdr-sub">Selecione o tipo de encarte</p>
+          </div>
+          <div class="mass-steps" id="mass-steps">
+            <div class="mass-step active" data-step="0"><div class="mass-step-dot">1</div><span>Tipo</span></div>
+            <div class="mass-step-line"></div>
+            <div class="mass-step" data-step="1"><div class="mass-step-dot">2</div><span>Produtos</span></div>
+            <div class="mass-step-line"></div>
+            <div class="mass-step" data-step="2"><div class="mass-step-dot">3</div><span>Confirmação</span></div>
+          </div>
+          <button id="mass-btn-back"><i class="fa-solid fa-arrow-left"></i> Voltar</button>
+          <button id="mass-btn-help" class="btn-ajuda-encarte" title="Ver tabela de tamanhos de encartes">
+            <i class="fa-solid fa-table-list"></i> Tabela de encartes
+          </button>
+          <button id="mass-btn-close">×</button>
         </div>
-        <button class="debug-dropdown-item" onclick="testarCartaz()">
-            <div class="debug-item-icon">
-                <i class="fa-solid fa-flask"></i>
+
+        <!-- SCREEN 0 — TIPO -->
+        <div id="mass-screen-type" class="mass-screen active">
+          <div class="mass-type-title">
+            <h3>Qual tipo de encarte deseja gerar?</h3>
+            <p>Cada tipo possui configuração específica de juros e opções.</p>
+          </div>
+          <div class="mass-type-cards">
+            <div class="mass-type-card padrao" data-type="padrao">
+              <div class="mass-type-icon"><i class="fa-solid fa-receipt"></i></div>
+              <h4>Encarte Tabela Padrão</h4>
+              <p>Geração padrão com carnê. Ideal para tabela fixa de preços parcelados.</p>
+              <div class="mass-type-tags">
+                <span class="mass-type-tag">Sempre Carnê</span>
+                <span class="mass-type-tag">Sem desconto</span>
+                <span class="mass-type-tag">Sem validade</span>
+              </div>
             </div>
-            <div class="debug-item-content">
-                <span class="debug-item-title">Testar cartaz</span>
-                <span class="debug-item-desc">Adicionar cartaz de teste</span>
+            <div class="mass-type-card promo" data-type="promocional">
+              <div class="mass-type-icon"><i class="fa-solid fa-credit-card"></i></div>
+              <h4>Encarte Promocional</h4>
+              <p>Cartão de crédito com opção de validade. Ideal para campanhas.</p>
+              <div class="mass-type-tags">
+                <span class="mass-type-tag">Sempre Cartão</span>
+                <span class="mass-type-tag">Com validade</span>
+                <span class="mass-type-tag">Sem desconto</span>
+              </div>
             </div>
-        </button>
-        <button class="debug-dropdown-item" onclick="testarFimSessao()">
-            <div class="debug-item-icon">
-                <i class="fa-solid fa-clock-rotate-left"></i>
+            <div class="mass-type-card feirao" data-type="feirao">
+              <div class="mass-type-icon"><i class="fa-solid fa-fire"></i></div>
+              <h4>Encarte Feirão</h4>
+              <p>Taxa livre, desconto automático 5% com arredondamento especial e validade.</p>
+              <div class="mass-type-tags">
+                <span class="mass-type-tag">Taxa livre</span>
+                <span class="mass-type-tag">Desconto 5%</span>
+                <span class="mass-type-tag">Com validade</span>
+              </div>
             </div>
-            <div class="debug-item-content">
-                <span class="debug-item-title">Fim de sessão</span>
-                <span class="debug-item-desc">Simular inatividade</span>
+          </div>
+        </div>
+
+        <!-- SCREEN 1 — SELEÇÃO -->
+        <div id="mass-screen-select" class="mass-screen">
+          <div id="mass-list-panel">
+            <div id="mass-toolbar">
+              <div class="mass-search-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input id="mass-search" type="text" placeholder="Buscar código ou descrição...">
+              </div>
+              <div class="mass-size-badge" id="mass-size-badge">
+                <i class="fa-solid fa-ruler"></i>
+                <span id="mass-size-badge-txt">A4</span>
+              </div>
+              <button id="mass-sel-all">
+                <i class="fa-solid fa-check-double"></i>
+                <span id="mass-sel-all-txt">Selecionar todos</span>
+              </button>
             </div>
-        </button>
+            <div id="mass-filter-chips">
+              <span class="mass-chip active" data-f="all">Todos <span class="mass-chip-count" id="chip-cnt-all">0</span></span>
+              <span class="mass-chip" data-f="selected">Selecionados <span class="mass-chip-count" id="chip-cnt-sel">0</span></span>
+              <span class="mass-chip" data-f="A4">A4 <span class="mass-chip-count" id="chip-cnt-a4">0</span></span>
+              <span class="mass-chip" data-f="A5">A5 <span class="mass-chip-count" id="chip-cnt-a5">0</span></span>
+              <span class="mass-chip" data-f="A6">A6 <span class="mass-chip-count" id="chip-cnt-a6">0</span></span>
+            </div>
+            <div class="mass-state-block" id="mass-loading"><div class="mass-spinner"></div><p>Carregando produtos da API...</p></div>
+            <div class="mass-state-block" id="mass-empty" style="display:none;"><i class="fa-solid fa-box-open" style="color:#d1d5db;"></i><p>Nenhum produto encontrado para este filtro.</p></div>
+            <div id="mass-tbl-wrap" style="display:none;">
+              <table id="mass-tbl">
+                <thead><tr>
+                  <th style="width:36px;"></th>
+                  <th style="width:88px;">Código</th>
+                  <th>Descrição</th>
+                  <th style="width:110px;">Valor à vista</th>
+                  <th style="width:56px;">Tam.</th>
+                </tr></thead>
+                <tbody id="mass-tbody"></tbody>
+              </table>
+            </div>
+            <div id="mass-pagination" style="display:none;"></div>
+          </div>
+          <div id="mass-config-panel">
+            <div class="mass-cfg-section">
+              <div class="mass-cfg-title"><i class="fa-solid fa-list-ol"></i> Parcelamento</div>
+              <div class="mass-cfg-field">
+                <label>Nº de parcelas *</label>
+                <select id="mass-metodo">
+                  <option value="">Selecione...</option>
+                  <option value="1x">1x (à vista)</option>
+                  <option value="3x">3x</option>
+                  <option value="5x">5x</option>
+                  <option value="10x">10x</option>
+                  <option value="12x">12x</option>
+                </select>
+              </div>
+              <div class="mass-cfg-field" id="mass-juros-field"><label>Taxa</label></div>
+            </div>
+            <div class="mass-cfg-section" id="mass-cfg-desconto" style="display:none;">
+              <div class="mass-cfg-title"><i class="fa-solid fa-percent"></i> Desconto Feirão</div>
+              <div class="mass-cfg-field">
+                <label for="mass-desconto-pct">Desconto (%) <small style="color:#9ca3af;">— padrão 5%</small></label>
+                <input type="number" id="mass-desconto-pct" value="5" min="0" max="99" step="0.5">
+              </div>
+              <div class="mass-disc-preview show" id="mass-disc-prev">
+                <i class="fa-solid fa-tag"></i>
+                Aplicando <strong id="mass-disc-pct-lbl">5%</strong> · fórmula de arredondamento X9 ativa
+              </div>
+            </div>
+            <div class="mass-cfg-section" id="mass-cfg-validade" style="display:none;">
+              <div class="mass-cfg-title"><i class="fa-solid fa-calendar-days"></i> Validade</div>
+              <div class="mass-toggle-row">
+                <label class="mass-sw"><input type="checkbox" id="mass-val-toggle"><span class="mass-sw-slider"></span></label>
+                <span class="mass-sw-label">Adicionar validade</span>
+              </div>
+              <div id="mass-val-fields" style="display:none;">
+                <div class="mass-cfg-field"><label>Início (opcional)</label><input type="date" id="mass-val-ini"></div>
+                <div class="mass-cfg-field"><label>Fim *</label><input type="date" id="mass-val-fim"></div>
+              </div>
+            </div>
+            <div class="mass-cfg-section">
+              <p class="mass-notice">
+                <i class="fa-solid fa-shield-halved"></i>
+                <strong>Garantia estendida indisponível</strong> no modo em massa.
+              </p>
+            </div>
+            <div style="flex:1;"></div>
+            <div id="mass-counter">
+              <div class="mass-counter-row">
+                <span class="mass-cnt-badge" id="mass-cnt-badge">0</span>
+                <span class="mass-cnt-label" id="mass-cnt-label">produtos selecionados</span>
+              </div>
+              <button id="mass-btn-next" disabled>
+                <i class="fa-solid fa-arrow-right"></i> Revisar e gerar cartazes
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SCREEN 2 — CONFIRMAÇÃO -->
+        <div id="mass-screen-confirm" class="mass-screen">
+          <div class="mass-confirm-header">
+            <h3 id="mass-confirm-title">Confirmar produtos e valores</h3>
+            <p id="mass-confirm-sub">Revise os valores. Você pode editar o valor à vista diretamente na tabela.</p>
+          </div>
+          <div class="mass-confirm-body">
+            <table class="mass-confirm-table">
+              <thead><tr>
+                <th style="width:90px;">Código</th>
+                <th>Descrição</th>
+                <th style="width:130px;">Valor à vista</th>
+                <th id="mass-confirm-th-novo" style="width:130px;display:none;">Valor Feirão</th>
+                <th id="mass-confirm-th-val" style="width:160px;display:none;">Validade</th>
+              </tr></thead>
+              <tbody id="mass-confirm-tbody"></tbody>
+            </table>
+          </div>
+          <div class="mass-confirm-footer">
+            <div class="mass-confirm-summary">
+              <strong id="mass-confirm-count">0</strong> produtos · <span id="mass-confirm-info"></span>
+            </div>
+            <div class="mass-confirm-actions">
+              <button class="mass-dlg-btn sec" id="mass-btn-back2"><i class="fa-solid fa-arrow-left"></i> Voltar</button>
+              <button id="mass-btn-confirm" class="mass-dlg-btn prim"><i class="fa-solid fa-bolt"></i> Confirmar e gerar PDF</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SCREEN 3 — PROGRESSO -->
+        <div id="mass-screen-progress" class="mass-screen">
+          <div class="mass-prog-circle">
+            <svg width="90" height="90" viewBox="0 0 90 90">
+              <circle class="mass-prog-bg" cx="45" cy="45" r="40"/>
+              <circle class="mass-prog-fill" id="mass-prog-circle" cx="45" cy="45" r="40"/>
+            </svg>
+            <div id="mass-prog-pct">0%</div>
+          </div>
+          <p id="mass-prog-label">Iniciando geração...</p>
+          <p id="mass-prog-sub">Aguarde, processando produtos</p>
+        </div>
+
+        <div id="mass-footer">
+          <span><strong id="mass-total-api">0</strong> produtos na API · <strong id="mass-total-filtered">0</strong> exibidos</span>
+          <span>Dica: filtre por tamanho antes de selecionar todos</span>
+        </div>
+      </div>
     </div>
+
+    <!-- ═══ MASS DIALOG: TAMANHO INDEFINIDO ═══ -->
+    <div class="mass-dialog-overlay" id="mass-dlg-size">
+      <div class="mass-dialog">
+        <div class="mass-dialog-hdr"><div class="mass-dialog-ico warn"><i class="fa-solid fa-triangle-exclamation"></i></div><div><h4>Tamanho não definido</h4><p>Este produto não tem tamanho registrado na API</p></div></div>
+        <div class="mass-dialog-body">
+          <p>O produto <strong id="mass-dlg-size-prod">—</strong> não possui tamanho de cartaz definido.</p>
+          <p>Adicionar está <strong>por sua conta e risco</strong> — o cartaz pode ter tamanho incompatível.</p>
+        </div>
+        <div class="mass-dialog-footer">
+          <button class="mass-dlg-btn sec" id="mass-dlg-size-help"><i class="fa-solid fa-table-list"></i> Ver tabela</button>
+          <button class="mass-dlg-btn sec" id="mass-dlg-size-no">Cancelar</button>
+          <button class="mass-dlg-btn warn" id="mass-dlg-size-yes">Adicionar mesmo assim</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ MASS DIALOG: TAMANHO DIFERENTE ═══ -->
+    <div class="mass-dialog-overlay" id="mass-dlg-mismatch">
+      <div class="mass-dialog">
+        <div class="mass-dialog-hdr"><div class="mass-dialog-ico error"><i class="fa-solid fa-ban"></i></div><div><h4>Tamanhos incompatíveis</h4><p>Não é possível misturar tamanhos no mesmo lote</p></div></div>
+        <div class="mass-dialog-body"><p id="mass-dlg-mismatch-msg"></p><p>Use o filtro de tamanhos para trabalhar com grupos separados.</p></div>
+        <div class="mass-dialog-footer"><button class="mass-dlg-btn prim" id="mass-dlg-mismatch-ok">Entendido</button></div>
+      </div>
+    </div>
+
+    <!-- ═══ MASS DIALOG: CAMA BOX ═══ -->
+    <div class="mass-dialog-overlay" id="mass-dlg-box">
+      <div class="mass-dialog" style="max-width:540px;">
+        <div class="mass-dialog-hdr"><div class="mass-dialog-ico box"><i class="fa-solid fa-bed"></i></div><div><h4>Conjunto Box detectado</h4><p>Alta probabilidade de par colchão + base box entre os selecionados</p></div></div>
+        <div class="mass-dialog-body">
+          <p>Os produtos abaixo parecem formar um <strong>Conj. Box</strong>. Deseja combiná-los em um único cartaz?</p>
+          <div id="mass-box-pairs-list" style="margin:12px 0;"></div>
+          <p style="font-size:11px;color:#9ca3af;">Os valores à vista serão somados.</p>
+        </div>
+        <div class="mass-dialog-footer">
+          <button class="mass-dlg-btn sec" id="mass-dlg-box-no">Não, manter separados</button>
+          <button class="mass-dlg-btn succ" id="mass-dlg-box-yes"><i class="fa-solid fa-object-group"></i> Sim, combinar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ENCARTE HELP OVERLAY ═══ -->
+    <div id="encarte-help-overlay">
+      <div id="encarte-help-box">
+        <div class="enc-help-hdr">
+          <div>
+            <h4><i class="fa-solid fa-table-list"></i> Tabela de Tamanhos de Encartes</h4>
+            <p>Consulte antes de gerar cartazes para evitar incompatibilidades de tamanho</p>
+          </div>
+          <button class="enc-help-close" id="encarte-help-close">×</button>
+        </div>
+        <div class="enc-help-body">
+          <img src="../image/encarte.png" alt="Tabela de tamanhos de encartes"
+            onerror="this.outerHTML='<div class=\'enc-img-error\'><i class=\'fa-solid fa-image\'></i><p>Imagem não encontrada.<br><small>Caminho esperado: ../image/encarte.png</small></p></div>'">
+        </div>
+      </div>
     </div>
 
     <script src="../js/script.js"></script>
