@@ -4340,9 +4340,10 @@ body.mobile-detected {
 /* HP — padrão calibrado sem margens ("Ajustar área" desativado) */
 .poster-ge-hp {
   /* ← AJUSTE HP: mude --ge-shift-y se os valores saírem deslocados.
-     1 cm para cima = +3.37%  |  1 cm para baixo = -3.37%           */
-  --ge-shift-y: 0%;
-  --ge-shift-x: 0%;
+     1 cm para cima = +3.37%  |  1 cm para baixo = -3.37%
+     Base: posições do HP-A5 + 0,2cm cima (+0,673%) + 0,5cm esquerda (-2,381%) */
+  --ge-shift-y: -2.694%;  /* HP-A5(-3.367%) + 0.2cm cima(+0.673%) = -2.694% */
+  --ge-shift-x: 0%;       /* HP-A5(+2.381%) + 0.5cm esquerda(-2.381%) = 0%   */
 }
 
 /* Brother DCP-1617W — igual ao HP por padrão; ajuste após teste com régua */
@@ -4362,9 +4363,9 @@ body.mobile-detected {
 
 /* ------------------------------------------------------------------
    HP - A5
-   Posição: 1cm abaixo do HP padrão + 0,5cm para a direita
-            Vertical:   -1cm   → --ge-shift-y: -3.367%  (1/29.7×100)
-            Horizontal: +0.5cm → --ge-shift-x: +2.381%  (0.5/21.0×100)
+   Base: valores anteriores do HP-A5 + 1,6cm para cima
+         Vertical:   -3.367% + 5.387% = +2.020%  (1.6/29.7×100)
+         Horizontal: 2.381% sem alteração         (0.5/21.0×100)
    Fonte: 8.5pt  (HP padrão = 6.5pt, +2pt)
 
    ← AJUSTE HP-A5 VERTICAL:   altere --ge-shift-y abaixo.
@@ -4373,8 +4374,8 @@ body.mobile-detected {
      Fórmula: 1cm para direita = +4.76% | 1cm para esquerda = -4.76%
    ------------------------------------------------------------------ */
 .poster-ge-hp-a5 {
-  --ge-shift-y: -3.367%;  /* ← AJUSTE VERTICAL HP-A5: 1cm abaixo do HP padrão */
-  --ge-shift-x: 2.381%;   /* ← AJUSTE HORIZONTAL HP-A5: 0.5cm para a direita */
+  --ge-shift-y: 2.020%;   /* ← AJUSTE VERTICAL HP-A5: anterior(-3.367%) + 1.6cm cima(+5.387%) */
+  --ge-shift-x: 2.381%;   /* ← AJUSTE HORIZONTAL HP-A5: 0.5cm para a direita (sem alteração) */
 }
 
 /* Aumenta fonte 2pt para HP-A5 */
