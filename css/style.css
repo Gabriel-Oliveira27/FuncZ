@@ -2102,10 +2102,89 @@ input:checked + .slider:before {
   transform: scale(1.02);
 }
 
-/* Responsive */
+/* ==================================================
+   RESPONSIVO — TELAS MÉDIAS (monitores quadrados,
+   ex: 1280×1024, 1366×768, 1280×800)
+   ================================================== */
+
+/* ── 1280px: sidebar mais compacta, formulário fluido ── */
+@media (max-width: 1280px) {
+  .sidebar {
+    width: 240px;
+    flex-shrink: 0;
+  }
+
+  .global-header {
+    padding: 16px 20px;
+  }
+
+  .view {
+    padding: 20px;
+  }
+
+  /* 3 colunas → 2 + 1 */
+  .form-row-3cols {
+    grid-template-columns: 130px 1fr;
+    grid-template-rows: auto auto;
+  }
+  .form-row-3cols > :nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  /* 4 colunas → 2×2 */
+  .form-row-4cols {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* Características ocupa largura total */
+  .features-input-compact {
+    max-width: 100%;
+  }
+
+  /* Card de produto: preview menor */
+  .product-card {
+    grid-template-columns: 1fr 170px;
+    gap: 16px;
+  }
+  .product-preview {
+    width: 170px;
+    height: 240px;
+  }
+
+  /* Header de produtos: botões quebram em 2 linhas graciosamente */
+  .products-header {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  #products-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  /* Checkbox de fontes fica acima dos botões */
+  .checkbox-fontes-wrapper {
+    order: -1;
+  }
+}
+
+/* ── 1024px: colapsar formulários, preview em coluna ── */
 @media (max-width: 1024px) {
+  .sidebar {
+    width: 220px;
+  }
+
   .form-row {
     grid-template-columns: 1fr;
+  }
+
+  .form-row-3cols {
+    grid-template-columns: 1fr;
+  }
+  .form-row-3cols > :nth-child(3) {
+    grid-column: auto;
+  }
+
+  .form-row-4cols {
+    grid-template-columns: 1fr 1fr;
   }
 
   .product-card {
@@ -2121,15 +2200,97 @@ input:checked + .slider:before {
   .calc-result-grid {
     grid-template-columns: 1fr;
   }
+
+  /* Linha de características + checkboxes empilha */
+  .features-input-compact {
+    max-width: 100%;
+  }
+  .form-group > div[style*="display: flex"] {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
 }
 
+/* ── Telas de altura curta (≤800px): reduzir padding
+      e tornar o main-content scrollável sem perda de conteúdo ── */
+@media (max-height: 800px) {
+  .container {
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    overflow-y: auto;
+    max-height: 100vh;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+  }
+
+  .global-header {
+    padding: 12px 20px;
+    position: relative; /* sai do sticky para não ocupar espaço da tela */
+  }
+
+  .global-header h1 {
+    font-size: 18px;
+  }
+
+  .view {
+    padding: 16px 20px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .form-group {
+    margin-bottom: 14px;
+  }
+
+  .form-group label {
+    margin-bottom: 5px;
+  }
+
+  .form-group input[type="text"],
+  .form-group input[type="tel"],
+  .form-group input[type="date"],
+  .form-group select {
+    padding: 9px 12px;
+  }
+
+  .warranty-toggle {
+    padding: 12px;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: 10px 20px;
+  }
+
+  /* Preview de produto menor em telas baixas */
+  .product-preview {
+    width: 180px;
+    height: 254px;
+  }
+
+  .product-card {
+    grid-template-columns: 1fr 180px;
+    gap: 14px;
+  }
+}
+
+/* ── 768px: layout de coluna (mobile/tablet) ── */
 @media (max-width: 768px) {
   .container {
     flex-direction: column;
+    height: auto;
   }
 
   .sidebar {
     width: 100%;
+    max-height: none;
+    position: static;
     border-right: none;
     border-bottom: 1px solid var(--gray-200);
   }
@@ -2141,15 +2302,56 @@ input:checked + .slider:before {
   .global-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 16px;
+    gap: 12px;
+    padding: 16px;
   }
 
   .view {
     padding: 16px;
   }
 
+  .form-row-3cols,
+  .form-row-4cols {
+    grid-template-columns: 1fr;
+  }
+  .form-row-3cols > :nth-child(3) {
+    grid-column: auto;
+  }
+
+  .features-input-compact {
+    max-width: 100%;
+  }
+
   .product-details {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .product-card {
+    grid-template-columns: 1fr;
+  }
+
+  .product-preview {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 5/7;
+  }
+
+  .products-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  #products-actions {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  #products-actions .btn-primary,
+  #products-actions .btn-secondary {
+    flex: 1;
+    justify-content: center;
+    min-width: 0;
   }
 }
 
@@ -4337,13 +4539,22 @@ body.mobile-detected {
   --ge-shift-x: 0%;   /* positivo = direita, negativo = esquerda */
 }
 
-/* HP — padrão calibrado sem margens ("Ajustar área" desativado) */
+/* HP — padrão (Chrome/Chromium)
+   Base: HP-A5(2.020%) + 0,5cm baixo (−1.684% = 0.5/29.7×100)
+   ← AJUSTE CHROME: altere --ge-shift-y. 1cm cima = +3.37% | 1cm baixo = −3.37% */
 .poster-ge-hp {
-  /* ← AJUSTE HP: mude --ge-shift-y se os valores saírem deslocados.
-     1 cm para cima = +3.37%  |  1 cm para baixo = -3.37%
-     Base: posições do HP-A5 + 0,2cm cima (+0,673%) + 0,5cm esquerda (-2,381%) */
-  --ge-shift-y: -2.694%;  /* HP-A5(-3.367%) + 0.2cm cima(+0.673%) = -2.694% */
-  --ge-shift-x: 0%;       /* HP-A5(+2.381%) + 0.5cm esquerda(-2.381%) = 0%   */
+  --ge-shift-y: 0.336%;
+  --ge-shift-x: 2.381%;
+}
+
+/* HP-Padrão — compensação Firefox (sobrescreve o bloco acima no Firefox)
+   ← AJUSTE FIREFOX: calibre --ge-shift-y aqui se ficar deslocado no Firefox.
+     Partindo do mesmo valor Chrome; ajuste após teste com régua. */
+@supports (-moz-appearance: none) {
+  .poster-ge-hp {
+    --ge-shift-y: 0.336%;   /* ← ajuste após teste no Firefox */
+    --ge-shift-x: 2.381%;
+  }
 }
 
 /* Brother DCP-1617W — igual ao HP por padrão; ajuste após teste com régua */
@@ -4362,20 +4573,24 @@ body.mobile-detected {
 }
 
 /* ------------------------------------------------------------------
-   HP - A5
-   Base: valores anteriores do HP-A5 + 1,6cm para cima
-         Vertical:   -3.367% + 5.387% = +2.020%  (1.6/29.7×100)
-         Horizontal: 2.381% sem alteração         (0.5/21.0×100)
-   Fonte: 8.5pt  (HP padrão = 6.5pt, +2pt)
-
-   ← AJUSTE HP-A5 VERTICAL:   altere --ge-shift-y abaixo.
-     Fórmula: 1cm para baixo = -3.37% | 1cm para cima = +3.37%
-   ← AJUSTE HP-A5 HORIZONTAL: altere --ge-shift-x abaixo.
-     Fórmula: 1cm para direita = +4.76% | 1cm para esquerda = -4.76%
+   HP - A5 (Chrome/Chromium)
+   Base: antiga posição HP-Padrão (−2.694% / 0%)
+   ← AJUSTE CHROME: altere --ge-shift-y. 1cm cima = +3.37% | 1cm baixo = −3.37%
+   ← AJUSTE CHROME: altere --ge-shift-x. 1cm dir = +4.76%  | 1cm esq  = −4.76%
    ------------------------------------------------------------------ */
 .poster-ge-hp-a5 {
-  --ge-shift-y: 2.020%;   /* ← AJUSTE VERTICAL HP-A5: anterior(-3.367%) + 1.6cm cima(+5.387%) */
-  --ge-shift-x: 2.381%;   /* ← AJUSTE HORIZONTAL HP-A5: 0.5cm para a direita (sem alteração) */
+  --ge-shift-y: -2.694%;
+  --ge-shift-x: 0%;
+}
+
+/* HP-A5 — compensação Firefox (sobrescreve o bloco acima no Firefox)
+   ← AJUSTE FIREFOX: calibre aqui se ficar deslocado no Firefox.
+     Partindo do mesmo valor Chrome; ajuste após teste com régua. */
+@supports (-moz-appearance: none) {
+  .poster-ge-hp-a5 {
+    --ge-shift-y: -2.694%;  /* ← ajuste após teste no Firefox */
+    --ge-shift-x: 0%;
+  }
 }
 
 /* Aumenta fonte 2pt para HP-A5 */
