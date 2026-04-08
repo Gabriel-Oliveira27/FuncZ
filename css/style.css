@@ -4494,35 +4494,9 @@ body.mobile-detected {
   color: var(--gray-800);
   font-weight: 700;
 }
-/* ====================================================================
-   GARANTIA ESTENDIDA — OVERLAY NO CARTAZ
-   Posiciona valores sobre as linhas do template físico Zenir.
 
-   USA EXCLUSIVAMENTE % relativas ao poster (210×297mm) para escalar
-   corretamente tanto no preview (transform:scale(0.28)) quanto no PDF.
 
-   RAIZ DO BUG ANTERIOR: .poster-ge não tinha height explícita,
-   então .pgvc { height:8% } → 8% de 0 = 0 → tudo empilhado.
-   SOLUÇÃO: .poster-ge cobre o poster inteiro (top:0; bottom:0),
-   e cada span usa bottom/left % relativos ao poster.
 
-   ┌──────────────────────────────────────────────────────────────────┐
-   │ COMO AJUSTAR POR IMPRESSORA                                      │
-   │                                                                  │
-   │ HP (padrão) — ajuste --ge-shift-y em .poster-ge-hp              │
-   │   Positivo = sobe | Negativo = desce | 1cm = 3,37%              │
-   │                                                                  │
-   │ Brother DCP-1617W — ajuste --ge-shift-y em .poster-ge-brother   │
-   │   Com "Ajustar área de impressão" ativo no CUPS tente +1%       │
-   │   Fórmula vertical: 1cm → 3,37%  |  horizontal: 1cm → 4,76%    │
-   │                                                                  │
-   │ Custom — ajuste via dialog (valores em cm, convertidos para %)   │
-   └──────────────────────────────────────────────────────────────────┘
-
-   POSIÇÕES calibradas com dados do Canva (canvas estimado 1434×2029px):
-     parcelamento X 420.9  parcela X 586.6  (col +1 ANO)
-     total Y 1855.3        a vista Y 1889.9  taxa Y 1927.7
-   ==================================================================== */
 
 /* ------------------------------------------------------------------
    CONTAINER — cobre o poster INTEIRO para que os % funcionem
@@ -4539,14 +4513,12 @@ body.mobile-detected {
   --ge-shift-x: 0%;   /* positivo = direita, negativo = esquerda */
 }
 
-/* HP — padrão (Chrome/Chromium)
-   Base: HP-A5(2.020%) + 0,5cm baixo (−1.684% = 0.5/29.7×100)
-   ← AJUSTE CHROME: altere --ge-shift-y. 1cm cima = +3.37% | 1cm baixo = −3.37% */
-.poster-ge-hp {
-  --ge-shift-y: 0.336%;
-  --ge-shift-x: 2.381%;
-}
+/* HP — padrão (Chrome/Chromium)*/
 
+.poster-ge-hp {
+  --ge-shift-y: -2.694%;
+  --ge-shift-x: 0%;
+}
 /* HP-Padrão — compensação Firefox (sobrescreve o bloco acima no Firefox)
    ← AJUSTE FIREFOX: calibre --ge-shift-y aqui se ficar deslocado no Firefox.
      Partindo do mesmo valor Chrome; ajuste após teste com régua. */
@@ -4574,12 +4546,9 @@ body.mobile-detected {
 
 /* ------------------------------------------------------------------
    HP - A5 (Chrome/Chromium)
-   Base: antiga posição HP-Padrão (−2.694% / 0%)
-   ← AJUSTE CHROME: altere --ge-shift-y. 1cm cima = +3.37% | 1cm baixo = −3.37%
-   ← AJUSTE CHROME: altere --ge-shift-x. 1cm dir = +4.76%  | 1cm esq  = −4.76%
    ------------------------------------------------------------------ */
 .poster-ge-hp-a5 {
-  --ge-shift-y: -2.694%;
+  --ge-shift-y: 2.694%;
   --ge-shift-x: 0%;
 }
 
