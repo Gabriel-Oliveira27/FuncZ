@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Usuários</title>
+  <link rel="icon" type="image/png" href="../image/zenirlogo.png">
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --bg:#f8fafc; --bg-card:#ffffff; --bg-input:#f1f5f9;
+      --border:#e2e8f0;
+      --blue:#2563eb; --blue-dim:rgba(37,99,235,.08);
+      --green:#16a34a; --amber:#d97706; --red:#dc2626;
+      --purple:#7c3aed; --indigo:#4f46e5; --teal:#0d9488;
+      --text:#1e293b; --muted:#64748b; --dim:#94a3b8;
+      --shadow:0 1px 8px rgba(0,0,0,.07); --radius:12px; --radius-sm:8px;
+    }
+    [data-theme="dark"] {
+      --bg:#0f172a; --bg-card:#1e293b; --bg-input:#0f172a;
+      --border:#334155; --text:#f1f5f9; --muted:#94a3b8; --dim:#475569;
+      --shadow:0 1px 8px rgba(0,0,0,.3);
+    }
+    body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+           background:var(--bg); color:var(--text); min-height:100vh; transition:background .3s,color .3s; }
+
+    /* ── HEADER ── */
+    .header { background:var(--bg-card); border-bottom:1px solid var(--border); padding:.75rem 1.5rem;
+      display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:1rem;
+      position:sticky; top:0; z-index:100; }
+    .header-left { display:flex; align-items:center; gap:.75rem; }
+    .back-btn { display:inline-flex; align-items:center; gap:.35rem; background:transparent;
+      border:1.5px solid var(--border); border-radius:50px; padding:.32rem .8rem;
+      font-size:.78rem; font-weight:500; color:var(--muted); cursor:pointer; text-decoration:none; transition:all .2s; }
+    .back-btn:hover { border-color:var(--blue); color:var(--blue); }
+    .back-btn svg { width:13px; height:13px; }
+    .header-title { font-size:1rem; font-weight:700; display:flex; align-items:center; gap:.5rem; }
+    .header-title span { font-size:.8rem; font-weight:400; color:var(--muted); }
+    .header-right { display:flex; gap:.6rem; align-items:center; }
+    .icon-btn { background:transparent; border:1.5px solid var(--border); border-radius:50px;
+      padding:.35rem .8rem; font-size:.78rem; font-weight:500; color:var(--muted);
+      cursor:pointer; display:flex; align-items:center; gap:.35rem; transition:all .2s; font-family:inherit; }
+    .icon-btn:hover { border-color:var(--blue); color:var(--blue); }
+    .icon-btn svg { width:13px; height:13px; }
+
+    /* ── PILL NAV ── */
+    .dash-nav { background:var(--bg-card); border-bottom:1px solid var(--border); padding:.5rem 1.5rem; display:flex; gap:.4rem; overflow-x:auto; }
+    .dash-pill { display:inline-flex; align-items:center; gap:.35rem; padding:.35rem .85rem; border-radius:50px;
+      font-size:.78rem; font-weight:500; text-decoration:none; color:var(--muted); border:1.5px solid var(--border); white-space:nowrap; transition:all .2s; }
+    .dash-pill:hover, .dash-pill.active { border-color:var(--blue); color:var(--blue); background:var(--blue-dim); }
+    .dash-pill svg { width:12px; height:12px; }
+
+    /* ── CONTAINER ── */
+    .container { max-width:1280px; margin:0 auto; padding:2rem 1.5rem; }
+    .page-heading { margin-bottom:1.75rem; }
+    .page-heading h1 { font-size:1.6rem; font-weight:800; }
+    .page-heading p { color:var(--muted); font-size:.9rem; margin-top:.3rem; }
+
+    /* ── KPIs ── */
+    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:1rem; margin-bottom:2rem; }
+    .kpi-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem 1.5rem; box-shadow:var(--shadow); }
+    .kpi-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:.6rem; }
+    .kpi-label { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+    .kpi-icon { width:32px; height:32px; border-radius:.45rem; display:flex; align-items:center; justify-content:center; font-size:.9rem; }
+    .kpi-value { font-size:1.9rem; font-weight:800; line-height:1; }
+    .kpi-sub { font-size:.73rem; color:var(--muted); margin-top:.3rem; }
+    .blue  .kpi-icon { background:rgba(37,99,235,.12); }   .blue  .kpi-value { color:var(--blue); }
+    .green .kpi-icon { background:rgba(22,163,74,.12); }   .green .kpi-value { color:var(--green); }
+    .amber .kpi-icon { background:rgba(217,119,6,.12); }   .amber .kpi-value { color:var(--amber); }
+    .purple .kpi-icon { background:rgba(124,58,237,.12); } .purple .kpi-value { color:var(--purple); }
+    .indigo .kpi-icon { background:rgba(79,70,229,.12); }  .indigo .kpi-value { color:var(--indigo); }
+
+    /* ── FILTER PANEL ── */
+    .filter-panel {
+      background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius);
+      padding:1.25rem 1.5rem; margin-bottom:1.5rem; box-shadow:var(--shadow);
+    }
+    .filter-panel-title { font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:1rem; }
+    .filter-grid { display:flex; gap:.75rem; flex-wrap:wrap; align-items:flex-end; }
+    .filter-group { display:flex; flex-direction:column; gap:.35rem; min-width:160px; }
+    .filter-label { font-size:.75rem; font-weight:600; color:var(--muted); }
+    .filter-select, .filter-input {
+      background:var(--bg-input); border:1.5px solid var(--border);
+      color:var(--text); border-radius:var(--radius-sm);
+      padding:.5rem .8rem; font-size:.84rem; font-family:inherit; cursor:pointer;
+    }
+    .filter-select:focus, .filter-input:focus { outline:none; border-color:var(--blue); }
+    .filter-input::placeholder { color:var(--dim); }
+    .filter-input { cursor:text; flex:1; min-width:200px; }
+    .btn-clear { background:transparent; border:1.5px solid var(--border); color:var(--muted);
+      border-radius:var(--radius-sm); padding:.5rem .9rem; font-size:.8rem; font-weight:500;
+      cursor:pointer; font-family:inherit; transition:all .2s; }
+    .btn-clear:hover { border-color:var(--red); color:var(--red); }
+
+    /* ── ACTIVE FILTERS ── */
+    .active-filters { display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:.75rem; }
+    .filter-chip {
+      display:inline-flex; align-items:center; gap:.35rem;
+      padding:.25rem .65rem; background:var(--blue-dim);
+      border:1px solid rgba(37,99,235,.2); border-radius:50px;
+      font-size:.73rem; font-weight:600; color:var(--blue);
+    }
+    .filter-chip button { background:none; border:none; cursor:pointer; color:var(--blue); font-size:.85rem; line-height:1; padding:0; }
+
+    /* ── USER TABLE ── */
+    .table-section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:.75rem; }
+    .section-title-sm { font-size:1rem; font-weight:700; }
+    .result-count { font-size:.82rem; color:var(--muted); }
+
+    .table-wrap { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); }
+    table { width:100%; border-collapse:collapse; }
+    thead { background:var(--bg-input); }
+    th { padding:.65rem 1rem; text-align:left; font-size:.7rem; font-weight:700;
+         text-transform:uppercase; letter-spacing:.07em; color:var(--muted); border-bottom:1px solid var(--border); white-space:nowrap; cursor:pointer; user-select:none; }
+    th:hover { color:var(--blue); }
+    th.sorted { color:var(--blue); }
+    th .sort-icon { margin-left:.3rem; font-size:.65rem; }
+    td { padding:.72rem 1rem; font-size:.84rem; border-bottom:1px solid var(--border); vertical-align:middle; }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:var(--bg-input); }
+
+    /* Permission badge */
+    .perm-badge { display:inline-flex; align-items:center; gap:.3rem; padding:.2rem .65rem; border-radius:50px; font-size:.7rem; font-weight:700; white-space:nowrap; }
+    .perm-admin    { background:rgba(124,58,237,.1); color:var(--purple); }
+    .perm-gerente  { background:rgba(37,99,235,.1); color:var(--blue); }
+    .perm-suporte  { background:rgba(13,148,136,.1); color:var(--teal); }
+    .perm-vendedor { background:rgba(22,163,74,.1); color:var(--green); }
+    .perm-crediario { background:rgba(217,119,6,.1); color:var(--amber); }
+    .perm-faturamento { background:rgba(79,70,229,.1); color:var(--indigo); }
+    .perm-default  { background:rgba(100,116,139,.1); color:var(--muted); }
+
+    /* Filial chip */
+    .filial-chip { display:inline-block; background:var(--bg-input); border:1px solid var(--border);
+      border-radius:.35rem; padding:.15rem .55rem; font-family:monospace; font-size:.78rem; font-weight:700; }
+
+    /* Password */
+    .pwd-field { display:flex; align-items:center; gap:.4rem; }
+    .pwd-mask { font-family:monospace; letter-spacing:.1em; color:var(--dim); }
+    .eye-btn { background:none; border:none; cursor:pointer; color:var(--dim); font-size:.9rem; line-height:1; padding:0; transition:color .2s; }
+    .eye-btn:hover { color:var(--blue); }
+
+    /* CPF mask */
+    .cpf-text { font-family:monospace; font-size:.8rem; }
+
+    /* Estado */
+    .state-box { padding:3rem; text-align:center; display:flex; flex-direction:column; align-items:center; gap:.75rem; }
+    .state-box .icon { font-size:2.5rem; }
+    .state-box p { color:var(--muted); font-size:.9rem; }
+
+    /* Paginação */
+    .pagination { display:flex; justify-content:center; align-items:center; gap:.4rem; margin-top:1rem; }
+    .page-btn { width:32px; height:32px; border:1.5px solid var(--border); border-radius:.45rem;
+      background:var(--bg-card); color:var(--muted); font-size:.8rem; font-weight:600;
+      cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .2s; }
+    .page-btn:hover, .page-btn.active { border-color:var(--blue); color:var(--blue); background:var(--blue-dim); }
+    .page-btn:disabled { opacity:.35; cursor:default; border-color:var(--border); color:var(--dim); background:transparent; }
+
+    /* Toast */
+    #toast-container { position:fixed; top:1rem; right:1rem; z-index:9999; display:flex; flex-direction:column; gap:.5rem; }
+    .toast { padding:.75rem 1rem; border-radius:var(--radius-sm); border:1px solid transparent; font-size:.85rem;
+             display:flex; align-items:center; gap:.5rem; box-shadow:0 4px 20px rgba(0,0,0,.15); animation:toastIn .3s ease; }
+    @keyframes toastIn { from{opacity:0;transform:translateX(12px)} to{opacity:1;transform:none} }
+    .toast.success { background:#f0fdf4; border-color:#bbf7d0; color:#166534; }
+    .toast.error   { background:#fef2f2; border-color:#fecaca; color:#991b1b; }
+    [data-theme="dark"] .toast.success { background:rgba(22,163,74,.15); border-color:rgba(22,163,74,.3); color:#86efac; }
+    [data-theme="dark"] .toast.error   { background:rgba(220,38,38,.15); border-color:rgba(220,38,38,.3); color:#fca5a5; }
+
+    /* Banner aviso sem GAS */
+    .info-banner { background:rgba(37,99,235,.07); border:1px solid rgba(37,99,235,.2); border-radius:var(--radius); padding:1rem 1.25rem; margin-bottom:1.5rem; font-size:.85rem; color:var(--blue); }
+    .info-banner strong { font-weight:700; }
+
+    @media(max-width:900px) { th:nth-child(5), td:nth-child(5) { display:none; } }
+    @media(max-width:600px) { th:nth-child(4), td:nth-child(4), th:nth-child(6), td:nth-child(6) { display:none; } }
+  </style>
+</head>
+<body data-theme="light">
+<div id="toast-container"></div>
+
+<!-- ── HEADER ── -->
+<header class="header">
+  <div class="header-left">
+    <a href="admin.html" class="back-btn">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>Painel
+    </a>
+    <div class="header-title">👥 Dashboard Usuários <span>/ Gerenciamento</span></div>
+  </div>
+  <div></div>
+  <div class="header-right">
+    <button class="icon-btn" id="exportBtn">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+      </svg>Exportar CSV
+    </button>
+    <button class="icon-btn" id="refreshBtn">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+      </svg>Atualizar
+    </button>
+    <button class="icon-btn" id="themeToggle">
+      <svg id="themeIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+      </svg>
+      <span id="themeText">Escuro</span>
+    </button>
+  </div>
+</header>
+
+<!-- ── PILL NAV ── -->
+<nav class="dash-nav">
+  <a class="dash-pill" href="dash-feedback.html">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>Feedback
+  </a>
+  <a class="dash-pill" href="dash-produtos.html">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>Produtos
+  </a>
+  <a class="dash-pill active" href="dash-usuarios.html">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Usuários
+  </a>
+</nav>
+
+<!-- ── MAIN ── -->
+<div class="container">
+  <div class="page-heading">
+    <h1>Gerenciamento de Usuários</h1>
+    <p id="lastUpdate">Carregando...</p>
+  </div>
+
+  <div class="info-banner" id="infoBanner">
+    <strong>ℹ️ Modo demonstração</strong> — Os dados abaixo são exemplos. Conecte a GAS (<code>action=getUsers</code>) para carregar usuários reais.
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card blue"><div class="kpi-top"><div class="kpi-label">Total</div><div class="kpi-icon">👥</div></div><div class="kpi-value" id="kpiTotal">—</div><div class="kpi-sub">usuários cadastrados</div></div>
+    <div class="kpi-card green"><div class="kpi-top"><div class="kpi-label">Cidades</div><div class="kpi-icon">📍</div></div><div class="kpi-value" id="kpiCidades">—</div><div class="kpi-sub">localidades distintas</div></div>
+    <div class="kpi-card amber"><div class="kpi-top"><div class="kpi-label">Filiais</div><div class="kpi-icon">🏪</div></div><div class="kpi-value" id="kpiFiliais">—</div><div class="kpi-sub">filiais ativas</div></div>
+    <div class="kpi-card purple"><div class="kpi-top"><div class="kpi-label">Gerentes</div><div class="kpi-icon">⭐</div></div><div class="kpi-value" id="kpiGerentes">—</div><div class="kpi-sub">com nível gerente</div></div>
+    <div class="kpi-card indigo"><div class="kpi-top"><div class="kpi-label">Vendedores</div><div class="kpi-icon">🛒</div></div><div class="kpi-value" id="kpiVendedores">—</div><div class="kpi-sub">ativos</div></div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filter-panel">
+    <div class="filter-panel-title">🔍 Filtros</div>
+    <div class="filter-grid">
+      <div class="filter-group" style="flex:1;min-width:200px">
+        <label class="filter-label">Buscar</label>
+        <input class="filter-input" type="text" id="searchInput" placeholder="Nome, usuário ou CPF...">
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Cidade</label>
+        <select class="filter-select" id="filterCidade"><option value="">Todas</option></select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Filial</label>
+        <select class="filter-select" id="filterFilial"><option value="">Todas</option></select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Permissão</label>
+        <select class="filter-select" id="filterPerm">
+          <option value="">Todas</option>
+          <option>admin</option><option>gerente</option><option>suporte</option>
+          <option>vendedor</option><option>crediario</option><option>faturamento</option>
+        </select>
+      </div>
+      <div class="filter-group" style="justify-content:flex-end">
+        <button class="btn-clear" onclick="clearFilters()">Limpar filtros</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chips de filtros ativos -->
+  <div class="active-filters" id="activeFilters"></div>
+
+  <!-- Tabela -->
+  <div class="table-section-header">
+    <div class="section-title-sm">📋 Lista de Usuários</div>
+    <div class="result-count" id="resultCount"></div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th onclick="sortBy('nome')" id="th-nome">Nome Completo <span class="sort-icon" id="si-nome"></span></th>
+          <th onclick="sortBy('user')" id="th-user">Usuário <span class="sort-icon" id="si-user"></span></th>
+          <th>Senha</th>
+          <th onclick="sortBy('cpf')" id="th-cpf">CPF <span class="sort-icon" id="si-cpf"></span></th>
+          <th onclick="sortBy('perm')" id="th-perm">Permissão <span class="sort-icon" id="si-perm"></span></th>
+          <th onclick="sortBy('cidade')" id="th-cidade">Cidade <span class="sort-icon" id="si-cidade"></span></th>
+          <th onclick="sortBy('filial')" id="th-filial">Filial <span class="sort-icon" id="si-filial"></span></th>
+        </tr>
+      </thead>
+      <tbody id="userBody">
+        <tr><td colspan="7"><div class="state-box"><div class="icon">⌛</div><p>Carregando usuários...</p></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="pagination" id="pagination"></div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════
+   TEMA
+══════════════════════════════════════════ */
+(function(){ const t=localStorage.getItem('theme')||'light'; applyTheme(t); })();
+function applyTheme(t){
+  document.body.setAttribute('data-theme',t);
+  document.getElementById('themeText').textContent=t==='dark'?'Claro':'Escuro';
+  const i=document.getElementById('themeIcon');
+  i.innerHTML=t==='dark'
+    ?'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>'
+    :'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
+}
+document.getElementById('themeToggle').addEventListener('click',()=>{
+  const c=document.body.getAttribute('data-theme')||'light';
+  const n=c==='dark'?'light':'dark';
+  localStorage.setItem('theme',n); applyTheme(n);
+});
+
+/* ══════════════════════════════════════════
+   CONFIG & MOCK
+══════════════════════════════════════════ */
+const GAS_URL = 'https://script.google.com/macros/s/SEU_DEPLOYMENT_ID/exec';
+
+const MOCK_USERS = [
+  { nome:'Carlos Eduardo Souza',    user:'carlos',    senha:'carlos123',    cpf:'123.456.789-00', perm:'vendedor',    cidade:'Iguatu',     filial:'01' },
+  { nome:'Ana Paula Lima',          user:'ana.lima',  senha:'ana@2024',     cpf:'987.654.321-00', perm:'crediario',   cidade:'Iguatu',     filial:'01' },
+  { nome:'Pedro Martins Alves',     user:'pedro.m',   senha:'pedroX#7',     cpf:'111.222.333-44', perm:'gerente',     cidade:'Fortaleza',  filial:'02' },
+  { nome:'Fernanda Rocha',          user:'fernanda',  senha:'ferna2024',    cpf:'555.666.777-88', perm:'faturamento', cidade:'Fortaleza',  filial:'02' },
+  { nome:'Lucas Vieira Costa',      user:'lucas.v',   senha:'lvcosta!1',    cpf:'222.333.444-55', perm:'vendedor',    cidade:'Quixadá',    filial:'03' },
+  { nome:'Julia Alves Mendes',      user:'julia.a',   senha:'julia9876',    cpf:'333.444.555-66', perm:'vendedor',    cidade:'Quixadá',    filial:'03' },
+  { nome:'Roberto Dias',            user:'roberto',   senha:'rob#dias',     cpf:'444.555.666-77', perm:'suporte',     cidade:'Iguatu',     filial:'01' },
+  { nome:'Mariana Ferreira',        user:'mariana.f', senha:'mf2024!',      cpf:'666.777.888-99', perm:'vendedor',    cidade:'Fortaleza',  filial:'02' },
+  { nome:'Thiago Nascimento',       user:'thiago.n',  senha:'thiago321',    cpf:'777.888.999-00', perm:'admin',       cidade:'Iguatu',     filial:'01' },
+  { nome:'Camila Santos',           user:'camila.s',  senha:'camila!24',    cpf:'888.999.000-11', perm:'vendedor',    cidade:'Russas',     filial:'04' },
+  { nome:'Daniel Moreira',          user:'daniel.m',  senha:'daniel@99',    cpf:'999.000.111-22', perm:'gerente',     cidade:'Russas',     filial:'04' },
+  { nome:'Larissa Oliveira',        user:'larissa.o', senha:'lari2024',     cpf:'000.111.222-33', perm:'crediario',   cidade:'Quixadá',    filial:'03' },
+];
+
+/* ══════════════════════════════════════════
+   ESTADO
+══════════════════════════════════════════ */
+let allUsers = [];
+let filtered  = [];
+let currentPage = 1;
+const PAGE_SIZE = 10;
+let sortCol = 'nome', sortDir = 1;
+let shownPasswords = new Set();
+
+/* ══════════════════════════════════════════
+   FETCH
+══════════════════════════════════════════ */
+async function fetchUsers(){
+  try {
+    const resp = await fetch(`${GAS_URL}?action=getUsers`);
+    if(!resp.ok) throw new Error();
+    const data = await resp.json();
+    document.getElementById('infoBanner').style.display='none';
+    return Array.isArray(data) ? data : (data.users||data.data||[]);
+  } catch {
+    return MOCK_USERS;
+  }
+}
+
+/* ══════════════════════════════════════════
+   KPIs
+══════════════════════════════════════════ */
+function renderKPIs(data){
+  document.getElementById('kpiTotal').textContent     = data.length;
+  document.getElementById('kpiCidades').textContent   = new Set(data.map(u=>u.cidade||'').filter(Boolean)).size;
+  document.getElementById('kpiFiliais').textContent   = new Set(data.map(u=>u.filial||'').filter(Boolean)).size;
+  document.getElementById('kpiGerentes').textContent  = data.filter(u=>(u.perm||'').toLowerCase()==='gerente').length;
+  document.getElementById('kpiVendedores').textContent= data.filter(u=>(u.perm||'').toLowerCase()==='vendedor').length;
+}
+
+/* ══════════════════════════════════════════
+   POPULA SELECTS
+══════════════════════════════════════════ */
+function populateSelects(data){
+  const cidades = [...new Set(data.map(u=>u.cidade||'').filter(Boolean))].sort();
+  const filiais  = [...new Set(data.map(u=>u.filial||'').filter(Boolean))].sort();
+
+  const cSel = document.getElementById('filterCidade');
+  cSel.innerHTML='<option value="">Todas</option>'+cidades.map(c=>`<option>${c}</option>`).join('');
+  const fSel = document.getElementById('filterFilial');
+  fSel.innerHTML='<option value="">Todas</option>'+filiais.map(f=>`<option value="${f}">Filial ${f}</option>`).join('');
+}
+
+/* ══════════════════════════════════════════
+   CPF MASK
+══════════════════════════════════════════ */
+function maskCPF(cpf){
+  if(!cpf) return '—';
+  const d=cpf.replace(/\D/g,'');
+  if(d.length!==11) return cpf;
+  return `${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6,9)}-${d.slice(9)}`;
+}
+
+/* ══════════════════════════════════════════
+   PERMISSION BADGE
+══════════════════════════════════════════ */
+function permBadge(perm){
+  const p=(perm||'').toLowerCase();
+  const cls = p==='admin'?'perm-admin':p==='gerente'?'perm-gerente':p==='suporte'?'perm-suporte':
+              p==='vendedor'?'perm-vendedor':p==='crediario'?'perm-crediario':p==='faturamento'?'perm-faturamento':'perm-default';
+  const icons = { admin:'🛡️',gerente:'⭐',suporte:'🛠️',vendedor:'🛒',crediario:'💳',faturamento:'📊' };
+  return `<span class="perm-badge ${cls}">${icons[p]||'👤'} ${perm||'—'}</span>`;
+}
+
+/* ══════════════════════════════════════════
+   TABELA
+══════════════════════════════════════════ */
+function renderTable(data){
+  const body = document.getElementById('userBody');
+  document.getElementById('resultCount').textContent=`${data.length} usuário${data.length!==1?'s':''}`;
+
+  if(!data.length){
+    body.innerHTML=`<tr><td colspan="7"><div class="state-box"><div class="icon">🔍</div><p>Nenhum usuário encontrado.</p></div></td></tr>`;
+    document.getElementById('pagination').innerHTML='';
+    return;
+  }
+
+  const start=(currentPage-1)*PAGE_SIZE, end=start+PAGE_SIZE;
+  const page=data.slice(start,end);
+
+  body.innerHTML = page.map((u,i)=>{
+    const idx=start+i;
+    const shown=shownPasswords.has(idx);
+    const pwd=shown?(u.senha||'—'):'••••••••';
+    return `
+      <tr>
+        <td><strong>${u.nome||'—'}</strong></td>
+        <td><code style="font-size:.82rem;background:var(--bg-input);padding:.15rem .45rem;border-radius:.35rem">${u.user||'—'}</code></td>
+        <td>
+          <div class="pwd-field">
+            <span class="pwd-mask" id="pwd-${idx}">${pwd}</span>
+            <button class="eye-btn" onclick="togglePwd(${idx},'${encodeURIComponent(u.senha||'')}')">
+              ${shown?'🙈':'👁️'}
+            </button>
+          </div>
+        </td>
+        <td><span class="cpf-text">${maskCPF(u.cpf)}</span></td>
+        <td>${permBadge(u.perm)}</td>
+        <td>${u.cidade||'—'}</td>
+        <td><span class="filial-chip">${u.filial||'—'}</span></td>
+      </tr>
+    `;
+  }).join('');
+
+  renderPagination(data);
+}
+
+function togglePwd(idx, encodedPwd){
+  const el=document.getElementById(`pwd-${idx}`);
+  if(!el) return;
+  const shown=shownPasswords.has(idx);
+  if(shown){ shownPasswords.delete(idx); el.textContent='••••••••'; }
+  else      { shownPasswords.add(idx);   el.textContent=decodeURIComponent(encodedPwd); }
+  renderTable(filtered); // re-render to update eye icon
+}
+
+/* ══════════════════════════════════════════
+   PAGINAÇÃO
+══════════════════════════════════════════ */
+function renderPagination(data){
+  const total=Math.ceil(data.length/PAGE_SIZE);
+  const p=document.getElementById('pagination');
+  if(total<=1){ p.innerHTML=''; return; }
+  let html=`<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+  for(let i=1;i<=total;i++) html+=`<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+  html+=`<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===total?'disabled':''}>›</button>`;
+  p.innerHTML=html;
+}
+function goPage(n){ currentPage=n; renderTable(filtered); }
+
+/* ══════════════════════════════════════════
+   SORT
+══════════════════════════════════════════ */
+function sortBy(col){
+  if(sortCol===col) sortDir*=-1;
+  else { sortCol=col; sortDir=1; }
+  // Update icons
+  ['nome','user','cpf','perm','cidade','filial'].forEach(c=>{
+    const el=document.getElementById(`si-${c}`);
+    const th=document.getElementById(`th-${c}`);
+    if(el){ el.textContent=''; if(th) th.classList.remove('sorted'); }
+  });
+  const si=document.getElementById(`si-${col}`);
+  const th=document.getElementById(`th-${col}`);
+  if(si) si.textContent=sortDir===1?'↑':'↓';
+  if(th) th.classList.add('sorted');
+
+  filtered.sort((a,b)=>{
+    const av=(a[col]||'').toString().toLowerCase();
+    const bv=(b[col]||'').toString().toLowerCase();
+    return av<bv?-sortDir:av>bv?sortDir:0;
+  });
+  currentPage=1;
+  renderTable(filtered);
+}
+
+/* ══════════════════════════════════════════
+   FILTROS
+══════════════════════════════════════════ */
+function applyFilters(){
+  const search=document.getElementById('searchInput').value.toLowerCase();
+  const cidade=document.getElementById('filterCidade').value;
+  const filial=document.getElementById('filterFilial').value;
+  const perm=document.getElementById('filterPerm').value.toLowerCase();
+
+  filtered=allUsers.filter(u=>{
+    if(search){
+      const n=(u.nome||'').toLowerCase();
+      const us=(u.user||'').toLowerCase();
+      const cpf=(u.cpf||'').toLowerCase();
+      if(!n.includes(search)&&!us.includes(search)&&!cpf.includes(search)) return false;
+    }
+    if(cidade && u.cidade!==cidade) return false;
+    if(filial && u.filial!==filial.replace('Filial ','').trim()) return false;
+    if(perm && (u.perm||'').toLowerCase()!==perm) return false;
+    return true;
+  });
+  currentPage=1;
+  renderActiveFilters();
+  renderTable(filtered);
+}
+
+function renderActiveFilters(){
+  const chips=[];
+  const s=document.getElementById('searchInput').value;
+  if(s) chips.push({ label:`"${s}"`, clear:()=>{ document.getElementById('searchInput').value=''; applyFilters(); } });
+  const c=document.getElementById('filterCidade').value;
+  if(c) chips.push({ label:`📍 ${c}`, clear:()=>{ document.getElementById('filterCidade').value=''; applyFilters(); } });
+  const f=document.getElementById('filterFilial').value;
+  if(f) chips.push({ label:`🏪 Filial ${f}`, clear:()=>{ document.getElementById('filterFilial').value=''; applyFilters(); } });
+  const p=document.getElementById('filterPerm').value;
+  if(p) chips.push({ label:`👤 ${p}`, clear:()=>{ document.getElementById('filterPerm').value=''; applyFilters(); } });
+
+  const el=document.getElementById('activeFilters');
+  if(!chips.length){ el.innerHTML=''; return; }
+  // Render as static text (onclick won't work nicely with innerHTML + closures, so we use data attrs)
+  el.innerHTML=chips.map((_,i)=>`
+    <div class="filter-chip">${chips[i].label}<button onclick="clearFilterByIndex(${i})">×</button></div>
+  `).join('');
+  window.__filterClearFns=chips.map(c=>c.clear);
+}
+
+window.clearFilterByIndex=function(i){ window.__filterClearFns&&window.__filterClearFns[i]&&window.__filterClearFns[i](); };
+
+function clearFilters(){
+  ['searchInput','filterCidade','filterFilial','filterPerm'].forEach(id=>{ document.getElementById(id).value=''; });
+  applyFilters();
+}
+
+['searchInput','filterCidade','filterFilial','filterPerm'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el){ el.addEventListener('input',applyFilters); el.addEventListener('change',applyFilters); }
+});
+
+/* ══════════════════════════════════════════
+   EXPORT CSV
+══════════════════════════════════════════ */
+document.getElementById('exportBtn').addEventListener('click',()=>{
+  const cols=['nome','user','cpf','perm','cidade','filial'];
+  const header=cols.join(',');
+  const rows=filtered.map(u=>cols.map(c=>`"${(u[c]||'').toString().replace(/"/g,'""')}"`).join(','));
+  const csv=[header,...rows].join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='usuarios.csv'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSV exportado!','success');
+});
+
+/* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
+async function init(){
+  document.getElementById('lastUpdate').textContent='Buscando usuários...';
+  const data=await fetchUsers();
+  allUsers=data; filtered=[...data];
+  renderKPIs(data);
+  populateSelects(data);
+  renderTable(filtered);
+  document.getElementById('lastUpdate').textContent=
+    `${data.length} usuário${data.length!==1?'s':''} — ${new Date().toLocaleString('pt-BR')}`;
+  showToast('Usuários carregados!','success');
+}
+
+document.getElementById('refreshBtn').addEventListener('click',init);
+
+function showToast(msg,type='info'){
+  const c=document.getElementById('toast-container');
+  const t=document.createElement('div'); t.className=`toast ${type}`; t.textContent=msg; c.appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t.remove(),300); },3000);
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Feedback — Sistema</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* =============================================
+       CSS VARIABLES & RESET
+    ============================================= */
+    :root {
+      --bg:          #0a0d14;
+      --bg-card:     #111521;
+      --bg-surface:  #181e2e;
+      --bg-input:    #1c2233;
+      --border:      #252d44;
+      --border-focus:#3b82f6;
+      --accent:      #3b82f6;
+      --accent-glow: rgba(59,130,246,.25);
+      --accent-2:    #6366f1;
+      --text:        #e8eaf0;
+      --text-muted:  #7b8099;
+      --text-dim:    #4a5270;
+      --success:     #22c55e;
+      --error:       #ef4444;
+      --warning:     #f59e0b;
+      --radius:      14px;
+      --radius-sm:   8px;
+      --shadow:      0 4px 24px rgba(0,0,0,.4);
+      --shadow-glow: 0 0 40px rgba(59,130,246,.12);
+    }
+    [data-theme="light"] {
+      --bg:          #f0f4ff;
+      --bg-card:     #ffffff;
+      --bg-surface:  #f8faff;
+      --bg-input:    #f0f4ff;
+      --border:      #dde3f5;
+      --text:        #1a2040;
+      --text-muted:  #5a6490;
+      --text-dim:    #9aa0c0;
+      --shadow:      0 4px 24px rgba(0,0,0,.08);
+      --shadow-glow: 0 0 40px rgba(59,130,246,.07);
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background .35s, color .35s;
+    }
+
+    /* =============================================
+       BACKGROUND EFFECT
+    ============================================= */
+    .bg-mesh {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 10% 20%, rgba(59,130,246,.08) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 50% at 90% 80%, rgba(99,102,241,.06) 0%, transparent 60%);
+    }
+    [data-theme="light"] .bg-mesh {
+      background:
+        radial-gradient(ellipse 60% 40% at 10% 20%, rgba(59,130,246,.05) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 50% at 90% 80%, rgba(99,102,241,.04) 0%, transparent 60%);
+    }
+
+    /* =============================================
+       LAYOUT
+    ============================================= */
+    .page-wrapper {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 2rem 1rem 4rem;
+    }
+
+    /* =============================================
+       HEADER
+    ============================================= */
+    .page-header {
+      width: 100%; max-width: 680px;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: .75rem 0 2rem;
+    }
+    .brand {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -.01em;
+      color: var(--text);
+    }
+    .brand span { color: var(--accent); }
+    .theme-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 50px;
+      padding: .4rem 1rem;
+      font-size: .8rem;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      display: flex; align-items: center; gap: .4rem;
+      transition: all .2s;
+    }
+    .theme-btn:hover { border-color: var(--accent); color: var(--text); }
+    .theme-btn svg { width: 14px; height: 14px; }
+
+    /* =============================================
+       FORM CARD
+    ============================================= */
+    .form-card {
+      width: 100%; max-width: 680px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow), var(--shadow-glow);
+      overflow: hidden;
+      animation: slideUp .55s cubic-bezier(.22,1,.36,1) both;
+    }
+    @keyframes slideUp {
+      from { opacity:0; transform: translateY(28px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    /* =============================================
+       FORM HERO
+    ============================================= */
+    .form-hero {
+      padding: 2.5rem 2.5rem 2rem;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .form-hero::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    }
+    .form-hero-tag {
+      display: inline-flex; align-items: center; gap: .35rem;
+      background: rgba(59,130,246,.1);
+      border: 1px solid rgba(59,130,246,.2);
+      color: var(--accent);
+      font-size: .75rem; font-weight: 500;
+      padding: .3rem .75rem;
+      border-radius: 50px;
+      margin-bottom: 1rem;
+    }
+    .form-hero-tag .dot {
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity:1; transform:scale(1); }
+      50%      { opacity:.5; transform:scale(1.4); }
+    }
+    .form-hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.85rem; font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: .6rem;
+    }
+    .form-hero p {
+      font-size: .925rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      max-width: 480px;
+    }
+
+    /* =============================================
+       PROGRESS BAR
+    ============================================= */
+    .progress-wrap {
+      padding: 1.25rem 2.5rem .5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .progress-info {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: .6rem;
+    }
+    .progress-label {
+      font-size: .78rem; color: var(--text-muted); font-weight: 500;
+    }
+    .progress-pct {
+      font-size: .78rem; color: var(--accent); font-weight: 600;
+    }
+    .progress-track {
+      height: 4px; background: var(--border);
+      border-radius: 99px; overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      border-radius: 99px;
+      transition: width .4s cubic-bezier(.22,1,.36,1);
+      width: 0%;
+    }
+
+    /* =============================================
+       FORM BODY
+    ============================================= */
+    .form-body { padding: 2rem 2.5rem 2.5rem; }
+
+    /* =============================================
+       SECTION BLOCKS
+    ============================================= */
+    .form-section {
+      margin-bottom: 2.25rem;
+      animation: fadeIn .4s ease both;
+    }
+    @keyframes fadeIn {
+      from { opacity:0; transform:translateY(10px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .section-label {
+      font-family: 'Syne', sans-serif;
+      font-size: .7rem; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 1.1rem;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .section-label::after {
+      content: ''; flex: 1; height: 1px;
+      background: var(--border);
+    }
+
+    /* =============================================
+       FORM ROWS
+    ============================================= */
+    .form-row {
+      display: grid; gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .form-row.cols-2 { grid-template-columns: 1fr 1fr; }
+
+    /* =============================================
+       LABELS & INPUTS
+    ============================================= */
+    .field-label {
+      display: block;
+      font-size: .82rem; font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: .45rem;
+    }
+    .field-label .opt {
+      font-size: .72rem; color: var(--text-dim);
+      font-weight: 400; margin-left: .3rem;
+    }
+    .field-label .req { color: var(--accent); margin-left: .2rem; }
+
+    .form-input, .form-textarea, .form-select {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: .925rem;
+      transition: border-color .2s, box-shadow .2s, background .2s;
+      outline: none;
+    }
+    .form-input, .form-select { padding: .7rem 1rem; }
+    .form-textarea {
+      padding: .75rem 1rem;
+      resize: vertical; min-height: 90px;
+      line-height: 1.55;
+    }
+    .form-input::placeholder, .form-textarea::placeholder { color: var(--text-dim); }
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    .form-input.error, .form-textarea.error, .form-select.error {
+      border-color: var(--error);
+      box-shadow: 0 0 0 3px rgba(239,68,68,.12);
+    }
+    .form-select option { background: var(--bg-card); }
+
+    /* =============================================
+       SCALE (RATING BUTTONS)
+    ============================================= */
+    .scale-group { display: flex; gap: .35rem; flex-wrap: wrap; }
+    .scale-btn {
+      width: 38px; height: 38px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border);
+      background: var(--bg-input);
+      color: var(--text-muted);
+      font-size: .85rem; font-weight: 600;
+      cursor: pointer;
+      transition: all .18s;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .scale-btn:hover {
+      border-color: var(--accent);
+      color: var(--text);
+      transform: translateY(-1px);
+    }
+    .scale-btn.selected {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: 0 2px 12px var(--accent-glow);
+      transform: translateY(-2px) scale(1.05);
+    }
+    .scale-btn.selected.low {
+      background: var(--error);
+      border-color: var(--error);
+      box-shadow: 0 2px 12px rgba(239,68,68,.25);
+    }
+    .scale-btn.selected.mid {
+      background: var(--warning);
+      border-color: var(--warning);
+      box-shadow: 0 2px 12px rgba(245,158,11,.25);
+    }
+    .scale-hint {
+      display: flex; justify-content: space-between;
+      font-size: .72rem; color: var(--text-dim);
+      margin-top: .4rem;
+    }
+
+    /* =============================================
+       RADIO BUTTONS
+    ============================================= */
+    .radio-group { display: flex; gap: .75rem; }
+    .radio-opt {
+      flex: 1;
+      background: var(--bg-input);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: .65rem 1rem;
+      cursor: pointer;
+      display: flex; align-items: center; gap: .6rem;
+      font-size: .9rem;
+      transition: all .2s;
+    }
+    .radio-opt:hover { border-color: var(--accent); }
+    .radio-opt.selected {
+      border-color: var(--accent);
+      background: rgba(59,130,246,.08);
+      color: var(--text);
+    }
+    .radio-dot {
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .2s;
+    }
+    .radio-opt.selected .radio-dot {
+      border-color: var(--accent);
+      background: var(--accent);
+    }
+    .radio-opt.selected .radio-dot::after {
+      content: '';
+      width: 5px; height: 5px;
+      background: #fff;
+      border-radius: 50%;
+    }
+
+    /* =============================================
+       CHECKBOX
+    ============================================= */
+    .check-group { display: flex; gap: .75rem; flex-direction: column; }
+    .check-opt {
+      display: flex; align-items: flex-start; gap: .75rem;
+      background: var(--bg-input);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: .9rem 1rem;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .check-opt:hover { border-color: var(--border-focus); }
+    .check-opt.checked {
+      border-color: var(--accent);
+      background: rgba(59,130,246,.06);
+    }
+    .check-opt.error-check { border-color: var(--error); }
+    .check-box {
+      width: 18px; height: 18px; flex-shrink: 0;
+      border: 2px solid var(--border);
+      border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .2s; margin-top: .05rem;
+    }
+    .check-opt.checked .check-box {
+      background: var(--accent); border-color: var(--accent);
+    }
+    .check-box svg { display: none; }
+    .check-opt.checked .check-box svg { display: block; }
+    .check-text { font-size: .875rem; line-height: 1.55; color: var(--text-muted); }
+    .check-text strong { color: var(--text); font-weight: 500; }
+
+    /* =============================================
+       CONDITIONAL BLOCKS
+    ============================================= */
+    .conditional {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height .45s cubic-bezier(.22,1,.36,1),
+                  opacity .35s ease,
+                  margin .35s ease;
+      margin-bottom: 0;
+    }
+    .conditional.visible {
+      max-height: 300px;
+      opacity: 1;
+      margin-bottom: 1.25rem;
+    }
+
+    /* =============================================
+       ERROR MESSAGES
+    ============================================= */
+    .field-error {
+      font-size: .75rem; color: var(--error);
+      margin-top: .35rem; display: none;
+    }
+    .field-error.show { display: block; }
+
+    /* =============================================
+       SUBMIT BUTTON
+    ============================================= */
+    .btn-submit {
+      width: 100%; padding: .9rem 2rem;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
+      border: none; border-radius: var(--radius-sm);
+      font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: 1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: .6rem;
+      transition: all .25s;
+      position: relative; overflow: hidden;
+    }
+    .btn-submit::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: rgba(255,255,255,.1);
+      opacity: 0; transition: opacity .2s;
+    }
+    .btn-submit:hover:not(:disabled)::after { opacity: 1; }
+    .btn-submit:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 28px rgba(59,130,246,.35);
+    }
+    .btn-submit:disabled {
+      opacity: .6; cursor: not-allowed; transform: none;
+    }
+
+    /* Loader spinner */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2.5px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .65s linear infinite;
+      display: none;
+    }
+    .btn-submit.loading .spinner { display: block; }
+    .btn-submit.loading .btn-text { display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* =============================================
+       TOAST
+    ============================================= */
+    #toast-container {
+      position: fixed; top: 1.25rem; right: 1.25rem;
+      z-index: 9999;
+      display: flex; flex-direction: column; gap: .6rem;
+    }
+    .toast {
+      min-width: 280px; max-width: 380px;
+      padding: .9rem 1.1rem;
+      border-radius: var(--radius);
+      border: 1px solid transparent;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .9rem;
+      box-shadow: 0 8px 30px rgba(0,0,0,.25);
+      display: flex; align-items: center; gap: .65rem;
+      animation: toastIn .3s cubic-bezier(.22,1,.36,1);
+    }
+    @keyframes toastIn {
+      from { opacity:0; transform: translateX(20px); }
+      to   { opacity:1; transform: translateX(0); }
+    }
+    .toast.success {
+      background: rgba(34,197,94,.12);
+      border-color: rgba(34,197,94,.25);
+      color: #86efac;
+    }
+    .toast.error {
+      background: rgba(239,68,68,.12);
+      border-color: rgba(239,68,68,.25);
+      color: #fca5a5;
+    }
+    .toast.info {
+      background: rgba(59,130,246,.1);
+      border-color: rgba(59,130,246,.2);
+      color: #93c5fd;
+    }
+    [data-theme="light"] .toast.success { background:#f0fdf4; border-color:#bbf7d0; color:#166534; }
+    [data-theme="light"] .toast.error   { background:#fef2f2; border-color:#fecaca; color:#991b1b; }
+    [data-theme="light"] .toast.info    { background:#eff6ff; border-color:#bfdbfe; color:#1d4ed8; }
+    .toast-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+    /* =============================================
+       SUCCESS SCREEN
+    ============================================= */
+    #success-screen {
+      display: none;
+      padding: 3.5rem 2.5rem;
+      text-align: center;
+      flex-direction: column; align-items: center; gap: 1rem;
+    }
+    #success-screen.show {
+      display: flex;
+      animation: fadeIn .5s ease;
+    }
+    .check-anim {
+      width: 80px; height: 80px;
+      background: rgba(34,197,94,.12);
+      border: 2px solid rgba(34,197,94,.25);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem;
+      animation: checkPop .5s cubic-bezier(.22,1,.36,1) .1s both;
+    }
+    @keyframes checkPop {
+      from { transform: scale(0); opacity:0; }
+      to   { transform: scale(1); opacity:1; }
+    }
+    #success-screen h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.6rem; font-weight: 800;
+      margin-top: .5rem;
+    }
+    #success-screen p { color: var(--text-muted); font-size: .925rem; max-width: 380px; }
+    .btn-new {
+      margin-top: .5rem;
+      padding: .7rem 1.75rem;
+      background: var(--bg-surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: .9rem; font-weight: 500;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .btn-new:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* =============================================
+       RESPONSIVE
+    ============================================= */
+    @media (max-width: 600px) {
+      .form-hero, .form-body, .progress-wrap { padding-left: 1.5rem; padding-right: 1.5rem; }
+      .form-row.cols-2 { grid-template-columns: 1fr; }
+      .form-hero h1 { font-size: 1.5rem; }
+      .scale-btn { width: 32px; height: 32px; font-size: .8rem; }
+    }
+  </style>
+</head>
+<body data-theme="dark">
+
+<div class="bg-mesh"></div>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<div class="page-wrapper">
+
+  <!-- Header -->
+  <header class="page-header">
+    <div class="brand">Func<span>Z</span></div>
+    <button class="theme-btn" id="themeToggle" aria-label="Alternar tema">
+      <svg id="themeIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+      </svg>
+      <span id="themeText">Tema Claro</span>
+    </button>
+  </header>
+
+  <!-- Form Card -->
+  <div class="form-card" id="formCard">
+
+    <!-- Hero -->
+    <div class="form-hero">
+      <div class="form-hero-tag"><span class="dot"></span> Painel Administrativo</div>
+      <h1>Formulário de Feedback</h1>
+      <p>Sua opinião nos ajuda a construir um sistema melhor. Leva menos de 2 minutos.</p>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrap">
+      <div class="progress-info">
+        <span class="progress-label" id="progressLabel">Seção 1 de 4</span>
+        <span class="progress-pct" id="progressPct">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+
+    <!-- Form Body -->
+    <div class="form-body">
+      <form id="feedbackForm" novalidate>
+
+        <!-- ── SEÇÃO 1: IDENTIFICAÇÃO ── -->
+        <div class="form-section">
+          <div class="section-label">01 Identificação <span class="opt" style="font-family:DM Sans;font-weight:400;letter-spacing:0;text-transform:none;font-size:.7rem;color:var(--text-dim);">(opcional)</span></div>
+          <div class="form-row cols-2">
+            <div>
+              <label class="field-label" for="nome">Nome <span class="opt">(opcional)</span></label>
+              <input class="form-input" type="text" id="nome" name="nome" placeholder="Seu nome..." autocomplete="name" />
+            </div>
+            <div>
+              <label class="field-label" for="loja">Loja / Filial <span class="opt">(opcional)</span></label>
+              <input class="form-input" type="text" id="loja" name="loja" placeholder="Ex: Filial 01..." />
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SEÇÃO 2: AVALIAÇÃO ── -->
+        <div class="form-section">
+          <div class="section-label">02 Avaliação</div>
+
+          <!-- Avaliação Geral -->
+          <div style="margin-bottom:1.5rem;">
+            <label class="field-label">Avaliação Geral <span class="req">*</span></label>
+            <div class="scale-group" id="scaleGeral">
+              <!-- gerado via JS -->
+            </div>
+            <div class="scale-hint"><span>😞 Muito ruim</span><span>🚀 Excelente</span></div>
+            <input type="hidden" id="avaliacao_geral" name="avaliacao_geral" />
+            <div class="field-error" id="err_avaliacao_geral">Por favor, selecione uma nota.</div>
+          </div>
+
+          <!-- Facilidade de Uso -->
+          <div>
+            <label class="field-label">Facilidade de Uso <span class="req">*</span></label>
+            <div class="scale-group" id="scaleFacilidade">
+              <!-- gerado via JS -->
+            </div>
+            <div class="scale-hint"><span>😕 Muito difícil</span><span>✨ Super fácil</span></div>
+            <input type="hidden" id="facilidade_uso" name="facilidade_uso" />
+            <div class="field-error" id="err_facilidade_uso">Por favor, selecione uma nota.</div>
+          </div>
+
+          <!-- CONDICIONAL: ponto de melhoria -->
+          <div class="conditional" id="cond_melhoria" style="margin-top:.25rem;">
+            <div style="margin-top:1.25rem;">
+              <label class="field-label" for="ponto_melhoria">O que poderia ser melhorado? <span class="req">*</span></label>
+              <textarea class="form-textarea" id="ponto_melhoria" name="ponto_melhoria"
+                placeholder="Descreva o que mais te incomodou ou o que poderia ser diferente..."></textarea>
+              <div class="field-error" id="err_ponto_melhoria">Por favor, descreva o ponto de melhoria.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SEÇÃO 3: FUNCIONALIDADES ── -->
+        <div class="form-section">
+          <div class="section-label">03 Funcionalidades</div>
+
+          <label class="field-label">Você gostaria de uma nova funcionalidade? <span class="req">*</span></label>
+          <div class="radio-group" id="radioFuncionalidade">
+            <div class="radio-opt" data-value="Sim" onclick="selectRadio('funcionalidade','Sim',this)">
+              <div class="radio-dot"></div> Sim
+            </div>
+            <div class="radio-opt" data-value="Não" onclick="selectRadio('funcionalidade','Não',this)">
+              <div class="radio-dot"></div> Não
+            </div>
+          </div>
+          <input type="hidden" id="deseja_nova_funcionalidade" name="deseja_nova_funcionalidade" />
+          <div class="field-error" id="err_funcionalidade">Por favor, selecione uma opção.</div>
+
+          <!-- CONDICIONAL: sugestão -->
+          <div class="conditional" id="cond_sugestao">
+            <div style="margin-top:1.25rem;">
+              <label class="field-label" for="sugestao_funcionalidade">Qual funcionalidade você gostaria? <span class="req">*</span></label>
+              <textarea class="form-textarea" id="sugestao_funcionalidade" name="sugestao_funcionalidade"
+                placeholder="Descreva a funcionalidade que faria diferença para você..."></textarea>
+              <div class="field-error" id="err_sugestao">Por favor, descreva a sugestão.</div>
+            </div>
+          </div>
+
+          <!-- Experiência Geral -->
+          <div style="margin-top:1.25rem;">
+            <label class="field-label" for="experiencia">Sua experiência com o sistema <span class="req">*</span></label>
+            <textarea class="form-textarea" id="experiencia" name="experiencia"
+              placeholder="Conte brevemente como tem sido sua experiência usando o sistema..."></textarea>
+            <div class="field-error" id="err_experiencia">Por favor, descreva sua experiência.</div>
+          </div>
+        </div>
+
+        <!-- ── SEÇÃO 4: CONSENTIMENTO ── -->
+        <div class="form-section">
+          <div class="section-label">04 Consentimento</div>
+          <div class="check-group">
+
+            <!-- Obrigatório -->
+            <div class="check-opt" id="checkOpt1" onclick="toggleCheck('checkOpt1','autorizacao_uso_feedback')">
+              <div class="check-box">
+                <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
+                  <path d="M1 4L4 7.5L10 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="check-text">
+                <strong>Autorizo o uso das informações fornecidas</strong> para análise e melhoria do sistema, bem como para uso institucional. <span class="req">*</span>
+              </div>
+            </div>
+            <input type="hidden" id="autorizacao_uso_feedback" name="autorizacao_uso_feedback" value="false" />
+            <div class="field-error" id="err_consentimento">Você precisa aceitar para enviar o feedback.</div>
+
+            <!-- Opcional -->
+            <div class="check-opt" id="checkOpt2" onclick="toggleCheck('checkOpt2','autorizacao_nome_imagem')">
+              <div class="check-box">
+                <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
+                  <path d="M1 4L4 7.5L10 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="check-text">
+                Autorizo o uso do meu <strong>feedback, nome e/ou imagem</strong> para fins de divulgação e promoção do sistema. <span class="opt">(opcional)</span>
+              </div>
+            </div>
+            <input type="hidden" id="autorizacao_nome_imagem" name="autorizacao_nome_imagem" value="false" />
+
+          </div>
+        </div>
+
+        <!-- SUBMIT -->
+        <button type="submit" class="btn-submit" id="submitBtn">
+          <div class="spinner"></div>
+          <span class="btn-text">✉️ Enviar Feedback</span>
+        </button>
+
+      </form>
+    </div>
+
+    <!-- SUCCESS SCREEN -->
+    <div id="success-screen">
+      <div class="check-anim">✅</div>
+      <h2>Feedback enviado! 🚀</h2>
+      <p>Muito obrigado pela sua contribuição. Sua opinião é fundamental para continuarmos evoluindo o sistema.</p>
+      <button class="btn-new" onclick="resetForm()">Enviar outro feedback</button>
+    </div>
+
+  </div><!-- /form-card -->
+
+</div><!-- /page-wrapper -->
+
+<script>
+/* =============================================
+   CONFIG — troque pela URL real do Worker
+============================================= */
+const WORKER_URL = 'https://proc-uservoucherprod.adm-ativosz.workers.dev/';
+
+/* =============================================
+   TEMA
+============================================= */
+(function initTheme() {
+  const saved = localStorage.getItem('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+  document.body.setAttribute('data-theme', saved);
+  updateThemeUI(saved);
+})();
+
+function updateThemeUI(theme) {
+  const icon = document.getElementById('themeIcon');
+  const text = document.getElementById('themeText');
+  if (theme === 'dark') {
+    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
+    text.textContent = 'Tema Claro';
+  } else {
+    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
+    text.textContent = 'Tema Escuro';
+  }
+}
+
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const cur = document.body.getAttribute('data-theme') || 'dark';
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.body.setAttribute('data-theme', next);
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+  updateThemeUI(next);
+});
+
+/* =============================================
+   SCALE BUILDER
+============================================= */
+function buildScale(containerId, hiddenId, prefix) {
+  const wrap = document.getElementById(containerId);
+  for (let i = 1; i <= 10; i++) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'scale-btn';
+    btn.textContent = i;
+    btn.dataset.value = i;
+    btn.addEventListener('click', () => selectScale(containerId, hiddenId, i, btn));
+    wrap.appendChild(btn);
+  }
+}
+buildScale('scaleGeral',      'avaliacao_geral',  'geral');
+buildScale('scaleFacilidade', 'facilidade_uso',   'facil');
+
+function selectScale(containerId, hiddenId, value, btn) {
+  const wrap = document.getElementById(containerId);
+  wrap.querySelectorAll('.scale-btn').forEach(b => {
+    b.classList.remove('selected','low','mid');
+  });
+  btn.classList.add('selected');
+  if (value <= 4)      btn.classList.add('low');
+  else if (value <= 6) btn.classList.add('mid');
+  document.getElementById(hiddenId).value = value;
+  clearError('err_' + hiddenId);
+  controlarCondicionais();
+  updateProgress();
+}
+
+/* =============================================
+   RADIO
+============================================= */
+function selectRadio(group, value, el) {
+  const container = document.getElementById('radioFuncionalidade');
+  container.querySelectorAll('.radio-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('deseja_nova_funcionalidade').value = value;
+  clearError('err_funcionalidade');
+  controlarCondicionais();
+  updateProgress();
+}
+
+/* =============================================
+   CHECKBOX
+============================================= */
+function toggleCheck(optId, hiddenId) {
+  const opt = document.getElementById(optId);
+  opt.classList.toggle('checked');
+  const isChecked = opt.classList.contains('checked');
+  document.getElementById(hiddenId).value = isChecked ? 'true' : 'false';
+  if (isChecked) {
+    clearError('err_consentimento');
+    opt.classList.remove('error-check');
+  }
+  updateProgress();
+}
+
+/* =============================================
+   CONDICIONAIS
+============================================= */
+function controlarCondicionais() {
+  const geral    = parseInt(document.getElementById('avaliacao_geral').value) || 0;
+  const facil    = parseInt(document.getElementById('facilidade_uso').value) || 0;
+  const funcResp = document.getElementById('deseja_nova_funcionalidade').value;
+
+  // ponto melhoria: aparece se geral <= 6 OU facilidade <= 6
+  const showMelhoria = (geral > 0 && geral <= 6) || (facil > 0 && facil <= 6);
+  toggleCondicional('cond_melhoria', showMelhoria);
+
+  // sugestão funcionalidade: aparece se selecionou "Sim"
+  const showSugestao = funcResp === 'Sim';
+  toggleCondicional('cond_sugestao', showSugestao);
+}
+
+function toggleCondicional(id, show) {
+  const el = document.getElementById(id);
+  if (show) el.classList.add('visible');
+  else      el.classList.remove('visible');
+}
+
+/* =============================================
+   PROGRESSO
+============================================= */
+function updateProgress() {
+  const fields = [
+    document.getElementById('avaliacao_geral').value,
+    document.getElementById('facilidade_uso').value,
+    document.getElementById('deseja_nova_funcionalidade').value,
+    document.getElementById('experiencia').value.trim(),
+    document.getElementById('autorizacao_uso_feedback').value === 'true' ? 'ok' : ''
+  ];
+  const filled = fields.filter(Boolean).length;
+  const pct = Math.round((filled / fields.length) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressPct').textContent = pct + '%';
+
+  const section = pct < 30 ? '1 de 4' : pct < 60 ? '2 de 4' : pct < 85 ? '3 de 4' : '4 de 4';
+  document.getElementById('progressLabel').textContent = 'Seção ' + section;
+}
+
+// monitorar campo experiencia
+document.getElementById('experiencia').addEventListener('input', updateProgress);
+
+/* =============================================
+   VALIDAÇÃO
+============================================= */
+function validarFormulario() {
+  let ok = true;
+
+  // avaliação geral
+  if (!document.getElementById('avaliacao_geral').value) {
+    showError('err_avaliacao_geral', 'scaleGeral'); ok = false;
+  }
+  // facilidade
+  if (!document.getElementById('facilidade_uso').value) {
+    showError('err_facilidade_uso', 'scaleFacilidade'); ok = false;
+  }
+  // ponto melhoria (quando visível)
+  if (document.getElementById('cond_melhoria').classList.contains('visible')) {
+    const val = document.getElementById('ponto_melhoria').value.trim();
+    if (!val) { showFieldError('ponto_melhoria', 'err_ponto_melhoria'); ok = false; }
+  }
+  // nova funcionalidade
+  if (!document.getElementById('deseja_nova_funcionalidade').value) {
+    showError('err_funcionalidade', 'radioFuncionalidade'); ok = false;
+  }
+  // sugestão (quando visível)
+  if (document.getElementById('cond_sugestao').classList.contains('visible')) {
+    const val = document.getElementById('sugestao_funcionalidade').value.trim();
+    if (!val) { showFieldError('sugestao_funcionalidade', 'err_sugestao'); ok = false; }
+  }
+  // experiência
+  if (!document.getElementById('experiencia').value.trim()) {
+    showFieldError('experiencia', 'err_experiencia'); ok = false;
+  }
+  // consentimento
+  if (document.getElementById('autorizacao_uso_feedback').value !== 'true') {
+    document.getElementById('err_consentimento').classList.add('show');
+    document.getElementById('checkOpt1').classList.add('error-check');
+    ok = false;
+  }
+
+  return ok;
+}
+
+function showError(errId, containerId) {
+  document.getElementById(errId).classList.add('show');
+}
+function showFieldError(inputId, errId) {
+  document.getElementById(inputId).classList.add('error');
+  document.getElementById(errId).classList.add('show');
+}
+function clearError(errId) {
+  const el = document.getElementById(errId);
+  if (el) el.classList.remove('show');
+}
+function clearAllErrors() {
+  document.querySelectorAll('.field-error').forEach(e => e.classList.remove('show'));
+  document.querySelectorAll('.form-input,.form-textarea,.form-select').forEach(e => e.classList.remove('error'));
+  document.querySelectorAll('.check-opt').forEach(e => e.classList.remove('error-check'));
+}
+
+// limpar erro ao digitar
+['ponto_melhoria','sugestao_funcionalidade','experiencia'].forEach(id => {
+  document.getElementById(id).addEventListener('input', function() {
+    this.classList.remove('error');
+    const errId = 'err_' + id.replace('ponto_melhoria','ponto_melhoria')
+                             .replace('sugestao_funcionalidade','sugestao')
+                             .replace('experiencia','experiencia');
+    clearError(errId);
+  });
+});
+
+/* =============================================
+   MONTAR PAYLOAD
+============================================= */
+function montarPayload() {
+  return {
+    action: 'submitFeedback',
+    nome:   document.getElementById('nome').value.trim(),
+    loja:   document.getElementById('loja').value.trim(),
+    avaliacao_geral:             parseInt(document.getElementById('avaliacao_geral').value),
+    facilidade_uso:              parseInt(document.getElementById('facilidade_uso').value),
+    ponto_melhoria:              document.getElementById('ponto_melhoria').value.trim(),
+    deseja_nova_funcionalidade:  document.getElementById('deseja_nova_funcionalidade').value,
+    sugestao_funcionalidade:     document.getElementById('sugestao_funcionalidade').value.trim(),
+    experiencia:                 document.getElementById('experiencia').value.trim(),
+    autorizacao_uso_feedback:    document.getElementById('autorizacao_uso_feedback').value === 'true',
+    autorizacao_nome_imagem:     document.getElementById('autorizacao_nome_imagem').value === 'true',
+    timestamp:                   new Date().toISOString()
+  };
+}
+
+/* =============================================
+   ENVIO — debounce + proteção duplo click
+============================================= */
+let isSending = false;
+
+async function enviarFeedback(payload) {
+  const resp = await fetch(WORKER_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  const text = await resp.text();
+  try { return JSON.parse(text); }
+  catch { return { status: 'error', message: 'Resposta inválida do servidor', raw: text }; }
+}
+
+/* =============================================
+   SUBMIT HANDLER
+============================================= */
+document.getElementById('feedbackForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  if (isSending) return;
+
+  clearAllErrors();
+
+  if (!validarFormulario()) {
+    showToast('Preencha os campos obrigatórios.', 'error');
+    return;
+  }
+
+  isSending = true;
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.classList.add('loading');
+
+  const payload = montarPayload();
+  console.log('Enviando payload:', payload);
+
+  try {
+    const result = await enviarFeedback(payload);
+    console.log('Resposta:', result);
+
+    if (result && String(result.status || '').toLowerCase() === 'ok') {
+      showSuccess();
+    } else {
+      showToast(result.message || 'Erro ao enviar feedback. Tente novamente.', 'error', 6000);
+    }
+  } catch (err) {
+    console.error('Erro ao enviar:', err);
+    showToast('Falha de conexão. Verifique sua internet e tente novamente.', 'error', 6000);
+  } finally {
+    isSending = false;
+    btn.disabled = false;
+    btn.classList.remove('loading');
+  }
+});
+
+/* =============================================
+   SUCESSO
+============================================= */
+function showSuccess() {
+  document.getElementById('feedbackForm').style.display = 'none';
+  const ss = document.getElementById('success-screen');
+  ss.classList.add('show');
+  document.querySelector('.progress-wrap').style.display = 'none';
+  showToast('Feedback enviado com sucesso! 🎉', 'success', 4000);
+}
+
+function resetForm() {
+  document.getElementById('feedbackForm').reset();
+  document.getElementById('feedbackForm').style.display = 'block';
+  document.getElementById('success-screen').classList.remove('show');
+  document.querySelector('.progress-wrap').style.display = 'block';
+
+  // limpa escalas
+  document.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('selected','low','mid'));
+  document.querySelectorAll('.radio-opt').forEach(o => o.classList.remove('selected'));
+  document.querySelectorAll('.check-opt').forEach(o => o.classList.remove('checked'));
+  document.getElementById('avaliacao_geral').value = '';
+  document.getElementById('facilidade_uso').value = '';
+  document.getElementById('deseja_nova_funcionalidade').value = '';
+  document.getElementById('autorizacao_uso_feedback').value = 'false';
+  document.getElementById('autorizacao_nome_imagem').value = 'false';
+
+  // condicionais
+  document.getElementById('cond_melhoria').classList.remove('visible');
+  document.getElementById('cond_sugestao').classList.remove('visible');
+
+  clearAllErrors();
+  updateProgress();
+}
+
+/* =============================================
+   TOAST
+============================================= */
+function showToast(msg, type = 'info', duration = 4000) {
+  const c = document.getElementById('toast-container');
+  const icons = { success:'✅', error:'❌', info:'ℹ️' };
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span class="toast-icon">${icons[type]||'ℹ️'}</span>${msg}`;
+  c.appendChild(t);
+  setTimeout(() => {
+    t.style.transition = 'opacity .25s, transform .25s';
+    t.style.opacity = '0';
+    t.style.transform = 'translateX(20px)';
+    setTimeout(() => t.remove(), 260);
+  }, duration);
+}
+
+// init progress
+updateProgress();
+</script>
+</body>
+</html>

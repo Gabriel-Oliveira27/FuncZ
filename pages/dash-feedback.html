@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Feedback</title>
+  <link rel="icon" type="image/png" href="../image/zenirlogo.png">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    /* ── RESET & VARS ── */
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --bg:        #f8fafc;
+      --bg-card:   #ffffff;
+      --bg-input:  #f1f5f9;
+      --border:    #e2e8f0;
+      --blue:      #2563eb;
+      --blue-dim:  rgba(37,99,235,.1);
+      --green:     #16a34a;
+      --amber:     #d97706;
+      --red:       #dc2626;
+      --purple:    #7c3aed;
+      --text:      #1e293b;
+      --muted:     #64748b;
+      --dim:       #94a3b8;
+      --shadow:    0 1px 8px rgba(0,0,0,.07);
+      --radius:    12px;
+      --radius-sm: 8px;
+    }
+    [data-theme="dark"] {
+      --bg:       #0f172a;
+      --bg-card:  #1e293b;
+      --bg-input: #0f172a;
+      --border:   #334155;
+      --text:     #f1f5f9;
+      --muted:    #94a3b8;
+      --dim:      #475569;
+      --shadow:   0 1px 8px rgba(0,0,0,.3);
+    }
+    body {
+      font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      transition: background .3s, color .3s;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: .75rem 1.5rem;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 1rem;
+      position: sticky; top:0; z-index:100;
+    }
+    .header-logo { display:flex; align-items:center; gap:.75rem; }
+    .header-logo a { display:flex; align-items:center; }
+    .back-btn {
+      display: inline-flex; align-items:center; gap:.35rem;
+      background: transparent;
+      border: 1.5px solid var(--border);
+      border-radius: 50px;
+      padding: .32rem .8rem;
+      font-size: .78rem; font-weight:500;
+      color: var(--muted);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all .2s;
+    }
+    .back-btn:hover { border-color:var(--blue); color:var(--blue); }
+    .back-btn svg { width:13px; height:13px; }
+    .header-title {
+      font-size: 1rem; font-weight:700;
+      display:flex; align-items:center; gap:.5rem;
+    }
+    .header-title span { font-size:.8rem; font-weight:400; color:var(--muted); }
+    .header-right { display:flex; gap:.6rem; align-items:center; }
+    .icon-btn {
+      background:transparent; border:1.5px solid var(--border);
+      border-radius:50px; padding:.35rem .8rem;
+      font-size:.78rem; font-weight:500; color:var(--muted);
+      cursor:pointer; display:flex; align-items:center; gap:.35rem;
+      transition:all .2s; font-family:inherit;
+    }
+    .icon-btn:hover { border-color:var(--blue); color:var(--blue); }
+    .icon-btn svg { width:13px; height:13px; }
+
+    /* ── PILL NAV (topo) ── */
+    .dash-nav {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: .5rem 1.5rem;
+      display:flex; gap:.4rem; overflow-x:auto;
+    }
+    .dash-pill {
+      display:inline-flex; align-items:center; gap:.35rem;
+      padding:.35rem .85rem; border-radius:50px;
+      font-size:.78rem; font-weight:500;
+      text-decoration:none; color:var(--muted);
+      border:1.5px solid var(--border); white-space:nowrap;
+      transition:all .2s;
+    }
+    .dash-pill:hover, .dash-pill.active {
+      border-color:var(--blue); color:var(--blue);
+      background:var(--blue-dim);
+    }
+    .dash-pill svg { width:12px; height:12px; }
+
+    /* ── CONTAINER ── */
+    .container { max-width:1280px; margin:0 auto; padding:2rem 1.5rem; }
+    .page-heading { margin-bottom:1.75rem; }
+    .page-heading h1 { font-size:1.6rem; font-weight:800; }
+    .page-heading p { color:var(--muted); font-size:.9rem; margin-top:.3rem; }
+
+    /* ── KPI CARDS ── */
+    .kpi-grid {
+      display:grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+      gap:1rem; margin-bottom:2rem;
+    }
+    .kpi-card {
+      background:var(--bg-card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:1.25rem 1.5rem;
+      box-shadow:var(--shadow);
+    }
+    .kpi-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:.6rem; }
+    .kpi-label { font-size:.75rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+    .kpi-icon-box {
+      width:34px; height:34px; border-radius:.5rem;
+      display:flex; align-items:center; justify-content:center;
+      font-size:1rem;
+    }
+    .kpi-value { font-size:2rem; font-weight:800; line-height:1; }
+    .kpi-sub { font-size:.75rem; color:var(--muted); margin-top:.3rem; }
+    .kpi-card.blue  .kpi-icon-box { background:rgba(37,99,235,.12); }
+    .kpi-card.green .kpi-icon-box { background:rgba(22,163,74,.12); }
+    .kpi-card.amber .kpi-icon-box { background:rgba(217,119,6,.12); }
+    .kpi-card.purple .kpi-icon-box { background:rgba(124,58,237,.12); }
+    .kpi-card.blue  .kpi-value  { color:var(--blue); }
+    .kpi-card.green .kpi-value  { color:var(--green); }
+    .kpi-card.amber .kpi-value  { color:var(--amber); }
+    .kpi-card.purple .kpi-value { color:var(--purple); }
+
+    /* ── CHARTS GRID ── */
+    .charts-grid {
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:1rem; margin-bottom:2rem;
+    }
+    .chart-card {
+      background:var(--bg-card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:1.5rem;
+      box-shadow:var(--shadow);
+    }
+    .chart-card.wide { grid-column: 1 / -1; }
+    .chart-title {
+      font-size:.85rem; font-weight:700;
+      margin-bottom:1.25rem;
+      display:flex; align-items:center; gap:.5rem;
+    }
+    .chart-title .badge {
+      font-size:.68rem; background:var(--blue-dim);
+      color:var(--blue); border-radius:50px;
+      padding:.15rem .5rem; font-weight:600;
+    }
+    .chart-wrap { position:relative; }
+    .chart-wrap canvas { max-height:260px; }
+
+    /* ── FEEDBACK LIST ── */
+    .section-header {
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom:1rem;
+    }
+    .section-title-sm { font-size:1rem; font-weight:700; }
+    .filter-bar {
+      display:flex; gap:.5rem; flex-wrap:wrap;
+      margin-bottom:1rem;
+    }
+    .filter-select {
+      background:var(--bg-card);
+      border:1.5px solid var(--border);
+      color:var(--text);
+      border-radius:var(--radius-sm);
+      padding:.42rem .75rem;
+      font-size:.82rem;
+      cursor:pointer;
+      transition:border-color .2s;
+    }
+    .filter-select:focus { outline:none; border-color:var(--blue); }
+    .search-input {
+      background:var(--bg-card);
+      border:1.5px solid var(--border);
+      color:var(--text); border-radius:var(--radius-sm);
+      padding:.42rem .75rem; font-size:.82rem;
+      flex:1; min-width:160px; max-width:280px;
+      font-family:inherit;
+    }
+    .search-input:focus { outline:none; border-color:var(--blue); }
+    .search-input::placeholder { color:var(--dim); }
+
+    /* Table */
+    .table-wrap {
+      background:var(--bg-card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      overflow:hidden;
+      box-shadow:var(--shadow);
+    }
+    table { width:100%; border-collapse:collapse; }
+    thead { background:var(--bg-input); }
+    th {
+      padding:.65rem 1rem;
+      text-align:left;
+      font-size:.72rem; font-weight:700;
+      text-transform:uppercase; letter-spacing:.06em;
+      color:var(--muted);
+      border-bottom:1px solid var(--border);
+      white-space:nowrap;
+    }
+    td {
+      padding:.7rem 1rem;
+      font-size:.84rem;
+      border-bottom:1px solid var(--border);
+      vertical-align:middle;
+    }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:var(--bg-input); }
+
+    /* Rating chip */
+    .rating-chip {
+      display:inline-flex; align-items:center; justify-content:center;
+      width:30px; height:30px; border-radius:.4rem;
+      font-size:.8rem; font-weight:700;
+    }
+    .rating-chip.high { background:rgba(22,163,74,.12); color:var(--green); }
+    .rating-chip.mid  { background:rgba(217,119,6,.12);  color:var(--amber); }
+    .rating-chip.low  { background:rgba(220,38,38,.12);  color:var(--red); }
+
+    /* Tag */
+    .tag {
+      display:inline-block;
+      padding:.15rem .55rem; border-radius:50px;
+      font-size:.7rem; font-weight:600;
+    }
+    .tag.yes { background:rgba(22,163,74,.12); color:var(--green); }
+    .tag.no  { background:rgba(148,163,184,.12); color:var(--muted); }
+    .tag.check { background:rgba(37,99,235,.1); color:var(--blue); }
+
+    /* Empty / loading */
+    .state-box {
+      padding:3rem; text-align:center;
+      display:flex; flex-direction:column; align-items:center; gap:.75rem;
+    }
+    .state-box .icon { font-size:2.5rem; }
+    .state-box p { color:var(--muted); font-size:.9rem; }
+    .spinner-ring {
+      width:36px; height:36px;
+      border:3px solid var(--border);
+      border-top-color:var(--blue);
+      border-radius:50%;
+      animation:spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* Toast */
+    #toast-container {
+      position:fixed; top:1rem; right:1rem;
+      z-index:9999; display:flex; flex-direction:column; gap:.5rem;
+    }
+    .toast {
+      padding:.75rem 1rem; border-radius:var(--radius-sm);
+      border:1px solid transparent; font-size:.85rem;
+      display:flex; align-items:center; gap:.5rem;
+      box-shadow:0 4px 20px rgba(0,0,0,.15);
+      animation:toastIn .3s ease;
+    }
+    @keyframes toastIn { from{opacity:0;transform:translateX(12px)} to{opacity:1;transform:none} }
+    .toast.success { background:#f0fdf4; border-color:#bbf7d0; color:#166534; }
+    .toast.error   { background:#fef2f2; border-color:#fecaca; color:#991b1b; }
+    [data-theme="dark"] .toast.success { background:rgba(22,163,74,.15); border-color:rgba(22,163,74,.3); color:#86efac; }
+    [data-theme="dark"] .toast.error   { background:rgba(220,38,38,.15); border-color:rgba(220,38,38,.3); color:#fca5a5; }
+
+    /* Expand row */
+    .expand-row td {
+      background:var(--bg-input) !important;
+      padding:1rem 1.25rem;
+    }
+    .expand-content { font-size:.84rem; color:var(--muted); line-height:1.6; }
+    .expand-content strong { color:var(--text); font-weight:600; }
+    .expand-grid { display:grid; grid-template-columns:1fr 1fr; gap:.5rem 1.5rem; }
+    .expand-row { display:none; }
+    .expand-row.open { display:table-row; }
+
+    /* Pagination */
+    .pagination {
+      display:flex; justify-content:center; align-items:center;
+      gap:.4rem; margin-top:1rem;
+    }
+    .page-btn {
+      width:32px; height:32px;
+      border:1.5px solid var(--border);
+      border-radius:.45rem; background:var(--bg-card);
+      color:var(--muted); font-size:.8rem; font-weight:600;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      transition:all .2s;
+    }
+    .page-btn:hover, .page-btn.active {
+      border-color:var(--blue); color:var(--blue); background:var(--blue-dim);
+    }
+    .page-btn:disabled { opacity:.4; cursor:default; }
+
+    @media(max-width:768px) {
+      .charts-grid { grid-template-columns:1fr; }
+      .expand-grid { grid-template-columns:1fr; }
+      .header { grid-template-columns:auto auto; }
+      .header-title { display:none; }
+    }
+  </style>
+</head>
+<body data-theme="light">
+
+<div id="toast-container"></div>
+
+<!-- ── HEADER ── -->
+<header class="header">
+  <div class="header-logo">
+    <a href="admin.html" class="back-btn">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+      Painel
+    </a>
+    <div class="header-title">
+      📊 Dashboard Feedback <span>/ Análise de Respostas</span>
+    </div>
+  </div>
+  <div></div>
+  <div class="header-right">
+    <button class="icon-btn" id="refreshBtn">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+      </svg>
+      Atualizar
+    </button>
+    <button class="icon-btn" id="themeToggle">
+      <svg id="themeIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+      </svg>
+      <span id="themeText">Escuro</span>
+    </button>
+  </div>
+</header>
+
+<!-- ── PILL NAV ── -->
+<nav class="dash-nav">
+  <a class="dash-pill active" href="dash-feedback.html">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+    </svg> Feedback
+  </a>
+  <a class="dash-pill" href="dash-produtos.html">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+    </svg> Produtos
+  </a>
+  <a class="dash-pill" href="dash-usuarios.html">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+    </svg> Usuários
+  </a>
+</nav>
+
+<!-- ── MAIN ── -->
+<div class="container">
+  <div class="page-heading">
+    <h1>Análise de Feedback</h1>
+    <p id="lastUpdate">Carregando dados...</p>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid" id="kpiGrid">
+    <div class="kpi-card blue">
+      <div class="kpi-top">
+        <div class="kpi-label">Total Respostas</div>
+        <div class="kpi-icon-box">📋</div>
+      </div>
+      <div class="kpi-value" id="kpiTotal">—</div>
+      <div class="kpi-sub">feedbacks recebidos</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-top">
+        <div class="kpi-label">Avaliação Média</div>
+        <div class="kpi-icon-box">⭐</div>
+      </div>
+      <div class="kpi-value" id="kpiAvgGeral">—</div>
+      <div class="kpi-sub">de 10 — avaliação geral</div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-top">
+        <div class="kpi-label">Facilidade Média</div>
+        <div class="kpi-icon-box">🖱️</div>
+      </div>
+      <div class="kpi-value" id="kpiAvgFacil">—</div>
+      <div class="kpi-sub">de 10 — facilidade de uso</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-top">
+        <div class="kpi-label">Querem Novidade</div>
+        <div class="kpi-icon-box">💡</div>
+      </div>
+      <div class="kpi-value" id="kpiNovaFunc">—</div>
+      <div class="kpi-sub">solicitaram nova funcionalidade</div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-title">Distribuição — Avaliação Geral <span class="badge">1–10</span></div>
+      <div class="chart-wrap"><canvas id="chartGeral"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Distribuição — Facilidade de Uso <span class="badge">1–10</span></div>
+      <div class="chart-wrap"><canvas id="chartFacil"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Nova Funcionalidade Desejada</div>
+      <div class="chart-wrap" style="max-width:280px;margin:0 auto"><canvas id="chartNovaFunc"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Consentimentos Dados</div>
+      <div class="chart-wrap"><canvas id="chartConsent"></canvas></div>
+    </div>
+    <div class="chart-card wide">
+      <div class="chart-title">Linha do Tempo — Feedbacks <span class="badge">por data</span></div>
+      <div class="chart-wrap"><canvas id="chartTimeline"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Lista -->
+  <div class="section-header">
+    <div class="section-title-sm">📋 Lista de Feedbacks</div>
+    <span id="listCount" style="font-size:.8rem;color:var(--muted)"></span>
+  </div>
+  <div class="filter-bar">
+    <input class="search-input" type="text" id="searchInput" placeholder="Buscar por nome ou loja...">
+    <select class="filter-select" id="filterAvaliacao">
+      <option value="">Todas as notas</option>
+      <option value="high">Alta (7–10)</option>
+      <option value="mid">Média (5–6)</option>
+      <option value="low">Baixa (1–4)</option>
+    </select>
+    <select class="filter-select" id="filterFunc">
+      <option value="">Nova funcionalidade</option>
+      <option value="Sim">Sim</option>
+      <option value="Não">Não</option>
+    </select>
+  </div>
+
+  <div class="table-wrap" id="tableWrap">
+    <div class="state-box" id="loadingState">
+      <div class="spinner-ring"></div>
+      <p>Carregando feedbacks...</p>
+    </div>
+  </div>
+
+  <div class="pagination" id="pagination"></div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════
+   CONFIG
+══════════════════════════════════════════ */
+// Troque pela URL real da sua GAS doGet
+const GAS_URL = 'https://script.google.com/macros/s/SEU_DEPLOYMENT_ID/exec';
+// Parâmetro de ação
+const GAS_ACTION = 'getFeedbacks';
+
+// Dados mock para demonstração enquanto GAS não está configurado
+const MOCK_DATA = [
+  { nome:'Carlos Souza', loja:'Filial 01', avaliacao_geral:9, facilidade_uso:8, ponto_melhoria:'', deseja_nova_funcionalidade:'Não', sugestao_funcionalidade:'', experiencia:'Sistema muito bom, rápido e intuitivo.', autorizacao_uso_feedback:true, autorizacao_nome_imagem:true, timestamp:'2025-03-01T09:12:00Z' },
+  { nome:'Ana Lima', loja:'Filial 02', avaliacao_geral:5, facilidade_uso:4, ponto_melhoria:'A navegação poderia ser mais simples.', deseja_nova_funcionalidade:'Sim', sugestao_funcionalidade:'Relatório de vendas por período.', experiencia:'Funciona mas tem muito clique até chegar onde quero.', autorizacao_uso_feedback:true, autorizacao_nome_imagem:false, timestamp:'2025-03-03T14:00:00Z' },
+  { nome:'Pedro Martins', loja:'Filial 01', avaliacao_geral:10, facilidade_uso:9, ponto_melhoria:'', deseja_nova_funcionalidade:'Sim', sugestao_funcionalidade:'Dashboard mobile.', experiencia:'Excelente! Uso todos os dias.', autorizacao_uso_feedback:true, autorizacao_nome_imagem:true, timestamp:'2025-03-05T10:30:00Z' },
+  { nome:'Fernanda Rocha', loja:'Filial 03', avaliacao_geral:3, facilidade_uso:3, ponto_melhoria:'Muitas telas, difícil encontrar o que preciso.', deseja_nova_funcionalidade:'Sim', sugestao_funcionalidade:'Menu de favoritos.', experiencia:'Ainda estou me acostumando, acho complexo.', autorizacao_uso_feedback:true, autorizacao_nome_imagem:false, timestamp:'2025-03-07T08:45:00Z' },
+  { nome:'Lucas Vieira', loja:'Filial 02', avaliacao_geral:7, facilidade_uso:8, ponto_melhoria:'', deseja_nova_funcionalidade:'Não', sugestao_funcionalidade:'', experiencia:'Bom sistema, atende bem as necessidades do dia a dia.', autorizacao_uso_feedback:true, autorizacao_nome_imagem:true, timestamp:'2025-03-10T11:20:00Z' },
+  { nome:'Julia Alves', loja:'Filial 01', avaliacao_geral:8, facilidade_uso:7, ponto_melhoria:'', deseja_nova_funcionalidade:'Sim', sugestao_funcionalidade:'Notificações por WhatsApp.', experiencia:'Gosto muito, só precisava de notificações.', autorizacao_uso_feedback:true, autorizacao_nome_imagem:true, timestamp:'2025-03-12T16:00:00Z' },
+  { nome:'', loja:'Filial 04', avaliacao_geral:6, facilidade_uso:5, ponto_melhoria:'Poderia ter atalhos de teclado.', deseja_nova_funcionalidade:'Sim', sugestao_funcionalidade:'Atalhos de teclado para ações rápidas.', experiencia:'Uso funcional, mas lento para quem já conhece.', autorizacao_uso_feedback:true, autorizacao_nome_imagem:false, timestamp:'2025-03-15T09:00:00Z' },
+];
+
+/* ══════════════════════════════════════════
+   ESTADO
+══════════════════════════════════════════ */
+let allData = [];
+let filteredData = [];
+let currentPage = 1;
+const PAGE_SIZE = 10;
+let charts = {};
+
+/* ══════════════════════════════════════════
+   TEMA
+══════════════════════════════════════════ */
+(function initTheme(){
+  const t = localStorage.getItem('theme') || 'light';
+  applyTheme(t);
+})();
+function applyTheme(t){
+  document.body.setAttribute('data-theme', t);
+  document.getElementById('themeText').textContent = t==='dark'?'Claro':'Escuro';
+  const icon = document.getElementById('themeIcon');
+  icon.innerHTML = t==='dark'
+    ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>'
+    : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
+}
+document.getElementById('themeToggle').addEventListener('click', ()=>{
+  const cur = document.body.getAttribute('data-theme')||'light';
+  const next = cur==='dark'?'light':'dark';
+  localStorage.setItem('theme',next);
+  applyTheme(next);
+  redrawCharts();
+});
+
+/* ══════════════════════════════════════════
+   FETCH DE DADOS
+══════════════════════════════════════════ */
+async function fetchData(){
+  try {
+    const url = `${GAS_URL}?action=${GAS_ACTION}`;
+    const resp = await fetch(url);
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    const data = await resp.json();
+    return Array.isArray(data) ? data : (data.data || data.feedbacks || []);
+  } catch(e) {
+    console.warn('GAS indisponível, usando mock:', e.message);
+    return MOCK_DATA;
+  }
+}
+
+/* ══════════════════════════════════════════
+   RENDER KPIs
+══════════════════════════════════════════ */
+function renderKPIs(data){
+  const total = data.length;
+  const avgGeral = total ? (data.reduce((s,r)=>s+(+r.avaliacao_geral||0),0)/total).toFixed(1) : '—';
+  const avgFacil = total ? (data.reduce((s,r)=>s+(+r.facilidade_uso||0),0)/total).toFixed(1) : '—';
+  const novaFunc = data.filter(r=>r.deseja_nova_funcionalidade==='Sim').length;
+
+  document.getElementById('kpiTotal').textContent = total;
+  document.getElementById('kpiAvgGeral').textContent = avgGeral;
+  document.getElementById('kpiAvgFacil').textContent = avgFacil;
+  document.getElementById('kpiNovaFunc').textContent = novaFunc;
+}
+
+/* ══════════════════════════════════════════
+   CHARTS
+══════════════════════════════════════════ */
+function getChartColors(){
+  const dark = document.body.getAttribute('data-theme')==='dark';
+  return {
+    grid: dark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)',
+    text: dark ? '#94a3b8' : '#64748b',
+    blue: '#2563eb', green:'#16a34a', amber:'#d97706', red:'#dc2626', purple:'#7c3aed'
+  };
+}
+
+function buildDistChart(id, data, field){
+  const counts = Array(10).fill(0);
+  data.forEach(r=>{ const v=+r[field]; if(v>=1&&v<=10) counts[v-1]++; });
+  const labels = ['1','2','3','4','5','6','7','8','9','10'];
+  const c = getChartColors();
+  const colors = labels.map((_,i)=>i<4?c.red:i<6?c.amber:c.green);
+
+  if(charts[id]) charts[id].destroy();
+  charts[id] = new Chart(document.getElementById(id), {
+    type:'bar',
+    data:{ labels, datasets:[{ data:counts, backgroundColor:colors, borderRadius:5, borderSkipped:false }]},
+    options:{
+      responsive:true, maintainAspectRatio:true,
+      plugins:{ legend:{display:false} },
+      scales:{
+        x:{ grid:{color:c.grid}, ticks:{color:c.text} },
+        y:{ grid:{color:c.grid}, ticks:{color:c.text, stepSize:1} }
+      }
+    }
+  });
+}
+
+function buildDoughnut(id, labels, values, colors){
+  const c = getChartColors();
+  if(charts[id]) charts[id].destroy();
+  charts[id] = new Chart(document.getElementById(id), {
+    type:'doughnut',
+    data:{ labels, datasets:[{ data:values, backgroundColor:colors, borderWidth:2, borderColor:'transparent' }]},
+    options:{
+      responsive:true, maintainAspectRatio:true,
+      plugins:{ legend:{ position:'bottom', labels:{color:c.text, padding:12, font:{size:11}} } }
+    }
+  });
+}
+
+function buildTimeline(data){
+  const byDate = {};
+  data.forEach(r=>{
+    const d = r.timestamp ? r.timestamp.split('T')[0] : 'Sem data';
+    byDate[d]=(byDate[d]||0)+1;
+  });
+  const sorted = Object.entries(byDate).sort((a,b)=>a[0].localeCompare(b[0]));
+  const c = getChartColors();
+
+  if(charts.timeline) charts.timeline.destroy();
+  charts.timeline = new Chart(document.getElementById('chartTimeline'),{
+    type:'line',
+    data:{
+      labels:sorted.map(e=>e[0]),
+      datasets:[{
+        label:'Feedbacks',
+        data:sorted.map(e=>e[1]),
+        borderColor:c.blue,
+        backgroundColor:'rgba(37,99,235,.1)',
+        fill:true, tension:.4,
+        pointBackgroundColor:c.blue, pointRadius:4
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:true,
+      plugins:{ legend:{display:false} },
+      scales:{
+        x:{ grid:{color:c.grid}, ticks:{color:c.text} },
+        y:{ grid:{color:c.grid}, ticks:{color:c.text,stepSize:1}, beginAtZero:true }
+      }
+    }
+  });
+}
+
+function buildAllCharts(data){
+  const c = getChartColors();
+  buildDistChart('chartGeral', data, 'avaliacao_geral');
+  buildDistChart('chartFacil',  data, 'facilidade_uso');
+
+  const sim = data.filter(r=>r.deseja_nova_funcionalidade==='Sim').length;
+  const nao = data.length - sim;
+  buildDoughnut('chartNovaFunc',['Sim','Não'],[sim,nao],[c.blue,c.grid]);
+
+  const aut1 = data.filter(r=>r.autorizacao_uso_feedback===true||r.autorizacao_uso_feedback==='true').length;
+  const aut2 = data.filter(r=>r.autorizacao_nome_imagem===true||r.autorizacao_nome_imagem==='true').length;
+  buildDoughnut('chartConsent',
+    ['Uso do feedback','Nome/Imagem','Nenhum'],
+    [aut1, aut2, Math.max(0, data.length-aut1)],
+    [c.green, c.purple, c.amber]
+  );
+  buildTimeline(data);
+}
+
+function redrawCharts(){
+  if(allData.length) buildAllCharts(allData);
+}
+
+/* ══════════════════════════════════════════
+   TABELA
+══════════════════════════════════════════ */
+function ratingClass(v){ return v>=7?'high':v>=5?'mid':'low'; }
+
+function renderTable(data){
+  const wrap = document.getElementById('tableWrap');
+  document.getElementById('listCount').textContent = `${data.length} resultado${data.length!==1?'s':''}`;
+
+  if(!data.length){
+    wrap.innerHTML=`<div class="state-box"><div class="icon">🔍</div><p>Nenhum feedback encontrado.</p></div>`;
+    document.getElementById('pagination').innerHTML='';
+    return;
+  }
+
+  const start=(currentPage-1)*PAGE_SIZE, end=start+PAGE_SIZE;
+  const page=data.slice(start,end);
+
+  const rows = page.map((r,i)=>{
+    const idx=start+i;
+    const nome = r.nome||'<span style="color:var(--dim);font-style:italic">Anônimo</span>';
+    const g = +r.avaliacao_geral||0, f=+r.facilidade_uso||0;
+    const date = r.timestamp ? new Date(r.timestamp).toLocaleDateString('pt-BR') : '—';
+    return `
+      <tr onclick="toggleExpand(${idx})" style="cursor:pointer">
+        <td>${nome}</td>
+        <td>${r.loja||'—'}</td>
+        <td><span class="rating-chip ${ratingClass(g)}">${g}</span></td>
+        <td><span class="rating-chip ${ratingClass(f)}">${f}</span></td>
+        <td><span class="tag ${r.deseja_nova_funcionalidade==='Sim'?'yes':'no'}">${r.deseja_nova_funcionalidade||'—'}</span></td>
+        <td><span class="tag ${(r.autorizacao_nome_imagem===true||r.autorizacao_nome_imagem==='true')?'check':'no'}">${(r.autorizacao_nome_imagem===true||r.autorizacao_nome_imagem==='true')?'Sim':'Não'}</span></td>
+        <td>${date}</td>
+      </tr>
+      <tr class="expand-row" id="exp-${idx}">
+        <td colspan="7">
+          <div class="expand-content">
+            <div class="expand-grid">
+              <div><strong>Experiência:</strong><br>${r.experiencia||'—'}</div>
+              <div><strong>Ponto de melhoria:</strong><br>${r.ponto_melhoria||'—'}</div>
+              <div><strong>Sugestão:</strong><br>${r.sugestao_funcionalidade||'—'}</div>
+              <div><strong>Timestamp:</strong><br>${r.timestamp||'—'}</div>
+            </div>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  wrap.innerHTML=`
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th><th>Loja</th><th>Avaliação</th><th>Facilidade</th>
+          <th>Nova Func.</th><th>Div. Nome</th><th>Data</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+  renderPagination(data);
+}
+
+function toggleExpand(idx){
+  const row=document.getElementById(`exp-${idx}`);
+  if(row) row.classList.toggle('open');
+}
+
+/* ══════════════════════════════════════════
+   PAGINAÇÃO
+══════════════════════════════════════════ */
+function renderPagination(data){
+  const total=Math.ceil(data.length/PAGE_SIZE);
+  const p=document.getElementById('pagination');
+  if(total<=1){ p.innerHTML=''; return; }
+  let html='';
+  html+=`<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+  for(let i=1;i<=total;i++){
+    html+=`<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+  }
+  html+=`<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===total?'disabled':''}>›</button>`;
+  p.innerHTML=html;
+}
+function goPage(n){ currentPage=n; renderTable(filteredData); }
+
+/* ══════════════════════════════════════════
+   FILTROS
+══════════════════════════════════════════ */
+function applyFilters(){
+  const search=document.getElementById('searchInput').value.toLowerCase();
+  const avgFilter=document.getElementById('filterAvaliacao').value;
+  const funcFilter=document.getElementById('filterFunc').value;
+
+  filteredData=allData.filter(r=>{
+    const nome=(r.nome||'').toLowerCase();
+    const loja=(r.loja||'').toLowerCase();
+    if(search && !nome.includes(search) && !loja.includes(search)) return false;
+    const g=+r.avaliacao_geral||0;
+    if(avgFilter==='high'&&g<7) return false;
+    if(avgFilter==='mid'&&(g<5||g>6)) return false;
+    if(avgFilter==='low'&&g>4) return false;
+    if(funcFilter&&r.deseja_nova_funcionalidade!==funcFilter) return false;
+    return true;
+  });
+  currentPage=1;
+  renderTable(filteredData);
+}
+
+['searchInput','filterAvaliacao','filterFunc'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', applyFilters);
+  document.getElementById(id).addEventListener('change', applyFilters);
+});
+
+/* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
+async function init(){
+  document.getElementById('lastUpdate').textContent='Buscando dados...';
+  const data = await fetchData();
+  allData = data;
+  filteredData = data;
+
+  renderKPIs(data);
+  buildAllCharts(data);
+  renderTable(data);
+
+  document.getElementById('lastUpdate').textContent=
+    `${data.length} feedback${data.length!==1?'s':''} carregado${data.length!==1?'s':''} — ${new Date().toLocaleString('pt-BR')}`;
+  showToast('Dados carregados!','success');
+}
+
+document.getElementById('refreshBtn').addEventListener('click',()=>{ init(); });
+
+function showToast(msg,type='info'){
+  const c=document.getElementById('toast-container');
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;
+  t.textContent=msg;
+  c.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300);},3000);
+}
+
+init();
+</script>
+</body>
+</html>
