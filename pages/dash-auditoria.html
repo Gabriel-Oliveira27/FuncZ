@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Auditoria &amp; Erros</title>
+  <link rel="icon" type="image/png" href="../image/zenirlogo.png">
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --bg:#f8fafc; --bg-card:#ffffff; --bg-input:#f1f5f9;
+      --border:#e2e8f0;
+      --blue:#2563eb; --blue-dim:rgba(37,99,235,.08);
+      --green:#16a34a; --amber:#d97706; --red:#dc2626;
+      --purple:#7c3aed; --teal:#0d9488;
+      --text:#1e293b; --muted:#64748b; --dim:#94a3b8;
+      --shadow:0 1px 8px rgba(0,0,0,.07); --radius:12px; --radius-sm:8px;
+    }
+    [data-theme="dark"] {
+      --bg:#0f172a; --bg-card:#1e293b; --bg-input:#0f172a;
+      --border:#334155; --text:#f1f5f9; --muted:#94a3b8; --dim:#475569;
+      --shadow:0 1px 8px rgba(0,0,0,.3);
+    }
+    body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      background:var(--bg); color:var(--text); min-height:100vh; transition:background .3s,color .3s; }
+
+    /* ── HEADER ── */
+    .header { background:var(--bg-card); border-bottom:1px solid var(--border); padding:.75rem 1.5rem;
+      display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:1rem;
+      position:sticky; top:0; z-index:100; }
+    .header-left { display:flex; align-items:center; gap:.75rem; }
+    .back-btn { display:inline-flex; align-items:center; gap:.35rem; background:transparent;
+      border:1.5px solid var(--border); border-radius:50px; padding:.32rem .8rem;
+      font-size:.78rem; font-weight:500; color:var(--muted); cursor:pointer; text-decoration:none; transition:all .2s; }
+    .back-btn:hover { border-color:var(--blue); color:var(--blue); }
+    .back-btn svg { width:13px; height:13px; }
+    .header-title { font-size:1rem; font-weight:700; display:flex; align-items:center; gap:.5rem; }
+    .header-title span { font-size:.8rem; font-weight:400; color:var(--muted); }
+    .header-right { display:flex; gap:.6rem; align-items:center; }
+    .icon-btn { background:transparent; border:1.5px solid var(--border); border-radius:50px;
+      padding:.35rem .8rem; font-size:.78rem; font-weight:500; color:var(--muted);
+      cursor:pointer; display:flex; align-items:center; gap:.35rem; transition:all .2s; font-family:inherit; }
+    .icon-btn:hover { border-color:var(--blue); color:var(--blue); }
+    .icon-btn svg { width:13px; height:13px; }
+
+    /* ── PILL NAV ── */
+    .dash-nav { background:var(--bg-card); border-bottom:1px solid var(--border); padding:.5rem 1.5rem; display:flex; gap:.4rem; overflow-x:auto; }
+    .dash-pill { display:inline-flex; align-items:center; gap:.35rem; padding:.35rem .85rem; border-radius:50px;
+      font-size:.78rem; font-weight:500; text-decoration:none; color:var(--muted); border:1.5px solid var(--border); white-space:nowrap; transition:all .2s; }
+    .dash-pill:hover, .dash-pill.active { border-color:var(--blue); color:var(--blue); background:var(--blue-dim); }
+    .dash-pill svg { width:12px; height:12px; }
+
+    /* ── CONTAINER ── */
+    .container { max-width:1280px; margin:0 auto; padding:2rem 1.5rem; }
+    .page-heading { margin-bottom:1.75rem; }
+    .page-heading h1 { font-size:1.6rem; font-weight:800; }
+    .page-heading p  { color:var(--muted); font-size:.9rem; margin-top:.3rem; }
+
+    /* ── KPIs ── */
+    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:1rem; margin-bottom:2rem; }
+    .kpi-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem 1.5rem; box-shadow:var(--shadow); }
+    .kpi-top  { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:.6rem; }
+    .kpi-label { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+    .kpi-icon  { width:32px; height:32px; border-radius:.45rem; display:flex; align-items:center; justify-content:center; font-size:.9rem; }
+    .kpi-value { font-size:1.9rem; font-weight:800; line-height:1; }
+    .kpi-sub   { font-size:.73rem; color:var(--muted); margin-top:.3rem; }
+    .blue   .kpi-icon { background:rgba(37,99,235,.12); } .blue   .kpi-value { color:var(--blue); }
+    .green  .kpi-icon { background:rgba(22,163,74,.12); } .green  .kpi-value { color:var(--green); }
+    .red    .kpi-icon { background:rgba(220,38,38,.12); } .red    .kpi-value { color:var(--red); }
+    .amber  .kpi-icon { background:rgba(217,119,6,.12); } .amber  .kpi-value { color:var(--amber); }
+    .purple .kpi-icon { background:rgba(124,58,237,.12); }.purple .kpi-value { color:var(--purple); }
+
+    /* ── TABS ── */
+    .tab-bar { display:flex; gap:.5rem; margin-bottom:1.5rem; }
+    .tab-btn { padding:.45rem 1.1rem; border-radius:50px; border:1.5px solid var(--border);
+      font-size:.82rem; font-weight:500; cursor:pointer; transition:all .2s;
+      background:transparent; color:var(--muted); font-family:inherit; }
+    .tab-btn.active { border-color:var(--blue); color:var(--blue); background:var(--blue-dim); font-weight:600; }
+    .tab-btn:hover:not(.active) { border-color:var(--blue); color:var(--blue); }
+
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; animation:fadeIn .25s ease; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+    /* ── FILTER BAR ── */
+    .filter-bar { display:flex; gap:.6rem; flex-wrap:wrap; margin-bottom:1rem; align-items:center; }
+    .search-input { background:var(--bg-card); border:1.5px solid var(--border); color:var(--text);
+      border-radius:var(--radius-sm); padding:.42rem .75rem; font-size:.82rem;
+      flex:1; min-width:180px; max-width:320px; font-family:inherit; }
+    .search-input:focus { outline:none; border-color:var(--blue); }
+    .search-input::placeholder { color:var(--dim); }
+    .filter-select { background:var(--bg-card); border:1.5px solid var(--border); color:var(--text);
+      border-radius:var(--radius-sm); padding:.42rem .75rem; font-size:.82rem; cursor:pointer; font-family:inherit; }
+    .filter-select:focus { outline:none; border-color:var(--blue); }
+
+    /* ── TABLE ── */
+    .table-section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:.75rem; }
+    .section-title-sm { font-size:1rem; font-weight:700; }
+    .result-count { font-size:.82rem; color:var(--muted); }
+    .table-wrap { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); }
+    table { width:100%; border-collapse:collapse; }
+    thead { background:var(--bg-input); }
+    th { padding:.65rem 1rem; text-align:left; font-size:.7rem; font-weight:700;
+         text-transform:uppercase; letter-spacing:.07em; color:var(--muted);
+         border-bottom:1px solid var(--border); white-space:nowrap; }
+    td { padding:.7rem 1rem; font-size:.84rem; border-bottom:1px solid var(--border); vertical-align:middle; max-width:320px; }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:var(--bg-input); }
+
+    /* ── BADGES ── */
+    .action-badge { display:inline-block; padding:.18rem .6rem; border-radius:50px;
+      font-size:.72rem; font-weight:600; white-space:nowrap; }
+    .action-login       { background:rgba(22,163,74,.1);  color:var(--green); }
+    .action-createuser  { background:rgba(37,99,235,.1);  color:var(--blue); }
+    .action-getusers    { background:rgba(124,58,237,.1); color:var(--purple); }
+    .action-updateuser  { background:rgba(217,119,6,.1);  color:var(--amber); }
+    .action-getlogs     { background:rgba(13,148,136,.1); color:var(--teal); }
+    .action-createproduct { background:rgba(37,99,235,.08);color:var(--blue); }
+    .action-other       { background:rgba(100,116,139,.1);color:var(--muted); }
+
+    .error-badge { display:inline-block; padding:.18rem .6rem; border-radius:50px;
+      font-size:.72rem; font-weight:600; white-space:nowrap; }
+    .error-senha     { background:rgba(220,38,38,.1);  color:var(--red); }
+    .error-local     { background:rgba(217,119,6,.1);  color:var(--amber); }
+    .error-usuario   { background:rgba(100,116,139,.1);color:var(--muted); }
+    .error-permissao { background:rgba(124,58,237,.1); color:var(--purple); }
+    .error-other     { background:rgba(220,38,38,.08); color:var(--red); }
+
+    .ts-text { font-family:monospace; font-size:.78rem; color:var(--muted); white-space:nowrap; }
+
+    /* Estado / Loading */
+    .state-box { padding:3rem; text-align:center; display:flex; flex-direction:column; align-items:center; gap:.75rem; }
+    .state-box .icon { font-size:2.5rem; }
+    .state-box p { color:var(--muted); font-size:.9rem; }
+    .spinner-ring { width:34px; height:34px; border:3px solid var(--border);
+      border-top-color:var(--blue); border-radius:50%; animation:spin .7s linear infinite; }
+    @keyframes spin { to{transform:rotate(360deg)} }
+
+    /* Paginação */
+    .pagination { display:flex; justify-content:center; align-items:center; gap:.4rem; margin-top:1rem; }
+    .page-btn { width:32px; height:32px; border:1.5px solid var(--border); border-radius:.45rem;
+      background:var(--bg-card); color:var(--muted); font-size:.8rem; font-weight:600;
+      cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .2s; }
+    .page-btn:hover, .page-btn.active { border-color:var(--blue); color:var(--blue); background:var(--blue-dim); }
+    .page-btn:disabled { opacity:.35; cursor:default; }
+
+    /* Banner acesso negado */
+    .warn-banner { background:rgba(220,38,38,.07); border:1px solid rgba(220,38,38,.2);
+      border-radius:var(--radius); padding:1rem 1.25rem; margin-bottom:1.5rem;
+      font-size:.85rem; color:var(--red); display:none; }
+    .warn-banner.show { display:block; }
+
+    /* Toast */
+    #toast-container { position:fixed; top:1rem; right:1rem; z-index:9999; display:flex; flex-direction:column; gap:.5rem; }
+    .toast { padding:.75rem 1rem; border-radius:var(--radius-sm); border:1px solid transparent;
+      font-size:.85rem; display:flex; align-items:center; gap:.5rem;
+      box-shadow:0 4px 20px rgba(0,0,0,.15); animation:toastIn .3s ease; }
+    @keyframes toastIn { from{opacity:0;transform:translateX(12px)} to{opacity:1;transform:none} }
+    .toast.success { background:#f0fdf4; border-color:#bbf7d0; color:#166534; }
+    .toast.error   { background:#fef2f2; border-color:#fecaca; color:#991b1b; }
+    .toast.info    { background:#eff6ff; border-color:#bfdbfe; color:#1d4ed8; }
+    [data-theme="dark"] .toast.success { background:rgba(22,163,74,.15); border-color:rgba(22,163,74,.3);  color:#86efac; }
+    [data-theme="dark"] .toast.error   { background:rgba(220,38,38,.15); border-color:rgba(220,38,38,.3);  color:#fca5a5; }
+    [data-theme="dark"] .toast.info    { background:rgba(37,99,235,.15); border-color:rgba(37,99,235,.3);  color:#93c5fd; }
+
+    td .overflow-text { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  </style>
+</head>
+<body data-theme="light">
+<div id="toast-container"></div>
+
+<!-- ── HEADER ── -->
+<header class="header">
+  <div class="header-left">
+    <a href="admin.html" class="back-btn">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>Painel
+    </a>
+    <div class="header-title">📋 Auditoria &amp; Erros <span>/ Log do Sistema</span></div>
+  </div>
+  <div></div>
+  <div class="header-right">
+    <button class="icon-btn" id="refreshBtn">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+      </svg>Atualizar
+    </button>
+    <button class="icon-btn" id="themeToggle">
+      <svg id="themeIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+      </svg>
+      <span id="themeText">Escuro</span>
+    </button>
+  </div>
+</header>
+
+<!-- ── PILL NAV ── -->
+<nav class="dash-nav">
+  <a class="dash-pill" href="dash-feedback.html">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>Feedback
+  </a>
+  <a class="dash-pill" href="dash-produtos.html">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>Produtos
+  </a>
+  <a class="dash-pill" href="dash-usuarios.html">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Usuários
+  </a>
+  <a class="dash-pill active" href="dash-auditoria.html">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>Auditoria
+  </a>
+</nav>
+
+<!-- ── MAIN ── -->
+<div class="container">
+  <div class="page-heading">
+    <h1>Auditoria &amp; Erros</h1>
+    <p id="lastUpdate">Carregando...</p>
+  </div>
+
+  <div class="warn-banner" id="warnBanner">
+    <strong>⛔ Acesso restrito</strong> — Requer permissão <strong>admin</strong> ou <strong>suporte</strong>.
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card blue"><div class="kpi-top"><div class="kpi-label">Ações auditadas</div><div class="kpi-icon">📋</div></div><div class="kpi-value" id="kpiAcoes">—</div><div class="kpi-sub">registros de auditoria</div></div>
+    <div class="kpi-card green"><div class="kpi-top"><div class="kpi-label">Logins</div><div class="kpi-icon">🔑</div></div><div class="kpi-value" id="kpiLogins">—</div><div class="kpi-sub">acessos bem-sucedidos</div></div>
+    <div class="kpi-card red"><div class="kpi-top"><div class="kpi-label">Erros de acesso</div><div class="kpi-icon">❌</div></div><div class="kpi-value" id="kpiErros">—</div><div class="kpi-sub">falhas registradas</div></div>
+    <div class="kpi-card amber"><div class="kpi-top"><div class="kpi-label">Senhas erradas</div><div class="kpi-icon">🔒</div></div><div class="kpi-value" id="kpiSenha">—</div><div class="kpi-sub">tentativas com senha incorreta</div></div>
+    <div class="kpi-card purple"><div class="kpi-top"><div class="kpi-label">Local incorreto</div><div class="kpi-icon">📍</div></div><div class="kpi-value" id="kpiLocal">—</div><div class="kpi-sub">tentativas de local proibido</div></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('auditoria',this)">📋 Auditoria de Ações</button>
+    <button class="tab-btn" onclick="switchTab('erros',this)">⚠️ Log de Erros</button>
+  </div>
+
+  <!-- ─────── TAB AUDITORIA ─────── -->
+  <div class="tab-panel active" id="tabAuditoria">
+    <div class="filter-bar">
+      <input class="search-input" type="text" id="searchAudit" placeholder="Filtrar por usuário ou ação...">
+      <select class="filter-select" id="filterAcao">
+        <option value="">Todas as ações</option>
+        <option value="login">Login</option>
+        <option value="createUser">Criar usuário</option>
+        <option value="createProduct">Criar produto</option>
+        <option value="getUsers">Consultar usuários</option>
+        <option value="updateUser">Editar usuário</option>
+        <option value="getLogs">Consultar logs</option>
+      </select>
+    </div>
+
+    <div class="table-section-header">
+      <div class="section-title-sm">📋 Auditoria</div>
+      <span class="result-count" id="auditCount"></span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Usuário</th>
+            <th>Ação</th>
+            <th>Data / Hora</th>
+          </tr>
+        </thead>
+        <tbody id="auditBody">
+          <tr><td colspan="4"><div class="state-box"><div class="spinner-ring"></div><p>Carregando...</p></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination" id="auditPagination"></div>
+  </div>
+
+  <!-- ─────── TAB ERROS ─────── -->
+  <div class="tab-panel" id="tabErros">
+    <div class="filter-bar">
+      <input class="search-input" type="text" id="searchErro" placeholder="Filtrar por usuário, motivo ou local...">
+      <select class="filter-select" id="filterMotivo">
+        <option value="">Todos os motivos</option>
+        <option value="senhaincorreta">Senha incorreta</option>
+        <option value="local-nao-permitido">Local não permitido</option>
+        <option value="usuarionaoexiste">Usuário não existe</option>
+        <option value="acesso-negado">Acesso negado</option>
+      </select>
+    </div>
+
+    <div class="table-section-header">
+      <div class="section-title-sm">⚠️ Log de Erros</div>
+      <span class="result-count" id="erroCount"></span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Usuário</th>
+            <th>Motivo</th>
+            <th>Local</th>
+            <th>Data / Hora</th>
+          </tr>
+        </thead>
+        <tbody id="erroBody">
+          <tr><td colspan="5"><div class="state-box"><div class="spinner-ring"></div><p>Carregando...</p></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination" id="erroPagination"></div>
+  </div>
+
+</div>
+
+<script>
+/* ══════════════════════════════════════════
+   CONFIG
+══════════════════════════════════════════ */
+const WORKER_URL = 'https://conexao-fallback-3.gab-oliveirab27.workers.dev/';
+const PAGE_SIZE  = 20;
+
+/* ══════════════════════════════════════════
+   ESTADO
+══════════════════════════════════════════ */
+let auditAll = [], auditFiltered = [], auditPage = 1;
+let erroAll  = [], erroFiltered  = [], erroPage  = 1;
+
+/* ══════════════════════════════════════════
+   SESSÃO
+══════════════════════════════════════════ */
+function getSession() {
+  try {
+    if (window.SessionGuard?.getSessionData) {
+      const s = window.SessionGuard.getSessionData();
+      if (s) return s;
+    }
+    const raw = localStorage.getItem('authSession');
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+function isPrivileged(perm) {
+  return ['admin','suporte'].includes(String(perm||'').toLowerCase());
+}
+
+/* ══════════════════════════════════════════
+   TEMA
+══════════════════════════════════════════ */
+(function(){ const t=localStorage.getItem('theme')||'light'; applyTheme(t); })();
+function applyTheme(t){
+  document.body.setAttribute('data-theme',t);
+  document.getElementById('themeText').textContent=t==='dark'?'Claro':'Escuro';
+  const i=document.getElementById('themeIcon');
+  i.innerHTML=t==='dark'
+    ?'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>'
+    :'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
+}
+document.getElementById('themeToggle').addEventListener('click',()=>{
+  const n=document.body.getAttribute('data-theme')==='dark'?'light':'dark';
+  localStorage.setItem('theme',n); applyTheme(n);
+});
+
+/* ══════════════════════════════════════════
+   WORKER POST
+══════════════════════════════════════════ */
+async function workerPost(action, data={}) {
+  try {
+    const resp = await fetch(WORKER_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action,...data})
+    });
+    const text = await resp.text();
+    return JSON.parse(text);
+  } catch(err) {
+    return { status:'error', message:err.message };
+  }
+}
+
+/* ══════════════════════════════════════════
+   TABS
+══════════════════════════════════════════ */
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab'+name.charAt(0).toUpperCase()+name.slice(1)).classList.add('active');
+}
+
+/* ══════════════════════════════════════════
+   FORMATAÇÃO DE DATA
+══════════════════════════════════════════ */
+function fmtDate(raw) {
+  if (!raw) return '—';
+  try {
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return String(raw);
+    return d.toLocaleString('pt-BR',{
+      day:'2-digit',month:'2-digit',year:'numeric',
+      hour:'2-digit',minute:'2-digit',second:'2-digit'
+    });
+  } catch { return String(raw); }
+}
+
+/* ══════════════════════════════════════════
+   BADGE DE AÇÃO (auditoria)
+══════════════════════════════════════════ */
+function actionBadge(acao) {
+  const a = String(acao||'').toLowerCase();
+  let cls = 'action-other', label = acao || '—';
+  if (a.startsWith('login'))         { cls='action-login';        label='🔑 login'; }
+  else if (a.startsWith('createuser')) { cls='action-createuser'; label='👤 criar usuário'; }
+  else if (a.startsWith('createprod')) { cls='action-createproduct';label='📦 criar produto'; }
+  else if (a.startsWith('getusers'))   { cls='action-getusers';   label='👁 consultar usuários'; }
+  else if (a.startsWith('updateuser')) { cls='action-updateuser'; label='✏️ editar usuário'; }
+  else if (a.startsWith('getlogs'))    { cls='action-getlogs';    label='📋 consultar logs'; }
+  else if (a.startsWith('registro'))   { cls='action-other';      label='📄 '+acao; }
+  return `<span class="action-badge ${cls}" title="${acao||''}">${label}</span>`;
+}
+
+/* ══════════════════════════════════════════
+   BADGE DE ERRO (loguser)
+══════════════════════════════════════════ */
+function errorBadge(motivo) {
+  const m = String(motivo||'').toLowerCase();
+  let cls='error-other', icon='⚠️';
+  if (m.includes('senha'))    { cls='error-senha';     icon='🔒'; }
+  else if (m.includes('local'))    { cls='error-local';     icon='📍'; }
+  else if (m.includes('usuario') || m.includes('usuario')) { cls='error-usuario'; icon='👤'; }
+  else if (m.includes('permiss') || m.includes('negado'))  { cls='error-permissao';icon='⛔'; }
+  return `<span class="error-badge ${cls}">${icon} ${motivo||'—'}</span>`;
+}
+
+/* ══════════════════════════════════════════
+   KPIs
+══════════════════════════════════════════ */
+function renderKPIs(audit, erros) {
+  document.getElementById('kpiAcoes').textContent  = audit.length;
+  document.getElementById('kpiLogins').textContent = audit.filter(r=>String(r.acao||'').toLowerCase().startsWith('login')).length;
+  document.getElementById('kpiErros').textContent  = erros.length;
+  document.getElementById('kpiSenha').textContent  = erros.filter(r=>String(r.motivo||'').toLowerCase().includes('senha')).length;
+  document.getElementById('kpiLocal').textContent  = erros.filter(r=>String(r.motivo||'').toLowerCase().includes('local')).length;
+}
+
+/* ══════════════════════════════════════════
+   RENDER AUDITORIA
+══════════════════════════════════════════ */
+function renderAudit(data) {
+  const body = document.getElementById('auditBody');
+  document.getElementById('auditCount').textContent = `${data.length} registro${data.length!==1?'s':''}`;
+  if (!data.length) {
+    body.innerHTML=`<tr><td colspan="4"><div class="state-box"><div class="icon">🔍</div><p>Nenhum registro encontrado.</p></div></td></tr>`;
+    document.getElementById('auditPagination').innerHTML='';
+    return;
+  }
+  const start=(auditPage-1)*PAGE_SIZE, end=start+PAGE_SIZE;
+  body.innerHTML = data.slice(start,end).map((r,i)=>`
+    <tr>
+      <td style="color:var(--dim);font-size:.75rem">${start+i+1}</td>
+      <td><code style="font-size:.82rem;background:var(--bg-input);padding:.1rem .4rem;border-radius:.3rem">${r.usuario||'—'}</code></td>
+      <td>${actionBadge(r.acao)}</td>
+      <td class="ts-text">${fmtDate(r.timestamp)}</td>
+    </tr>
+  `).join('');
+  renderPagination('audit', data.length);
+}
+
+/* ══════════════════════════════════════════
+   RENDER ERROS
+══════════════════════════════════════════ */
+function renderErros(data) {
+  const body = document.getElementById('erroBody');
+  document.getElementById('erroCount').textContent = `${data.length} registro${data.length!==1?'s':''}`;
+  if (!data.length) {
+    body.innerHTML=`<tr><td colspan="5"><div class="state-box"><div class="icon">✅</div><p>Nenhum erro registrado.</p></div></td></tr>`;
+    document.getElementById('erroPagination').innerHTML='';
+    return;
+  }
+  const start=(erroPage-1)*PAGE_SIZE, end=start+PAGE_SIZE;
+  body.innerHTML = data.slice(start,end).map((r,i)=>`
+    <tr>
+      <td style="color:var(--dim);font-size:.75rem">${start+i+1}</td>
+      <td><code style="font-size:.82rem;background:var(--bg-input);padding:.1rem .4rem;border-radius:.3rem">${r.usuario||'—'}</code></td>
+      <td>${errorBadge(r.motivo)}</td>
+      <td style="color:var(--muted)">${r.local||'—'}</td>
+      <td class="ts-text">${fmtDate(r.timestamp)}</td>
+    </tr>
+  `).join('');
+  renderPagination('erro', data.length);
+}
+
+/* ══════════════════════════════════════════
+   PAGINAÇÃO GENÉRICA
+══════════════════════════════════════════ */
+function renderPagination(type, total) {
+  const pages   = Math.ceil(total/PAGE_SIZE);
+  const current = type==='audit' ? auditPage : erroPage;
+  const elId    = type==='audit' ? 'auditPagination' : 'erroPagination';
+  const p = document.getElementById(elId);
+  if (pages <= 1) { p.innerHTML=''; return; }
+  let html = `<button class="page-btn" onclick="goPage('${type}',${current-1})" ${current===1?'disabled':''}>‹</button>`;
+  for (let i=1;i<=pages;i++) html+=`<button class="page-btn ${i===current?'active':''}" onclick="goPage('${type}',${i})">${i}</button>`;
+  html += `<button class="page-btn" onclick="goPage('${type}',${current+1})" ${current===pages?'disabled':''}>›</button>`;
+  p.innerHTML=html;
+}
+function goPage(type, n) {
+  if (type==='audit') { auditPage=n; renderAudit(auditFiltered); }
+  else                { erroPage=n;  renderErros(erroFiltered); }
+}
+
+/* ══════════════════════════════════════════
+   FILTROS AUDITORIA
+══════════════════════════════════════════ */
+function applyAuditFilter() {
+  const search = document.getElementById('searchAudit').value.toLowerCase();
+  const acao   = document.getElementById('filterAcao').value.toLowerCase();
+  auditFiltered = auditAll.filter(r => {
+    if (search) {
+      if (!String(r.usuario||'').toLowerCase().includes(search) &&
+          !String(r.acao||'').toLowerCase().includes(search)) return false;
+    }
+    if (acao && !String(r.acao||'').toLowerCase().startsWith(acao.toLowerCase())) return false;
+    return true;
+  });
+  auditPage=1;
+  renderAudit(auditFiltered);
+}
+['searchAudit','filterAcao'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el){ el.addEventListener('input',applyAuditFilter); el.addEventListener('change',applyAuditFilter); }
+});
+
+/* ══════════════════════════════════════════
+   FILTROS ERROS
+══════════════════════════════════════════ */
+function applyErroFilter() {
+  const search  = document.getElementById('searchErro').value.toLowerCase();
+  const motivo  = document.getElementById('filterMotivo').value.toLowerCase();
+  erroFiltered = erroAll.filter(r => {
+    if (search) {
+      if (!String(r.usuario||'').toLowerCase().includes(search) &&
+          !String(r.motivo||'').toLowerCase().includes(search) &&
+          !String(r.local||'').toLowerCase().includes(search)) return false;
+    }
+    if (motivo && !String(r.motivo||'').toLowerCase().includes(motivo)) return false;
+    return true;
+  });
+  erroPage=1;
+  renderErros(erroFiltered);
+}
+['searchErro','filterMotivo'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el){ el.addEventListener('input',applyErroFilter); el.addEventListener('change',applyErroFilter); }
+});
+
+/* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
+async function init() {
+  const session = getSession();
+  if (!session || !isPrivileged(session.perm)) {
+    document.getElementById('warnBanner').classList.add('show');
+    document.getElementById('lastUpdate').textContent='Acesso negado — permissão insuficiente.';
+    document.getElementById('auditBody').innerHTML=
+      `<tr><td colspan="4"><div class="state-box"><div class="icon">⛔</div><p>Sem permissão para visualizar esta dashboard.</p></div></td></tr>`;
+    document.getElementById('erroBody').innerHTML=
+      `<tr><td colspan="5"><div class="state-box"><div class="icon">⛔</div><p>Sem permissão.</p></div></td></tr>`;
+    return;
+  }
+
+  document.getElementById('lastUpdate').textContent='Buscando dados…';
+
+  /* Busca em paralelo */
+  const [auditResult, logResult] = await Promise.all([
+    workerPost('getAuditoria', { solicitante: session.user||'', permSolicitante: session.perm||'', limit: 500 }),
+    workerPost('getLogs',      { solicitante: session.user||'', permSolicitante: session.perm||'', limit: 500 })
+  ]);
+
+  /* ── Auditoria ── */
+  if (auditResult?.status === 'ok' && Array.isArray(auditResult.logs)) {
+    auditAll = auditResult.logs;
+  } else if (auditResult?.status === 'ok' && Array.isArray(auditResult.entries)) {
+    auditAll = auditResult.entries;
+  } else {
+    auditAll = [];
+    console.warn('[auditoria]', auditResult);
+  }
+  auditFiltered = [...auditAll];
+
+  /* ── Erros ── */
+  if (logResult?.status === 'ok' && Array.isArray(logResult.logs)) {
+    erroAll = logResult.logs;
+  } else {
+    erroAll = [];
+    console.warn('[getLogs]', logResult);
+  }
+  erroFiltered = [...erroAll];
+
+  renderKPIs(auditAll, erroAll);
+  renderAudit(auditFiltered);
+  renderErros(erroFiltered);
+
+  document.getElementById('lastUpdate').textContent =
+    `${auditAll.length} ação(ões) | ${erroAll.length} erro(s) — ${new Date().toLocaleString('pt-BR')}`;
+
+  showToast('Dados carregados!','success');
+}
+
+document.getElementById('refreshBtn').addEventListener('click', init);
+
+function showToast(msg, type='info') {
+  const c=document.getElementById('toast-container');
+  const t=document.createElement('div');
+  t.className=`toast ${type}`; t.textContent=msg; c.appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t.remove(),300); },3500);
+}
+
+init();
+</script>
+</body>
+</html>

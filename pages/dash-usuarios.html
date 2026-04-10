@@ -71,10 +71,8 @@
     .indigo .kpi-icon { background:rgba(79,70,229,.12); }  .indigo .kpi-value { color:var(--indigo); }
 
     /* ── FILTER PANEL ── */
-    .filter-panel {
-      background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius);
-      padding:1.25rem 1.5rem; margin-bottom:1.5rem; box-shadow:var(--shadow);
-    }
+    .filter-panel { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius);
+      padding:1.25rem 1.5rem; margin-bottom:1.5rem; box-shadow:var(--shadow); }
     .filter-panel-title { font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:1rem; }
     .filter-grid { display:flex; gap:.75rem; flex-wrap:wrap; align-items:flex-end; }
     .filter-group { display:flex; flex-direction:column; gap:.35rem; min-width:160px; }
@@ -94,24 +92,53 @@
 
     /* ── ACTIVE FILTERS ── */
     .active-filters { display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:.75rem; }
-    .filter-chip {
-      display:inline-flex; align-items:center; gap:.35rem;
+    .filter-chip { display:inline-flex; align-items:center; gap:.35rem;
       padding:.25rem .65rem; background:var(--blue-dim);
       border:1px solid rgba(37,99,235,.2); border-radius:50px;
-      font-size:.73rem; font-weight:600; color:var(--blue);
-    }
+      font-size:.73rem; font-weight:600; color:var(--blue); }
     .filter-chip button { background:none; border:none; cursor:pointer; color:var(--blue); font-size:.85rem; line-height:1; padding:0; }
+
+    /* ── EDIT MODAL ── */
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5);
+      display:none; align-items:center; justify-content:center; z-index:300; padding:1rem; }
+    .modal-overlay.open { display:flex; animation:fadeIn .2s ease; }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    .modal { background:var(--bg-card); border:1px solid var(--border); border-radius:16px;
+      padding:2rem; width:100%; max-width:480px; box-shadow:0 20px 60px rgba(0,0,0,.2);
+      animation:slideUp .3s cubic-bezier(.22,1,.36,1); }
+    @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:none;opacity:1} }
+    .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; }
+    .modal-title { font-size:1.1rem; font-weight:700; }
+    .modal-close { background:transparent; border:none; cursor:pointer; font-size:1.3rem; color:var(--muted); }
+    .modal-fields { display:flex; flex-direction:column; gap:.85rem; }
+    .field-label { display:block; font-size:.8rem; font-weight:600; color:var(--muted); margin-bottom:.3rem; }
+    .field-input, .field-select {
+      width:100%; background:var(--bg-input); border:1.5px solid var(--border);
+      border-radius:var(--radius-sm); color:var(--text); padding:.6rem .85rem;
+      font-size:.9rem; font-family:inherit; transition:border-color .2s;
+    }
+    .field-input:focus, .field-select:focus { outline:none; border-color:var(--blue); }
+    .field-select option { background:var(--bg-card); }
+    .modal-actions { display:flex; gap:.75rem; margin-top:1.5rem; }
+    .btn { padding:.65rem 1.25rem; border:none; border-radius:var(--radius-sm);
+      font-size:.88rem; font-weight:600; cursor:pointer; font-family:inherit;
+      display:flex; align-items:center; gap:.4rem; transition:all .2s; }
+    .btn-primary { background:var(--blue); color:#fff; flex:1; justify-content:center; }
+    .btn-primary:hover { background:#1d4ed8; }
+    .btn-primary:disabled { opacity:.6; cursor:not-allowed; }
+    .btn-secondary { background:var(--bg-input); color:var(--muted); border:1.5px solid var(--border); }
+    .btn-secondary:hover { border-color:var(--blue); color:var(--blue); }
 
     /* ── USER TABLE ── */
     .table-section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:.75rem; }
     .section-title-sm { font-size:1rem; font-weight:700; }
     .result-count { font-size:.82rem; color:var(--muted); }
-
     .table-wrap { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); }
     table { width:100%; border-collapse:collapse; }
     thead { background:var(--bg-input); }
     th { padding:.65rem 1rem; text-align:left; font-size:.7rem; font-weight:700;
-         text-transform:uppercase; letter-spacing:.07em; color:var(--muted); border-bottom:1px solid var(--border); white-space:nowrap; cursor:pointer; user-select:none; }
+         text-transform:uppercase; letter-spacing:.07em; color:var(--muted);
+         border-bottom:1px solid var(--border); white-space:nowrap; cursor:pointer; user-select:none; }
     th:hover { color:var(--blue); }
     th.sorted { color:var(--blue); }
     th .sort-icon { margin-left:.3rem; font-size:.65rem; }
@@ -120,14 +147,15 @@
     tr:hover td { background:var(--bg-input); }
 
     /* Permission badge */
-    .perm-badge { display:inline-flex; align-items:center; gap:.3rem; padding:.2rem .65rem; border-radius:50px; font-size:.7rem; font-weight:700; white-space:nowrap; }
-    .perm-admin    { background:rgba(124,58,237,.1); color:var(--purple); }
-    .perm-gerente  { background:rgba(37,99,235,.1); color:var(--blue); }
-    .perm-suporte  { background:rgba(13,148,136,.1); color:var(--teal); }
-    .perm-vendedor { background:rgba(22,163,74,.1); color:var(--green); }
-    .perm-crediario { background:rgba(217,119,6,.1); color:var(--amber); }
-    .perm-faturamento { background:rgba(79,70,229,.1); color:var(--indigo); }
-    .perm-default  { background:rgba(100,116,139,.1); color:var(--muted); }
+    .perm-badge { display:inline-flex; align-items:center; gap:.3rem; padding:.2rem .65rem;
+      border-radius:50px; font-size:.7rem; font-weight:700; white-space:nowrap; }
+    .perm-admin       { background:rgba(124,58,237,.1); color:var(--purple); }
+    .perm-gerente     { background:rgba(37,99,235,.1);  color:var(--blue); }
+    .perm-suporte     { background:rgba(13,148,136,.1); color:var(--teal); }
+    .perm-vendedor    { background:rgba(22,163,74,.1);  color:var(--green); }
+    .perm-crediario   { background:rgba(217,119,6,.1);  color:var(--amber); }
+    .perm-faturamento { background:rgba(79,70,229,.1);  color:var(--indigo); }
+    .perm-default     { background:rgba(100,116,139,.1);color:var(--muted); }
 
     /* Filial chip */
     .filial-chip { display:inline-block; background:var(--bg-input); border:1px solid var(--border);
@@ -138,14 +166,21 @@
     .pwd-mask { font-family:monospace; letter-spacing:.1em; color:var(--dim); }
     .eye-btn { background:none; border:none; cursor:pointer; color:var(--dim); font-size:.9rem; line-height:1; padding:0; transition:color .2s; }
     .eye-btn:hover { color:var(--blue); }
-
-    /* CPF mask */
     .cpf-text { font-family:monospace; font-size:.8rem; }
+
+    /* Edit btn */
+    .edit-btn { background:none; border:1.5px solid var(--border); border-radius:.4rem;
+      padding:.22rem .6rem; font-size:.72rem; cursor:pointer; color:var(--muted);
+      transition:all .2s; font-family:inherit; }
+    .edit-btn:hover { border-color:var(--blue); color:var(--blue); }
 
     /* Estado */
     .state-box { padding:3rem; text-align:center; display:flex; flex-direction:column; align-items:center; gap:.75rem; }
     .state-box .icon { font-size:2.5rem; }
     .state-box p { color:var(--muted); font-size:.9rem; }
+    .spinner-ring { width:36px; height:36px; border:3px solid var(--border);
+      border-top-color:var(--blue); border-radius:50%; animation:spin .7s linear infinite; }
+    @keyframes spin { to{transform:rotate(360deg)} }
 
     /* Paginação */
     .pagination { display:flex; justify-content:center; align-items:center; gap:.4rem; margin-top:1rem; }
@@ -153,21 +188,27 @@
       background:var(--bg-card); color:var(--muted); font-size:.8rem; font-weight:600;
       cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .2s; }
     .page-btn:hover, .page-btn.active { border-color:var(--blue); color:var(--blue); background:var(--blue-dim); }
-    .page-btn:disabled { opacity:.35; cursor:default; border-color:var(--border); color:var(--dim); background:transparent; }
+    .page-btn:disabled { opacity:.35; cursor:default; }
 
     /* Toast */
     #toast-container { position:fixed; top:1rem; right:1rem; z-index:9999; display:flex; flex-direction:column; gap:.5rem; }
-    .toast { padding:.75rem 1rem; border-radius:var(--radius-sm); border:1px solid transparent; font-size:.85rem;
-             display:flex; align-items:center; gap:.5rem; box-shadow:0 4px 20px rgba(0,0,0,.15); animation:toastIn .3s ease; }
+    .toast { padding:.75rem 1rem; border-radius:var(--radius-sm); border:1px solid transparent;
+             font-size:.85rem; display:flex; align-items:center; gap:.5rem;
+             box-shadow:0 4px 20px rgba(0,0,0,.15); animation:toastIn .3s ease; }
     @keyframes toastIn { from{opacity:0;transform:translateX(12px)} to{opacity:1;transform:none} }
     .toast.success { background:#f0fdf4; border-color:#bbf7d0; color:#166534; }
     .toast.error   { background:#fef2f2; border-color:#fecaca; color:#991b1b; }
+    .toast.info    { background:#eff6ff; border-color:#bfdbfe; color:#1d4ed8; }
     [data-theme="dark"] .toast.success { background:rgba(22,163,74,.15); border-color:rgba(22,163,74,.3); color:#86efac; }
     [data-theme="dark"] .toast.error   { background:rgba(220,38,38,.15); border-color:rgba(220,38,38,.3); color:#fca5a5; }
+    [data-theme="dark"] .toast.info    { background:rgba(37,99,235,.15); border-color:rgba(37,99,235,.3); color:#93c5fd; }
 
-    /* Banner aviso sem GAS */
-    .info-banner { background:rgba(37,99,235,.07); border:1px solid rgba(37,99,235,.2); border-radius:var(--radius); padding:1rem 1.25rem; margin-bottom:1.5rem; font-size:.85rem; color:var(--blue); }
-    .info-banner strong { font-weight:700; }
+    /* Banner de acesso negado */
+    .warn-banner { background:rgba(220,38,38,.07); border:1px solid rgba(220,38,38,.2);
+      border-radius:var(--radius); padding:1rem 1.25rem; margin-bottom:1.5rem;
+      font-size:.85rem; color:var(--red); display:none; }
+    .warn-banner.show { display:block; }
+    .warn-banner strong { font-weight:700; }
 
     @media(max-width:900px) { th:nth-child(5), td:nth-child(5) { display:none; } }
     @media(max-width:600px) { th:nth-child(4), td:nth-child(4), th:nth-child(6), td:nth-child(6) { display:none; } }
@@ -190,17 +231,20 @@
   <div class="header-right">
     <button class="icon-btn" id="exportBtn">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
       </svg>Exportar CSV
     </button>
     <button class="icon-btn" id="refreshBtn">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
       </svg>Atualizar
     </button>
     <button class="icon-btn" id="themeToggle">
       <svg id="themeIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
       </svg>
       <span id="themeText">Escuro</span>
     </button>
@@ -218,6 +262,9 @@
   <a class="dash-pill active" href="dash-usuarios.html">
     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Usuários
   </a>
+  <a class="dash-pill" href="dash-auditoria.html">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>Auditoria
+  </a>
 </nav>
 
 <!-- ── MAIN ── -->
@@ -227,8 +274,8 @@
     <p id="lastUpdate">Carregando...</p>
   </div>
 
-  <div class="info-banner" id="infoBanner">
-    <strong>ℹ️ Modo demonstração</strong> — Os dados abaixo são exemplos. Conecte a GAS (<code>action=getUsers</code>) para carregar usuários reais.
+  <div class="warn-banner" id="warnBanner">
+    <strong>⛔ Acesso restrito</strong> — Esta dashboard requer permissão <strong>admin</strong> ou <strong>suporte</strong>. Faça login com a conta correta.
   </div>
 
   <!-- KPIs -->
@@ -236,7 +283,7 @@
     <div class="kpi-card blue"><div class="kpi-top"><div class="kpi-label">Total</div><div class="kpi-icon">👥</div></div><div class="kpi-value" id="kpiTotal">—</div><div class="kpi-sub">usuários cadastrados</div></div>
     <div class="kpi-card green"><div class="kpi-top"><div class="kpi-label">Cidades</div><div class="kpi-icon">📍</div></div><div class="kpi-value" id="kpiCidades">—</div><div class="kpi-sub">localidades distintas</div></div>
     <div class="kpi-card amber"><div class="kpi-top"><div class="kpi-label">Filiais</div><div class="kpi-icon">🏪</div></div><div class="kpi-value" id="kpiFiliais">—</div><div class="kpi-sub">filiais ativas</div></div>
-    <div class="kpi-card purple"><div class="kpi-top"><div class="kpi-label">Gerentes</div><div class="kpi-icon">⭐</div></div><div class="kpi-value" id="kpiGerentes">—</div><div class="kpi-sub">com nível gerente</div></div>
+    <div class="kpi-card purple"><div class="kpi-top"><div class="kpi-label">Gerentes</div><div class="kpi-icon">⭐</div></div><div class="kpi-value" id="kpiGerentes">—</div><div class="kpi-sub">nível gerente/ger</div></div>
     <div class="kpi-card indigo"><div class="kpi-top"><div class="kpi-label">Vendedores</div><div class="kpi-icon">🛒</div></div><div class="kpi-value" id="kpiVendedores">—</div><div class="kpi-sub">ativos</div></div>
   </div>
 
@@ -260,8 +307,15 @@
         <label class="filter-label">Permissão</label>
         <select class="filter-select" id="filterPerm">
           <option value="">Todas</option>
-          <option>admin</option><option>gerente</option><option>suporte</option>
-          <option>vendedor</option><option>crediario</option><option>faturamento</option>
+          <option value="admin">Administrador</option>
+          <option value="ger">Gerente</option>
+          <option value="gerente">Gerente (legacy)</option>
+          <option value="suporte">Suporte</option>
+          <option value="vendedor">Vendedor</option>
+          <option value="cred">Atendimento/Crediário</option>
+          <option value="crediario">Crediário (legacy)</option>
+          <option value="fat">Faturista</option>
+          <option value="faturamento">Faturamento (legacy)</option>
         </select>
       </div>
       <div class="filter-group" style="justify-content:flex-end">
@@ -290,17 +344,87 @@
           <th onclick="sortBy('perm')" id="th-perm">Permissão <span class="sort-icon" id="si-perm"></span></th>
           <th onclick="sortBy('cidade')" id="th-cidade">Cidade <span class="sort-icon" id="si-cidade"></span></th>
           <th onclick="sortBy('filial')" id="th-filial">Filial <span class="sort-icon" id="si-filial"></span></th>
+          <th>Ações</th>
         </tr>
       </thead>
       <tbody id="userBody">
-        <tr><td colspan="7"><div class="state-box"><div class="icon">⌛</div><p>Carregando usuários...</p></div></td></tr>
+        <tr><td colspan="8"><div class="state-box"><div class="spinner-ring"></div><p>Carregando usuários...</p></div></td></tr>
       </tbody>
     </table>
   </div>
   <div class="pagination" id="pagination"></div>
 </div>
 
+<!-- ══ MODAL EDITAR USUÁRIO ══ -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">✏️ Editar Usuário</div>
+      <button class="modal-close" onclick="closeEditModal()">×</button>
+    </div>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:1.25rem">
+      Editando: <strong id="editTargetLabel" style="color:var(--text)"></strong>
+    </p>
+    <div class="modal-fields">
+      <div>
+        <label class="field-label">Campo a alterar</label>
+        <select class="field-select" id="editCampo" onchange="updateEditValueField()">
+          <option value="senha">Senha</option>
+          <option value="perm">Permissão</option>
+          <option value="nome">Nome completo</option>
+          <option value="cidade">Cidade</option>
+          <option value="cpf">CPF</option>
+          <option value="filial">Filial</option>
+        </select>
+      </div>
+      <div id="editValueWrap">
+        <label class="field-label">Novo valor</label>
+        <input class="field-input" type="text" id="editValor" placeholder="Novo valor...">
+      </div>
+      <!-- Select de permissão (exibido quando campo = perm) -->
+      <div id="editPermWrap" style="display:none">
+        <label class="field-label">Nova permissão</label>
+        <select class="field-select" id="editPermValor">
+          <option value="admin">Administrador (admin)</option>
+          <option value="ger">Gerente (ger)</option>
+          <option value="suporte">Suporte</option>
+          <option value="vendedor">Vendedor</option>
+          <option value="cred">Atendimento/Crediário (cred)</option>
+          <option value="fat">Faturista (fat)</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="editSaveBtn" onclick="saveEdit()">Salvar alteração</button>
+      <button class="btn btn-secondary" onclick="closeEditModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <script>
+/* ══════════════════════════════════════════
+   CONFIG
+══════════════════════════════════════════ */
+const WORKER_URL = 'https://conexao-fallback-3.gab-oliveirab27.workers.dev/';
+
+/* ══════════════════════════════════════════
+   SESSÃO
+══════════════════════════════════════════ */
+function getSession() {
+  try {
+    if (window.SessionGuard?.getSessionData) {
+      const s = window.SessionGuard.getSessionData();
+      if (s) return s;
+    }
+    const raw = localStorage.getItem('authSession');
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function isPrivileged(perm) {
+  return ['admin','suporte'].includes(String(perm||'').toLowerCase());
+}
+
 /* ══════════════════════════════════════════
    TEMA
 ══════════════════════════════════════════ */
@@ -320,26 +444,6 @@ document.getElementById('themeToggle').addEventListener('click',()=>{
 });
 
 /* ══════════════════════════════════════════
-   CONFIG & MOCK
-══════════════════════════════════════════ */
-const GAS_URL = 'https://script.google.com/macros/s/SEU_DEPLOYMENT_ID/exec';
-
-const MOCK_USERS = [
-  { nome:'Carlos Eduardo Souza',    user:'carlos',    senha:'carlos123',    cpf:'123.456.789-00', perm:'vendedor',    cidade:'Iguatu',     filial:'01' },
-  { nome:'Ana Paula Lima',          user:'ana.lima',  senha:'ana@2024',     cpf:'987.654.321-00', perm:'crediario',   cidade:'Iguatu',     filial:'01' },
-  { nome:'Pedro Martins Alves',     user:'pedro.m',   senha:'pedroX#7',     cpf:'111.222.333-44', perm:'gerente',     cidade:'Fortaleza',  filial:'02' },
-  { nome:'Fernanda Rocha',          user:'fernanda',  senha:'ferna2024',    cpf:'555.666.777-88', perm:'faturamento', cidade:'Fortaleza',  filial:'02' },
-  { nome:'Lucas Vieira Costa',      user:'lucas.v',   senha:'lvcosta!1',    cpf:'222.333.444-55', perm:'vendedor',    cidade:'Quixadá',    filial:'03' },
-  { nome:'Julia Alves Mendes',      user:'julia.a',   senha:'julia9876',    cpf:'333.444.555-66', perm:'vendedor',    cidade:'Quixadá',    filial:'03' },
-  { nome:'Roberto Dias',            user:'roberto',   senha:'rob#dias',     cpf:'444.555.666-77', perm:'suporte',     cidade:'Iguatu',     filial:'01' },
-  { nome:'Mariana Ferreira',        user:'mariana.f', senha:'mf2024!',      cpf:'666.777.888-99', perm:'vendedor',    cidade:'Fortaleza',  filial:'02' },
-  { nome:'Thiago Nascimento',       user:'thiago.n',  senha:'thiago321',    cpf:'777.888.999-00', perm:'admin',       cidade:'Iguatu',     filial:'01' },
-  { nome:'Camila Santos',           user:'camila.s',  senha:'camila!24',    cpf:'888.999.000-11', perm:'vendedor',    cidade:'Russas',     filial:'04' },
-  { nome:'Daniel Moreira',          user:'daniel.m',  senha:'daniel@99',    cpf:'999.000.111-22', perm:'gerente',     cidade:'Russas',     filial:'04' },
-  { nome:'Larissa Oliveira',        user:'larissa.o', senha:'lari2024',     cpf:'000.111.222-33', perm:'crediario',   cidade:'Quixadá',    filial:'03' },
-];
-
-/* ══════════════════════════════════════════
    ESTADO
 ══════════════════════════════════════════ */
 let allUsers = [];
@@ -348,87 +452,147 @@ let currentPage = 1;
 const PAGE_SIZE = 10;
 let sortCol = 'nome', sortDir = 1;
 let shownPasswords = new Set();
+let editTargetUser = '';
 
 /* ══════════════════════════════════════════
-   FETCH
+   UTILITÁRIOS
 ══════════════════════════════════════════ */
-async function fetchUsers(){
+
+/* Capitaliza cada palavra: "iguatu" → "Iguatu" | "morada nova" → "Morada Nova" */
+function toTitleCase(str) {
+  if (!str) return '—';
+  return String(str).trim()
+    .split(/\s+/)
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ');
+}
+
+/* Normaliza permissão para chave canônica */
+function normPerm(raw) {
+  const p = String(raw||'').toLowerCase().trim();
+  const map = { ger:'ger', gerente:'ger', fat:'fat', faturamento:'fat', cred:'cred', crediario:'cred' };
+  return map[p] || p;
+}
+
+/* Rótulo legível por permissão */
+const PERM_LABELS = {
+  admin:    'Administrador',
+  ger:      'Gerente',
+  suporte:  'Suporte',
+  vendedor: 'Vendedor',
+  cred:     'Atend./Crediário',
+  fat:      'Faturista'
+};
+const PERM_ICONS = {
+  admin:'🛡️', ger:'⭐', suporte:'🛠️', vendedor:'🛒', cred:'💳', fat:'📊'
+};
+const PERM_CSS = {
+  admin:'perm-admin', ger:'perm-gerente', suporte:'perm-suporte',
+  vendedor:'perm-vendedor', cred:'perm-crediario', fat:'perm-faturamento'
+};
+
+function permBadge(raw) {
+  const key = normPerm(raw);
+  const label = PERM_LABELS[key] || raw || '—';
+  const icon  = PERM_ICONS[key] || '👤';
+  const cls   = PERM_CSS[key]   || 'perm-default';
+  return `<span class="perm-badge ${cls}">${icon} ${label}</span>`;
+}
+
+function maskCPF(cpf) {
+  if (!cpf) return '—';
+  const d = cpf.replace(/\D/g,'');
+  if (d.length !== 11) return cpf;
+  return `${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6,9)}-${d.slice(9)}`;
+}
+
+/* Worker POST helper */
+async function workerPost(action, data={}) {
   try {
-    const resp = await fetch(`${GAS_URL}?action=getUsers`);
-    if(!resp.ok) throw new Error();
-    const data = await resp.json();
-    document.getElementById('infoBanner').style.display='none';
-    return Array.isArray(data) ? data : (data.users||data.data||[]);
-  } catch {
-    return MOCK_USERS;
+    const resp = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify({ action, ...data })
+    });
+    const text = await resp.text();
+    return JSON.parse(text);
+  } catch(err) {
+    return { status:'error', message: err.message };
   }
+}
+
+/* ══════════════════════════════════════════
+   FETCH DE DADOS — via Worker POST
+══════════════════════════════════════════ */
+async function fetchUsers() {
+  const session = getSession();
+  if (!session || !isPrivileged(session.perm)) {
+    document.getElementById('warnBanner').classList.add('show');
+    document.getElementById('lastUpdate').textContent = 'Acesso negado — permissão insuficiente.';
+    return [];
+  }
+
+  const result = await workerPost('getUsers', {
+    solicitante:     session.user || '',
+    permSolicitante: session.perm || ''
+  });
+
+  if (result?.status === 'ok' && Array.isArray(result.users)) {
+    return result.users;
+  }
+
+  showToast(result?.message || 'Erro ao carregar usuários.', 'error', 6000);
+  console.error('[getUsers]', result);
+  return [];
 }
 
 /* ══════════════════════════════════════════
    KPIs
 ══════════════════════════════════════════ */
-function renderKPIs(data){
-  document.getElementById('kpiTotal').textContent     = data.length;
-  document.getElementById('kpiCidades').textContent   = new Set(data.map(u=>u.cidade||'').filter(Boolean)).size;
-  document.getElementById('kpiFiliais').textContent   = new Set(data.map(u=>u.filial||'').filter(Boolean)).size;
-  document.getElementById('kpiGerentes').textContent  = data.filter(u=>(u.perm||'').toLowerCase()==='gerente').length;
-  document.getElementById('kpiVendedores').textContent= data.filter(u=>(u.perm||'').toLowerCase()==='vendedor').length;
+function renderKPIs(data) {
+  document.getElementById('kpiTotal').textContent      = data.length;
+  document.getElementById('kpiCidades').textContent    = new Set(data.map(u=>u.cidade||'').filter(Boolean)).size;
+  document.getElementById('kpiFiliais').textContent    = new Set(data.map(u=>u.filial||'').filter(Boolean)).size;
+  document.getElementById('kpiGerentes').textContent   = data.filter(u=>normPerm(u.perm)==='ger').length;
+  document.getElementById('kpiVendedores').textContent = data.filter(u=>normPerm(u.perm)==='vendedor').length;
 }
 
 /* ══════════════════════════════════════════
-   POPULA SELECTS
+   POPULA SELECTS DE FILTRO
 ══════════════════════════════════════════ */
-function populateSelects(data){
-  const cidades = [...new Set(data.map(u=>u.cidade||'').filter(Boolean))].sort();
-  const filiais  = [...new Set(data.map(u=>u.filial||'').filter(Boolean))].sort();
+function populateSelects(data) {
+  /* cidades já capitalizadas */
+  const cidades = [...new Set(data.map(u => toTitleCase(u.cidade||'')).filter(v=>v&&v!=='—'))].sort();
+  const filiais  = [...new Set(data.map(u => u.filial||'').filter(Boolean))].sort();
 
   const cSel = document.getElementById('filterCidade');
-  cSel.innerHTML='<option value="">Todas</option>'+cidades.map(c=>`<option>${c}</option>`).join('');
+  cSel.innerHTML = '<option value="">Todas</option>' + cidades.map(c=>`<option>${c}</option>`).join('');
+
   const fSel = document.getElementById('filterFilial');
-  fSel.innerHTML='<option value="">Todas</option>'+filiais.map(f=>`<option value="${f}">Filial ${f}</option>`).join('');
-}
-
-/* ══════════════════════════════════════════
-   CPF MASK
-══════════════════════════════════════════ */
-function maskCPF(cpf){
-  if(!cpf) return '—';
-  const d=cpf.replace(/\D/g,'');
-  if(d.length!==11) return cpf;
-  return `${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6,9)}-${d.slice(9)}`;
-}
-
-/* ══════════════════════════════════════════
-   PERMISSION BADGE
-══════════════════════════════════════════ */
-function permBadge(perm){
-  const p=(perm||'').toLowerCase();
-  const cls = p==='admin'?'perm-admin':p==='gerente'?'perm-gerente':p==='suporte'?'perm-suporte':
-              p==='vendedor'?'perm-vendedor':p==='crediario'?'perm-crediario':p==='faturamento'?'perm-faturamento':'perm-default';
-  const icons = { admin:'🛡️',gerente:'⭐',suporte:'🛠️',vendedor:'🛒',crediario:'💳',faturamento:'📊' };
-  return `<span class="perm-badge ${cls}">${icons[p]||'👤'} ${perm||'—'}</span>`;
+  fSel.innerHTML = '<option value="">Todas</option>' + filiais.map(f=>`<option value="${f}">Filial ${f}</option>`).join('');
 }
 
 /* ══════════════════════════════════════════
    TABELA
 ══════════════════════════════════════════ */
-function renderTable(data){
+function renderTable(data) {
   const body = document.getElementById('userBody');
-  document.getElementById('resultCount').textContent=`${data.length} usuário${data.length!==1?'s':''}`;
+  document.getElementById('resultCount').textContent = `${data.length} usuário${data.length!==1?'s':''}`;
 
-  if(!data.length){
-    body.innerHTML=`<tr><td colspan="7"><div class="state-box"><div class="icon">🔍</div><p>Nenhum usuário encontrado.</p></div></td></tr>`;
-    document.getElementById('pagination').innerHTML='';
+  if (!data.length) {
+    body.innerHTML = `<tr><td colspan="8"><div class="state-box"><div class="icon">🔍</div><p>Nenhum usuário encontrado.</p></div></td></tr>`;
+    document.getElementById('pagination').innerHTML = '';
     return;
   }
 
-  const start=(currentPage-1)*PAGE_SIZE, end=start+PAGE_SIZE;
-  const page=data.slice(start,end);
+  const start = (currentPage-1)*PAGE_SIZE, end = start+PAGE_SIZE;
+  const page  = data.slice(start, end);
 
-  body.innerHTML = page.map((u,i)=>{
-    const idx=start+i;
-    const shown=shownPasswords.has(idx);
-    const pwd=shown?(u.senha||'—'):'••••••••';
+  body.innerHTML = page.map((u, i) => {
+    const idx   = start+i;
+    const shown = shownPasswords.has(idx);
+    const pwd   = shown ? (u.senha||'—') : '••••••••';
+    const cidade = toTitleCase(u.cidade);
     return `
       <tr>
         <td><strong>${u.nome||'—'}</strong></td>
@@ -443,8 +607,9 @@ function renderTable(data){
         </td>
         <td><span class="cpf-text">${maskCPF(u.cpf)}</span></td>
         <td>${permBadge(u.perm)}</td>
-        <td>${u.cidade||'—'}</td>
+        <td>${cidade}</td>
         <td><span class="filial-chip">${u.filial||'—'}</span></td>
+        <td><button class="edit-btn" onclick="openEditModal('${encodeURIComponent(u.user||'')}','${encodeURIComponent(u.nome||'')}')">✏️ Editar</button></td>
       </tr>
     `;
   }).join('');
@@ -452,47 +617,117 @@ function renderTable(data){
   renderPagination(data);
 }
 
-function togglePwd(idx, encodedPwd){
-  const el=document.getElementById(`pwd-${idx}`);
-  if(!el) return;
-  const shown=shownPasswords.has(idx);
-  if(shown){ shownPasswords.delete(idx); el.textContent='••••••••'; }
-  else      { shownPasswords.add(idx);   el.textContent=decodeURIComponent(encodedPwd); }
-  renderTable(filtered); // re-render to update eye icon
+function togglePwd(idx, encodedPwd) {
+  const el = document.getElementById(`pwd-${idx}`);
+  if (!el) return;
+  const shown = shownPasswords.has(idx);
+  if (shown) { shownPasswords.delete(idx); el.textContent='••••••••'; }
+  else       { shownPasswords.add(idx);    el.textContent=decodeURIComponent(encodedPwd); }
+  /* atualiza só o ícone sem re-render total */
+  const btn = el.nextElementSibling;
+  if (btn) btn.textContent = shownPasswords.has(idx) ? '🙈' : '👁️';
+}
+
+/* ══════════════════════════════════════════
+   MODAL EDITAR
+══════════════════════════════════════════ */
+function openEditModal(encodedUser, encodedNome) {
+  editTargetUser = decodeURIComponent(encodedUser);
+  document.getElementById('editTargetLabel').textContent =
+    `${decodeURIComponent(encodedNome)} (${editTargetUser})`;
+  document.getElementById('editModal').classList.add('open');
+  document.getElementById('editCampo').value = 'senha';
+  document.getElementById('editValor').value = '';
+  updateEditValueField();
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.remove('open');
+}
+
+document.getElementById('editModal').addEventListener('click', function(e) {
+  if (e.target === this) closeEditModal();
+});
+
+function updateEditValueField() {
+  const campo = document.getElementById('editCampo').value;
+  document.getElementById('editValueWrap').style.display = campo === 'perm' ? 'none' : 'block';
+  document.getElementById('editPermWrap').style.display  = campo === 'perm' ? 'block' : 'none';
+}
+
+async function saveEdit() {
+  const btn    = document.getElementById('editSaveBtn');
+  const campo  = document.getElementById('editCampo').value;
+  const valor  = campo === 'perm'
+    ? document.getElementById('editPermValor').value
+    : document.getElementById('editValor').value.trim();
+
+  if (!valor) { showToast('Informe o novo valor.','error'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Salvando…';
+
+  const session = getSession();
+  const result  = await workerPost('updateUser', {
+    user:            editTargetUser,
+    campo,
+    valor,
+    solicitante:     session?.user || '',
+    permSolicitante: session?.perm || ''
+  });
+
+  btn.disabled = false;
+  btn.textContent = 'Salvar alteração';
+
+  if (result?.status === 'ok') {
+    showToast(`${campo} atualizado com sucesso! ✅`, 'success');
+    closeEditModal();
+    /* atualiza localmente */
+    allUsers = allUsers.map(u => {
+      if (u.user === editTargetUser) return { ...u, [campo]: valor };
+      return u;
+    });
+    filtered = filtered.map(u => {
+      if (u.user === editTargetUser) return { ...u, [campo]: valor };
+      return u;
+    });
+    renderTable(filtered);
+    renderKPIs(allUsers);
+  } else {
+    showToast(result?.message || 'Erro ao salvar alteração.', 'error', 6000);
+  }
 }
 
 /* ══════════════════════════════════════════
    PAGINAÇÃO
 ══════════════════════════════════════════ */
-function renderPagination(data){
-  const total=Math.ceil(data.length/PAGE_SIZE);
-  const p=document.getElementById('pagination');
-  if(total<=1){ p.innerHTML=''; return; }
-  let html=`<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
-  for(let i=1;i<=total;i++) html+=`<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
-  html+=`<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===total?'disabled':''}>›</button>`;
-  p.innerHTML=html;
+function renderPagination(data) {
+  const total = Math.ceil(data.length/PAGE_SIZE);
+  const p = document.getElementById('pagination');
+  if (total <= 1) { p.innerHTML=''; return; }
+  let html = `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+  for (let i=1;i<=total;i++) html += `<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+  html += `<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===total?'disabled':''}>›</button>`;
+  p.innerHTML = html;
 }
-function goPage(n){ currentPage=n; renderTable(filtered); }
+function goPage(n) { currentPage=n; renderTable(filtered); }
 
 /* ══════════════════════════════════════════
    SORT
 ══════════════════════════════════════════ */
-function sortBy(col){
-  if(sortCol===col) sortDir*=-1;
+function sortBy(col) {
+  if (sortCol===col) sortDir*=-1;
   else { sortCol=col; sortDir=1; }
-  // Update icons
-  ['nome','user','cpf','perm','cidade','filial'].forEach(c=>{
+  ['nome','user','cpf','perm','cidade','filial'].forEach(c => {
     const el=document.getElementById(`si-${c}`);
     const th=document.getElementById(`th-${c}`);
-    if(el){ el.textContent=''; if(th) th.classList.remove('sorted'); }
+    if (el) { el.textContent=''; if(th) th.classList.remove('sorted'); }
   });
   const si=document.getElementById(`si-${col}`);
   const th=document.getElementById(`th-${col}`);
-  if(si) si.textContent=sortDir===1?'↑':'↓';
-  if(th) th.classList.add('sorted');
-
-  filtered.sort((a,b)=>{
+  if (si) si.textContent = sortDir===1?'↑':'↓';
+  if (th) th.classList.add('sorted');
+  filtered.sort((a,b) => {
     const av=(a[col]||'').toString().toLowerCase();
     const bv=(b[col]||'').toString().toLowerCase();
     return av<bv?-sortDir:av>bv?sortDir:0;
@@ -504,73 +739,78 @@ function sortBy(col){
 /* ══════════════════════════════════════════
    FILTROS
 ══════════════════════════════════════════ */
-function applyFilters(){
-  const search=document.getElementById('searchInput').value.toLowerCase();
-  const cidade=document.getElementById('filterCidade').value;
-  const filial=document.getElementById('filterFilial').value;
-  const perm=document.getElementById('filterPerm').value.toLowerCase();
+function applyFilters() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const cidade = document.getElementById('filterCidade').value;
+  const filial = document.getElementById('filterFilial').value;
+  const perm   = document.getElementById('filterPerm').value.toLowerCase();
 
-  filtered=allUsers.filter(u=>{
-    if(search){
-      const n=(u.nome||'').toLowerCase();
-      const us=(u.user||'').toLowerCase();
-      const cpf=(u.cpf||'').toLowerCase();
-      if(!n.includes(search)&&!us.includes(search)&&!cpf.includes(search)) return false;
+  filtered = allUsers.filter(u => {
+    if (search) {
+      const n  = (u.nome||'').toLowerCase();
+      const us = (u.user||'').toLowerCase();
+      const cp = (u.cpf||'').toLowerCase();
+      if (!n.includes(search)&&!us.includes(search)&&!cp.includes(search)) return false;
     }
-    if(cidade && u.cidade!==cidade) return false;
-    if(filial && u.filial!==filial.replace('Filial ','').trim()) return false;
-    if(perm && (u.perm||'').toLowerCase()!==perm) return false;
+    if (cidade && toTitleCase(u.cidade) !== cidade) return false;
+    if (filial && (u.filial||'') !== filial) return false;
+    /* filtro por perm: compara com o raw da planilha */
+    if (perm && (u.perm||'').toLowerCase() !== perm) return false;
     return true;
   });
-  currentPage=1;
+  currentPage = 1;
   renderActiveFilters();
   renderTable(filtered);
 }
 
-function renderActiveFilters(){
-  const chips=[];
-  const s=document.getElementById('searchInput').value;
-  if(s) chips.push({ label:`"${s}"`, clear:()=>{ document.getElementById('searchInput').value=''; applyFilters(); } });
-  const c=document.getElementById('filterCidade').value;
-  if(c) chips.push({ label:`📍 ${c}`, clear:()=>{ document.getElementById('filterCidade').value=''; applyFilters(); } });
-  const f=document.getElementById('filterFilial').value;
-  if(f) chips.push({ label:`🏪 Filial ${f}`, clear:()=>{ document.getElementById('filterFilial').value=''; applyFilters(); } });
-  const p=document.getElementById('filterPerm').value;
-  if(p) chips.push({ label:`👤 ${p}`, clear:()=>{ document.getElementById('filterPerm').value=''; applyFilters(); } });
+function renderActiveFilters() {
+  const chips = [];
+  const s = document.getElementById('searchInput').value;
+  if (s) chips.push({ label:`"${s}"`, clear:()=>{ document.getElementById('searchInput').value=''; applyFilters(); } });
+  const c = document.getElementById('filterCidade').value;
+  if (c) chips.push({ label:`📍 ${c}`, clear:()=>{ document.getElementById('filterCidade').value=''; applyFilters(); } });
+  const f = document.getElementById('filterFilial').value;
+  if (f) chips.push({ label:`🏪 Filial ${f}`, clear:()=>{ document.getElementById('filterFilial').value=''; applyFilters(); } });
+  const p = document.getElementById('filterPerm').value;
+  if (p) chips.push({ label:`👤 ${p}`, clear:()=>{ document.getElementById('filterPerm').value=''; applyFilters(); } });
 
-  const el=document.getElementById('activeFilters');
-  if(!chips.length){ el.innerHTML=''; return; }
-  // Render as static text (onclick won't work nicely with innerHTML + closures, so we use data attrs)
-  el.innerHTML=chips.map((_,i)=>`
+  const el = document.getElementById('activeFilters');
+  if (!chips.length) { el.innerHTML=''; return; }
+  el.innerHTML = chips.map((_,i) => `
     <div class="filter-chip">${chips[i].label}<button onclick="clearFilterByIndex(${i})">×</button></div>
   `).join('');
-  window.__filterClearFns=chips.map(c=>c.clear);
+  window.__filterClearFns = chips.map(c => c.clear);
 }
+window.clearFilterByIndex = i => window.__filterClearFns?.[i]?.();
 
-window.clearFilterByIndex=function(i){ window.__filterClearFns&&window.__filterClearFns[i]&&window.__filterClearFns[i](); };
-
-function clearFilters(){
-  ['searchInput','filterCidade','filterFilial','filterPerm'].forEach(id=>{ document.getElementById(id).value=''; });
+function clearFilters() {
+  ['searchInput','filterCidade','filterFilial','filterPerm'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
   applyFilters();
 }
 
-['searchInput','filterCidade','filterFilial','filterPerm'].forEach(id=>{
-  const el=document.getElementById(id);
-  if(el){ el.addEventListener('input',applyFilters); el.addEventListener('change',applyFilters); }
+['searchInput','filterCidade','filterFilial','filterPerm'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) { el.addEventListener('input', applyFilters); el.addEventListener('change', applyFilters); }
 });
 
 /* ══════════════════════════════════════════
    EXPORT CSV
 ══════════════════════════════════════════ */
-document.getElementById('exportBtn').addEventListener('click',()=>{
-  const cols=['nome','user','cpf','perm','cidade','filial'];
-  const header=cols.join(',');
-  const rows=filtered.map(u=>cols.map(c=>`"${(u[c]||'').toString().replace(/"/g,'""')}"`).join(','));
-  const csv=[header,...rows].join('\n');
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url; a.download='usuarios.csv'; a.click();
+document.getElementById('exportBtn').addEventListener('click', () => {
+  const cols = ['nome','user','cpf','perm','cidade','filial'];
+  const header = ['Nome','Usuário','CPF','Permissão','Cidade','Filial'].join(',');
+  const rows = filtered.map(u =>
+    [u.nome, u.user, maskCPF(u.cpf), PERM_LABELS[normPerm(u.perm)]||u.perm, toTitleCase(u.cidade), u.filial]
+    .map(v => `"${(v||'').toString().replace(/"/g,'""')}"`)
+    .join(',')
+  );
+  const csv  = [header,...rows].join('\n');
+  const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'usuarios.csv'; a.click();
   URL.revokeObjectURL(url);
   showToast('CSV exportado!','success');
 });
@@ -578,24 +818,34 @@ document.getElementById('exportBtn').addEventListener('click',()=>{
 /* ══════════════════════════════════════════
    INIT
 ══════════════════════════════════════════ */
-async function init(){
-  document.getElementById('lastUpdate').textContent='Buscando usuários...';
-  const data=await fetchUsers();
-  allUsers=data; filtered=[...data];
-  renderKPIs(data);
-  populateSelects(data);
-  renderTable(filtered);
-  document.getElementById('lastUpdate').textContent=
-    `${data.length} usuário${data.length!==1?'s':''} — ${new Date().toLocaleString('pt-BR')}`;
-  showToast('Usuários carregados!','success');
+async function init() {
+  document.getElementById('lastUpdate').textContent = 'Buscando usuários...';
+  document.getElementById('userBody').innerHTML =
+    `<tr><td colspan="8"><div class="state-box"><div class="spinner-ring"></div><p>Carregando...</p></div></td></tr>`;
+
+  const data = await fetchUsers();
+  allUsers = data;
+  filtered = [...data];
+
+  if (data.length) {
+    renderKPIs(data);
+    populateSelects(data);
+    renderTable(filtered);
+    document.getElementById('lastUpdate').textContent =
+      `${data.length} usuário${data.length!==1?'s':''} — ${new Date().toLocaleString('pt-BR')}`;
+    showToast('Usuários carregados!','success');
+  }
 }
 
-document.getElementById('refreshBtn').addEventListener('click',init);
+document.getElementById('refreshBtn').addEventListener('click', init);
 
-function showToast(msg,type='info'){
-  const c=document.getElementById('toast-container');
-  const t=document.createElement('div'); t.className=`toast ${type}`; t.textContent=msg; c.appendChild(t);
-  setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t.remove(),300); },3000);
+function showToast(msg, type='info') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 3500);
 }
 
 init();
