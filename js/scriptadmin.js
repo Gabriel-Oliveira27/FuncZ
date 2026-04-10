@@ -2,7 +2,7 @@
   // ======================
   // CONFIG - troque esta URL
   // ======================
-  const WORKER_URL = 'https://proc-uservoucherprod.adm-ativosz.workers.dev/';
+  const WORKER_URL = 'https://conexao-fallback-3.gab-oliveirab27.workers.dev/';
 
   // ======================
   // Utilitários: Toast simples

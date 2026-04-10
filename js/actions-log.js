@@ -641,6 +641,18 @@
               <div class="perm-info">Acesso completo • Sem limite de tempo</div>
             </div>
           </div>
+
+          <div class="perm-item" data-perm="ger" data-duration="4320000">
+            <div class="perm-checkbox">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <div class="perm-details">
+              <div class="perm-name">Gerente</div>
+              <div class="perm-info">Acesso gerente • 12 horas</div>
+            </div>
+          </div>
           
           <div class="perm-item" data-perm="fat" data-duration="21600000">
             <div class="perm-checkbox">
@@ -734,7 +746,7 @@
     `;
 
     const firstName = name.split(' ')[0];
-    const permLabels = { admin: 'Admin', fat: 'Faturamento', vendedor: 'Vendedor' };
+    const permLabels = { admin: 'Admin', ger: 'Gerente', fat: 'Faturamento', vendedor: 'Vendedor' };
     const permLabel = permLabels[perm] || perm;
 
     panel.innerHTML = `

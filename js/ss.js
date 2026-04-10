@@ -877,7 +877,7 @@ function applyAccessControlsFromAuth(auth) {
     btnAdmin.onclick = () => {
       const a = readAuthSession(); const pr = a && a.perm ? String(a.perm).toLowerCase() : '';
       if (!a) { showToast('Você não está logado.', 'error'); return; }
-      if (!(pr === 'admin' || pr === 'suporte')) { showToast('Acesso negado: somente administradores podem acessar.', 'error'); return; }
+      if (!(pr === 'admin' || pr === 'suporte' || pr === 'ger')) { showToast('Acesso negado: somente administradores podem acessar.', 'error'); return; }
       window.location.href = 'admin.html';
     };
   }
@@ -1063,7 +1063,7 @@ function initWelcomeAndUi() {
   const permRaw = auth && auth.perm ? String(auth.perm).toLowerCase() : '';
   const cardAdmin = document.getElementById('card-admin');
   if (cardAdmin) {
-    if (permRaw === 'admin' || permRaw === 'suporte') {
+    if (permRaw === 'admin' || permRaw === 'suporte' || permRaw === 'ger') {
       cardAdmin.style.display = 'flex';
     } else {
       cardAdmin.style.display = 'none';
