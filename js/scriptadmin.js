@@ -69,7 +69,7 @@ async function sendToWorker(action, data) {
     const bodyText = JSON.stringify(bodyObj);
 
     // loga o que será enviado (vai aparecer no Console -> Network -> Request Payload também)
-    console.log('DEBUG -> enviando para Worker:', bodyObj, '\n(text):', bodyText);
+    
 
     const resp = await fetch(WORKER_URL, {
       method: 'POST',
@@ -81,19 +81,19 @@ async function sendToWorker(action, data) {
     const text = await resp.text();
 
     // loga status HTTP e texto cru
-    console.log('DEBUG <- resposta HTTP status:', resp.status, 'texto:', text);
+    
 
     // tenta parsear JSON, mas mesmo que falhe devolve o texto cru
     try {
       const parsed = JSON.parse(text);
-      console.log('DEBUG <- resposta parseada JSON:', parsed);
+     
       return parsed;
     } catch (err) {
-      console.warn('DEBUG <- resposta não é JSON:', err);
+     
       return { status: 'error', message: 'Resposta não-JSON', raw: text };
     }
   } catch (err) {
-    console.error('DEBUG <- erro fetch/sendToWorker:', err);
+   
     return { status: 'error', message: err.message || 'Falha na requisição' };
   }
 }
@@ -322,9 +322,9 @@ async function sendToWorker(action, data) {
       usuarioForm.addEventListener('submit', async function (e) {
         e.preventDefault();
         const payloadData = {
-          user: (safeGet('usuario') ? safeGet('usuario').value : ''),
-          password: (safeGet('senha') ? safeGet('senha').value : ''),
-          perm: (safeGet('permissao') ? safeGet('permissao').value : ''),
+          user: (safeGet('user') ? safeGet('user').value : ''),
+          password: (safeGet('password') ? safeGet('password').value : ''),
+          perm: (safeGet('perm') ? safeGet('perm').value : ''),
           filial: (safeGet('filial') ? safeGet('filial').value : ''),
           nome: (safeGet('nomeCompleto') ? safeGet('nomeCompleto').value : ''),
           cpf: (safeGet('cpf') ? safeGet('cpf').value : ''),
@@ -499,11 +499,4 @@ async function sendToWorker(action, data) {
 })();
 
 
-document.addEventListener('DOMContentLoaded',function(){
-  const botao = document.getElementById('cart-open');
-
-  botao.addEventListener('click',function(){
-    window.location.href = 'cartazes.html'
-  })
-})
 
