@@ -191,7 +191,7 @@
     .page-btn:disabled { opacity:.35; cursor:default; }
 
     /* Toast */
-    #toast-container { position:fixed; top:1rem; right:1rem; z-index:9999; display:flex; flex-direction:column; gap:.5rem; }
+    #toast-container{position:fixed;bottom:1.25rem;right:1.25rem;z-index:9999;display:flex;flex-direction:column;gap:.5rem;pointer-events:none}
     .toast { padding:.75rem 1rem; border-radius:var(--radius-sm); border:1px solid transparent;
              font-size:.85rem; display:flex; align-items:center; gap:.5rem;
              box-shadow:0 4px 20px rgba(0,0,0,.15); animation:toastIn .3s ease; }
@@ -210,8 +210,8 @@
     .warn-banner.show { display:block; }
     .warn-banner strong { font-weight:700; }
 
-    @media(max-width:900px) { th:nth-child(5), td:nth-child(5) { display:none; } }
-    @media(max-width:600px) { th:nth-child(4), td:nth-child(4), th:nth-child(6), td:nth-child(6) { display:none; } }
+    @media(max-width:900px) { th:nth-child(4), td:nth-child(4) { display:none; } }
+    @media(max-width:600px) { th:nth-child(3), td:nth-child(3), th:nth-child(5), td:nth-child(5) { display:none; } }
   </style>
 </head>
 <body data-theme="light">
@@ -225,7 +225,10 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
       </svg>Painel
     </a>
-    <div class="header-title">👥 Dashboard Usuários <span>/ Gerenciamento</span></div>
+    <div class="header-title" style="display:flex;align-items:center;gap:.5rem">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Dashboard Usuários <span>/ Gerenciamento</span>
+    </div>
   </div>
   <div></div>
   <div class="header-right">
@@ -275,21 +278,21 @@
   </div>
 
   <div class="warn-banner" id="warnBanner">
-    <strong>⛔ Acesso restrito</strong> — Esta dashboard requer permissão <strong>admin</strong> ou <strong>suporte</strong>. Faça login com a conta correta.
+    <strong>Acesso restrito</strong> — Esta dashboard requer permissão <strong>admin</strong>, <strong>suporte</strong> ou <strong>gerente</strong>. Faça login com a conta correta.
   </div>
 
   <!-- KPIs -->
   <div class="kpi-grid">
-    <div class="kpi-card blue"><div class="kpi-top"><div class="kpi-label">Total</div><div class="kpi-icon">👥</div></div><div class="kpi-value" id="kpiTotal">—</div><div class="kpi-sub">usuários cadastrados</div></div>
-    <div class="kpi-card green"><div class="kpi-top"><div class="kpi-label">Cidades</div><div class="kpi-icon">📍</div></div><div class="kpi-value" id="kpiCidades">—</div><div class="kpi-sub">localidades distintas</div></div>
-    <div class="kpi-card amber"><div class="kpi-top"><div class="kpi-label">Filiais</div><div class="kpi-icon">🏪</div></div><div class="kpi-value" id="kpiFiliais">—</div><div class="kpi-sub">filiais ativas</div></div>
-    <div class="kpi-card purple"><div class="kpi-top"><div class="kpi-label">Gerentes</div><div class="kpi-icon">⭐</div></div><div class="kpi-value" id="kpiGerentes">—</div><div class="kpi-sub">nível gerente/ger</div></div>
-    <div class="kpi-card indigo"><div class="kpi-top"><div class="kpi-label">Vendedores</div><div class="kpi-icon">🛒</div></div><div class="kpi-value" id="kpiVendedores">—</div><div class="kpi-sub">ativos</div></div>
+    <div class="kpi-card blue"><div class="kpi-top"><div class="kpi-label">Total</div><div class="kpi-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div></div><div class="kpi-value" id="kpiTotal">—</div><div class="kpi-sub">usuários cadastrados</div></div>
+    <div class="kpi-card green"><div class="kpi-top"><div class="kpi-label">Cidades</div><div class="kpi-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div></div><div class="kpi-value" id="kpiCidades">—</div><div class="kpi-sub">localidades distintas</div></div>
+    <div class="kpi-card amber"><div class="kpi-top"><div class="kpi-label">Filiais</div><div class="kpi-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg></div></div><div class="kpi-value" id="kpiFiliais">—</div><div class="kpi-sub">filiais ativas</div></div>
+    <div class="kpi-card purple"><div class="kpi-top"><div class="kpi-label">Gerentes</div><div class="kpi-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg></div></div><div class="kpi-value" id="kpiGerentes">—</div><div class="kpi-sub">nível gerente/ger</div></div>
+    <div class="kpi-card indigo"><div class="kpi-top"><div class="kpi-label">Vendedores</div><div class="kpi-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg></div></div><div class="kpi-value" id="kpiVendedores">—</div><div class="kpi-sub">ativos</div></div>
   </div>
 
   <!-- Filtros -->
   <div class="filter-panel">
-    <div class="filter-panel-title">🔍 Filtros</div>
+    <div class="filter-panel-title">Filtros</div>
     <div class="filter-grid">
       <div class="filter-group" style="flex:1;min-width:200px">
         <label class="filter-label">Buscar</label>
@@ -329,7 +332,7 @@
 
   <!-- Tabela -->
   <div class="table-section-header">
-    <div class="section-title-sm">📋 Lista de Usuários</div>
+    <div class="section-title-sm">Lista de Usuários</div>
     <div class="result-count" id="resultCount"></div>
   </div>
 
@@ -339,8 +342,6 @@
         <tr>
           <th onclick="sortBy('nome')" id="th-nome">Nome Completo <span class="sort-icon" id="si-nome"></span></th>
           <th onclick="sortBy('user')" id="th-user">Usuário <span class="sort-icon" id="si-user"></span></th>
-          <th>Senha</th>
-          <th onclick="sortBy('cpf')" id="th-cpf">CPF <span class="sort-icon" id="si-cpf"></span></th>
           <th onclick="sortBy('perm')" id="th-perm">Permissão <span class="sort-icon" id="si-perm"></span></th>
           <th onclick="sortBy('cidade')" id="th-cidade">Cidade <span class="sort-icon" id="si-cidade"></span></th>
           <th onclick="sortBy('filial')" id="th-filial">Filial <span class="sort-icon" id="si-filial"></span></th>
@@ -359,7 +360,7 @@
 <div class="modal-overlay" id="editModal">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title">✏️ Editar Usuário</div>
+      <div class="modal-title">Editar Usuário</div>
       <button class="modal-close" onclick="closeEditModal()">×</button>
     </div>
     <p style="font-size:.82rem;color:var(--muted);margin-bottom:1.25rem">
@@ -422,7 +423,14 @@ function getSession() {
 }
 
 function isPrivileged(perm) {
+  // Dashboard Usuários: acesso para admin, suporte e gerente
+  return ['admin','suporte','ger','gerente'].includes(String(perm||'').toLowerCase());
+}
+function isAdmin(perm) {
   return ['admin','suporte'].includes(String(perm||'').toLowerCase());
+}
+function isGer(perm) {
+  return String(perm||'').toLowerCase() === 'ger';
 }
 
 /* ══════════════════════════════════════════
@@ -484,7 +492,12 @@ const PERM_LABELS = {
   fat:      'Faturista'
 };
 const PERM_ICONS = {
-  admin:'🛡️', ger:'⭐', suporte:'🛠️', vendedor:'🛒', cred:'💳', fat:'📊'
+  admin:   '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:11px;height:11px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>',
+  ger:     '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:11px;height:11px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>',
+  suporte: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:11px;height:11px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>',
+  vendedor:'<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:11px;height:11px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>',
+  cred:    '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:11px;height:11px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>',
+  fat:     '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:11px;height:11px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>',
 };
 const PERM_CSS = {
   admin:'perm-admin', ger:'perm-gerente', suporte:'perm-suporte',
@@ -494,7 +507,7 @@ const PERM_CSS = {
 function permBadge(raw) {
   const key = normPerm(raw);
   const label = PERM_LABELS[key] || raw || '—';
-  const icon  = PERM_ICONS[key] || '👤';
+  const icon  = PERM_ICONS[key] || '';
   const cls   = PERM_CSS[key]   || 'perm-default';
   return `<span class="perm-badge ${cls}">${icon} ${label}</span>`;
 }
@@ -533,12 +546,19 @@ async function fetchUsers() {
   }
 
   const result = await workerPost('getUsers', {
-    solicitante:     session.user || '',
-    permSolicitante: session.perm || ''
+    solicitante:         session.user || '',
+    permSolicitante:     session.perm || '',
+    filialSolicitante:   session.Filial || session.filial || ''
   });
 
   if (result?.status === 'ok' && Array.isArray(result.users)) {
-    return result.users;
+    let users = result.users;
+    // Dupla proteção no frontend: gerente só vê sua filial
+    if (isGer(session.perm)) {
+      const myFilial = String(session.Filial || session.filial || '');
+      if (myFilial) users = users.filter(u => String(u.filial||'') === myFilial);
+    }
+    return users;
   }
 
   showToast(result?.message || 'Erro ao carregar usuários.', 'error', 6000);
@@ -572,6 +592,11 @@ function populateSelects(data) {
   fSel.innerHTML = '<option value="">Todas</option>' + filiais.map(f=>`<option value="${f}">Filial ${f}</option>`).join('');
 }
 
+/* SVG icons reutilizáveis */
+const _EYE_OPEN  = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`;
+const _EYE_SHUT  = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>`;
+const _EDIT_ICON = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>`;
+
 /* ══════════════════════════════════════════
    TABELA
 ══════════════════════════════════════════ */
@@ -580,36 +605,25 @@ function renderTable(data) {
   document.getElementById('resultCount').textContent = `${data.length} usuário${data.length!==1?'s':''}`;
 
   if (!data.length) {
-    body.innerHTML = `<tr><td colspan="8"><div class="state-box"><div class="icon">🔍</div><p>Nenhum usuário encontrado.</p></div></td></tr>`;
+    body.innerHTML = `<tr><td colspan="6"><div class="state-box"><div class="icon"></div><p>Nenhum usuário encontrado.</p></div></td></tr>`;
     document.getElementById('pagination').innerHTML = '';
     return;
   }
 
   const start = (currentPage-1)*PAGE_SIZE, end = start+PAGE_SIZE;
   const page  = data.slice(start, end);
+  const session = getSession();
 
   body.innerHTML = page.map((u, i) => {
-    const idx   = start+i;
-    const shown = shownPasswords.has(idx);
-    const pwd   = shown ? (u.senha||'—') : '••••••••';
     const cidade = toTitleCase(u.cidade);
     return `
       <tr>
         <td><strong>${u.nome||'—'}</strong></td>
         <td><code style="font-size:.82rem;background:var(--bg-input);padding:.15rem .45rem;border-radius:.35rem">${u.user||'—'}</code></td>
-        <td>
-          <div class="pwd-field">
-            <span class="pwd-mask" id="pwd-${idx}">${pwd}</span>
-            <button class="eye-btn" onclick="togglePwd(${idx},'${encodeURIComponent(u.senha||'')}')">
-              ${shown?'🙈':'👁️'}
-            </button>
-          </div>
-        </td>
-        <td><span class="cpf-text">${maskCPF(u.cpf)}</span></td>
         <td>${permBadge(u.perm)}</td>
         <td>${cidade}</td>
         <td><span class="filial-chip">${u.filial||'—'}</span></td>
-        <td><button class="edit-btn" onclick="openEditModal('${encodeURIComponent(u.user||'')}','${encodeURIComponent(u.nome||'')}')">✏️ Editar</button></td>
+        <td><button class="edit-btn" onclick="openEditModal('${encodeURIComponent(u.user||'')}','${encodeURIComponent(u.nome||'')}','${encodeURIComponent(u.filial||'')}','${encodeURIComponent(u.perm||'')}')">${_EDIT_ICON} Editar</button></td>
       </tr>
     `;
   }).join('');
@@ -625,18 +639,29 @@ function togglePwd(idx, encodedPwd) {
   else       { shownPasswords.add(idx);    el.textContent=decodeURIComponent(encodedPwd); }
   /* atualiza só o ícone sem re-render total */
   const btn = el.nextElementSibling;
-  if (btn) btn.textContent = shownPasswords.has(idx) ? '🙈' : '👁️';
+  if (btn) btn.innerHTML = shownPasswords.has(idx) ? _EYE_SHUT : _EYE_OPEN;
 }
 
 /* ══════════════════════════════════════════
    MODAL EDITAR
 ══════════════════════════════════════════ */
-function openEditModal(encodedUser, encodedNome) {
+function openEditModal(encodedUser, encodedNome, encodedFilial, encodedPerm) {
+  const session = getSession();
   editTargetUser = decodeURIComponent(encodedUser);
   document.getElementById('editTargetLabel').textContent =
     `${decodeURIComponent(encodedNome)} (${editTargetUser})`;
   document.getElementById('editModal').classList.add('open');
-  document.getElementById('editCampo').value = 'senha';
+
+  const campoSelect = document.getElementById('editCampo');
+  // Gerente só pode alterar senha
+  if (isGer(session?.perm)) {
+    campoSelect.innerHTML = '<option value="senha">Senha</option>';
+  } else {
+    campoSelect.innerHTML = `
+      <option value="senha">Senha</option>
+      <option value="perm">Permissão</option>
+      <option value="filial">Filial</option>`;
+  }
   document.getElementById('editValor').value = '';
   updateEditValueField();
 }
@@ -651,6 +676,7 @@ document.getElementById('editModal').addEventListener('click', function(e) {
 
 function updateEditValueField() {
   const campo = document.getElementById('editCampo').value;
+  // Select de permissão só aparece quando campo = perm e disponível
   document.getElementById('editValueWrap').style.display = campo === 'perm' ? 'none' : 'block';
   document.getElementById('editPermWrap').style.display  = campo === 'perm' ? 'block' : 'none';
 }
@@ -669,20 +695,20 @@ async function saveEdit() {
 
   const session = getSession();
   const result  = await workerPost('updateUser', {
-    user:            editTargetUser,
+    user:              editTargetUser,
     campo,
     valor,
-    solicitante:     session?.user || '',
-    permSolicitante: session?.perm || ''
+    solicitante:       session?.user || '',
+    permSolicitante:   session?.perm || '',
+    filialSolicitante: session?.Filial || session?.filial || ''
   });
 
   btn.disabled = false;
   btn.textContent = 'Salvar alteração';
 
   if (result?.status === 'ok') {
-    showToast(`${campo} atualizado com sucesso! ✅`, 'success');
+    showToast(`${campo} atualizado com sucesso!`, 'success');
     closeEditModal();
-    /* atualiza localmente */
     allUsers = allUsers.map(u => {
       if (u.user === editTargetUser) return { ...u, [campo]: valor };
       return u;
@@ -718,7 +744,7 @@ function goPage(n) { currentPage=n; renderTable(filtered); }
 function sortBy(col) {
   if (sortCol===col) sortDir*=-1;
   else { sortCol=col; sortDir=1; }
-  ['nome','user','cpf','perm','cidade','filial'].forEach(c => {
+  ['nome','user','perm','cidade','filial'].forEach(c => {
     const el=document.getElementById(`si-${c}`);
     const th=document.getElementById(`th-${c}`);
     if (el) { el.textContent=''; if(th) th.classList.remove('sorted'); }
@@ -768,11 +794,11 @@ function renderActiveFilters() {
   const s = document.getElementById('searchInput').value;
   if (s) chips.push({ label:`"${s}"`, clear:()=>{ document.getElementById('searchInput').value=''; applyFilters(); } });
   const c = document.getElementById('filterCidade').value;
-  if (c) chips.push({ label:`📍 ${c}`, clear:()=>{ document.getElementById('filterCidade').value=''; applyFilters(); } });
+  if (c) chips.push({ label:`Cidade: ${c}`, clear:()=>{ document.getElementById('filterCidade').value=''; applyFilters(); } });
   const f = document.getElementById('filterFilial').value;
-  if (f) chips.push({ label:`🏪 Filial ${f}`, clear:()=>{ document.getElementById('filterFilial').value=''; applyFilters(); } });
+  if (f) chips.push({ label:`Filial ${f}`, clear:()=>{ document.getElementById('filterFilial').value=''; applyFilters(); } });
   const p = document.getElementById('filterPerm').value;
-  if (p) chips.push({ label:`👤 ${p}`, clear:()=>{ document.getElementById('filterPerm').value=''; applyFilters(); } });
+  if (p) chips.push({ label:`Perfil: ${p}`, clear:()=>{ document.getElementById('filterPerm').value=''; applyFilters(); } });
 
   const el = document.getElementById('activeFilters');
   if (!chips.length) { el.innerHTML=''; return; }
@@ -799,10 +825,9 @@ function clearFilters() {
    EXPORT CSV
 ══════════════════════════════════════════ */
 document.getElementById('exportBtn').addEventListener('click', () => {
-  const cols = ['nome','user','cpf','perm','cidade','filial'];
-  const header = ['Nome','Usuário','CPF','Permissão','Cidade','Filial'].join(',');
+  const header = ['Nome','Usuário','Permissão','Cidade','Filial'].join(',');
   const rows = filtered.map(u =>
-    [u.nome, u.user, maskCPF(u.cpf), PERM_LABELS[normPerm(u.perm)]||u.perm, toTitleCase(u.cidade), u.filial]
+    [u.nome, u.user, PERM_LABELS[normPerm(u.perm)]||u.perm, toTitleCase(u.cidade), u.filial]
     .map(v => `"${(v||'').toString().replace(/"/g,'""')}"`)
     .join(',')
   );
@@ -821,7 +846,7 @@ document.getElementById('exportBtn').addEventListener('click', () => {
 async function init() {
   document.getElementById('lastUpdate').textContent = 'Buscando usuários...';
   document.getElementById('userBody').innerHTML =
-    `<tr><td colspan="8"><div class="state-box"><div class="spinner-ring"></div><p>Carregando...</p></div></td></tr>`;
+    `<tr><td colspan="6"><div class="state-box"><div class="spinner-ring"></div><p>Carregando...</p></div></td></tr>`;
 
   const data = await fetchUsers();
   allUsers = data;
@@ -839,13 +864,23 @@ async function init() {
 
 document.getElementById('refreshBtn').addEventListener('click', init);
 
-function showToast(msg, type='info') {
-  const c = document.getElementById('toast-container');
-  const t = document.createElement('div');
-  t.className = `toast ${type}`;
-  t.textContent = msg;
+const _UTI={
+  success:'<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+  error:  '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+  info:   '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+};
+function showToast(msg,type='info'){
+  const c=document.getElementById('toast-container');
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;
+  t.style.cssText='display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:8px;border-left:3px solid;box-shadow:0 4px 16px rgba(0,0,0,.1);min-width:240px;max-width:320px;pointer-events:all;animation:toastSlideIn .25s ease';
+  const cols={success:'#16a34a',error:'#dc2626',info:'#2563eb'};
+  const bgs={success:'#f0fdf4',error:'#fef2f2',info:'#eff6ff'};
+  t.style.borderColor=cols[type]||cols.info;t.style.background=bgs[type]||bgs.info;
+  t.innerHTML=`<span style="color:${cols[type]||cols.info};flex-shrink:0;margin-top:1px;display:flex">${_UTI[type]||_UTI.info}</span><span style="font-size:.84rem;color:#1e293b;line-height:1.4">${msg}</span>`;
+  if(!document.getElementById('_utk')){const s=document.createElement('style');s.id='_utk';s.textContent='@keyframes toastSlideIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}';document.head.appendChild(s);}
   c.appendChild(t);
-  setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 3500);
+  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(8px)';t.style.transition='all .2s';setTimeout(()=>t.remove(),220);},3500);
 }
 
 init();

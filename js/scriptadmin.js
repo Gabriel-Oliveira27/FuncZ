@@ -5,42 +5,111 @@
   const WORKER_URL = 'https://conexao-fallback-3.gab-oliveirab27.workers.dev/';
 
   // ======================
-  // Utilitários: Toast simples
+  // Regras de acesso por perfil
+  // ======================
+  const ACCESS_RULES = {
+    painel:       ['admin', 'suporte', 'ger', 'gerente'],
+    criarUsuario: ['admin', 'suporte'],
+    criarProduto: ['admin', 'suporte', 'ger', 'gerente'],
+  };
+  function getSession() {
+    try {
+      if (window.SessionGuard?.getSessionData) { const s = window.SessionGuard.getSessionData(); if (s) return s; }
+      const raw = localStorage.getItem('authSession');
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }
+  function canAccess(rule) {
+    const session = getSession();
+    if (!session) return false;
+    return (ACCESS_RULES[rule] || []).includes(String(session.perm || '').toLowerCase());
+  }
+  function getSessionUser() {
+    const s = getSession();
+    return s ? (s.user || s.nome || 'desconhecido') : 'desconhecido';
+  }
+
+  function getSession() {
+    try {
+      if (window.SessionGuard?.getSessionData) {
+        const s = window.SessionGuard.getSessionData();
+        if (s) return s;
+      }
+      const raw = localStorage.getItem('authSession');
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }
+
+  function canAccess(rule) {
+    const session = getSession();
+    if (!session) return false;
+    const perm = String(session.perm || '').toLowerCase();
+    return (ACCESS_RULES[rule] || []).includes(perm);
+  }
+
+  function getSessionUser() {
+    const session = getSession();
+    return session ? (session.user || session.nome || 'desconhecido') : 'desconhecido';
+  }
+
+  // ======================
+  // Utilitários: Toast redesenhado com SVG
   // ======================
   const DEFAULT_TOAST_DURATION = 4000;
+
+  const TOAST_ICONS = {
+    success: '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+    error:   '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+    warning: '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>',
+    info:    '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+  };
+  const TOAST_COLORS = {
+    success: { border: '#16a34a', bg: '#f0fdf4' },
+    error:   { border: '#dc2626', bg: '#fef2f2' },
+    warning: { border: '#d97706', bg: '#fffbeb' },
+    info:    { border: '#2563eb', bg: '#eff6ff' },
+  };
+
   function ensureToastContainer() {
     let c = document.getElementById('toast-container');
     if (!c) {
       c = document.createElement('div');
       c.id = 'toast-container';
-      c.style.position = 'fixed';
-      c.style.top = '1rem';
-      c.style.right = '1rem';
-      c.style.zIndex = 9999;
-      c.style.display = 'flex';
-      c.style.flexDirection = 'column';
-      c.style.gap = '0.6rem';
+      Object.assign(c.style, { position:'fixed', bottom:'1.25rem', right:'1.25rem',
+        zIndex:9999, display:'flex', flexDirection:'column', gap:'.5rem', pointerEvents:'none' });
       document.body.appendChild(c);
     }
     return c;
   }
   function showToast(message, type = 'info', duration = DEFAULT_TOAST_DURATION) {
     const container = ensureToastContainer();
+    const colors = TOAST_COLORS[type] || TOAST_COLORS.info;
+    const icon   = TOAST_ICONS[type]  || TOAST_ICONS.info;
     const t = document.createElement('div');
-    t.className = `toast ${type}`;
-    t.textContent = message;
-    t.style.padding = '10px 12px';
-    t.style.borderRadius = '8px';
-    t.style.boxShadow = '0 8px 20px rgba(0,0,0,0.12)';
-    t.style.background = type === 'error' ? '#fff1f1' : type === 'success' ? '#f1fff4' : '#ffffff';
-    t.style.color = '#111';
+    Object.assign(t.style, {
+      display:'flex', alignItems:'flex-start', gap:'10px',
+      padding:'12px 14px', borderRadius:'8px',
+      background: colors.bg, borderLeft: '3px solid ' + colors.border,
+      boxShadow:'0 4px 16px rgba(0,0,0,.10)',
+      minWidth:'260px', maxWidth:'340px',
+      pointerEvents:'all', animation:'toastSlideIn .25s ease',
+      transition:'opacity .2s, transform .2s',
+    });
+    const iconEl = document.createElement('span');
+    iconEl.innerHTML = icon;
+    iconEl.style.cssText = 'color:'+colors.border+';flex-shrink:0;margin-top:1px';
+    const msgEl = document.createElement('span');
+    msgEl.style.cssText = 'font-size:.84rem;color:#1e293b;line-height:1.4';
+    msgEl.textContent = message;
+    t.appendChild(iconEl); t.appendChild(msgEl);
     container.appendChild(t);
-    setTimeout(() => {
-      t.style.transition = 'opacity .25s, transform .25s';
-      t.style.opacity = '0';
-      t.style.transform = 'translateY(-8px)';
-      setTimeout(() => t.remove(), 260);
-    }, duration);
+    if (!document.getElementById('_tk')) {
+      const s = document.createElement('style');
+      s.id = '_tk';
+      s.textContent = '@keyframes toastSlideIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}';
+      document.head.appendChild(s);
+    }
+    setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(8px)'; setTimeout(()=>t.remove(),220); }, duration);
     return t;
   }
 
@@ -105,6 +174,29 @@ async function sendToWorker(action, data) {
   // Executa após DOM carregado
   // ======================
   document.addEventListener('DOMContentLoaded', () => {
+
+    // ======================
+    // Controle de acesso ao painel
+    // ======================
+    if (!canAccess('painel')) {
+      // Oculta seções restritas e exibe aviso
+      document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+      const welcomeEl = document.getElementById('welcome');
+      if (welcomeEl) {
+        welcomeEl.classList.add('active');
+        const sub = welcomeEl.querySelector('.welcome-subtitle');
+        if (sub) sub.textContent = 'Você não tem permissão para acessar o painel administrativo.';
+      }
+    }
+
+    // Oculta "Criar Usuário" para perfis sem permissão
+    if (!canAccess('criarUsuario')) {
+      const sidebarCriarUsuario = document.querySelector('.sidebar-item[data-section="usuario"]');
+      const sectionUsuario = document.getElementById('usuario');
+      if (sidebarCriarUsuario) sidebarCriarUsuario.style.display = 'none';
+      if (sectionUsuario) sectionUsuario.style.display = 'none';
+    }
+
     // Elementos (verifica se existem antes)
     const themeToggle = safeGet('themeToggle');
     const themeText = safeGet('themeText');
@@ -321,6 +413,13 @@ async function sendToWorker(action, data) {
     if (usuarioForm) {
       usuarioForm.addEventListener('submit', async function (e) {
         e.preventDefault();
+
+        // Verificação de permissão: apenas admin e suporte podem criar usuários
+        if (!canAccess('criarUsuario')) {
+          showToast('Sem permissão para criar usuários.', 'error', 5000);
+          return;
+        }
+
         const payloadData = {
           user: (safeGet('user') ? safeGet('user').value : ''),
           password: (safeGet('password') ? safeGet('password').value : ''),
@@ -328,12 +427,20 @@ async function sendToWorker(action, data) {
           filial: (safeGet('filial') ? safeGet('filial').value : ''),
           nome: (safeGet('nomeCompleto') ? safeGet('nomeCompleto').value : ''),
           cpf: (safeGet('cpf') ? safeGet('cpf').value : ''),
-          cidade: (safeGet('cidade') ? safeGet('cidade').value : '')
+          cidade: (safeGet('cidade') ? safeGet('cidade').value : ''),
+          // GAS lê "solicitante" para gravar em Auditoria → handleCreateUser → audit()
+          solicitante: getSessionUser(),
+          permSolicitante: (getSession()?.perm || '')
         };
 
         const result = await sendToWorker('createUser', payloadData);
 
-        if (result && result.status && result.status.toLowerCase() === 'ok' || result.status === 'ok') {
+        if (result && (result.status === 'ok' || String(result.status || '').toLowerCase() === 'ok')) {
+          await sendToWorker('registrarAuditoria', {
+            acao: 'createUser', usuario: getSessionUser(),
+            detalhe: `Usuário "${payloadData.user}" criado com permissão "${payloadData.perm}"`,
+            timestamp: new Date().toISOString()
+          });
           showToast('Usuário criado com sucesso!', 'success');
           this.reset();
         } else {
@@ -386,18 +493,31 @@ async function sendToWorker(action, data) {
       produtoForm.addEventListener('submit', async function (e) {
         e.preventDefault();
 
+        // Verificação de permissão: admin, suporte e gerente podem criar produtos
+        if (!canAccess('criarProduto')) {
+          showToast('Sem permissão para cadastrar produtos.', 'error', 5000);
+          return;
+        }
+
         const precoRaw = (safeGet('precoProduto') ? safeGet('precoProduto').value : '');
         const precoNormalized = parseBRLtoNumber(precoRaw); // ex: "1234.56"
 
         const payloadData = {
           cod: (safeGet('codigoProduto') ? safeGet('codigoProduto').value : ''),
           desc: (safeGet('descricaoProduto') ? safeGet('descricaoProduto').value : ''),
-          preco: precoNormalized // envia 1234.56 (string)
+          preco: precoNormalized, // envia 1234.56 (string)
+          // GAS lê "solicitante" para gravar em Auditoria → handleCreateProduct → audit()
+          solicitante:     getSessionUser(),
+          criadoPor:       getSessionUser(),
+          criadoEm:        new Date().toISOString(),
         };
-
         const result = await sendToWorker('createProduct', payloadData);
-
         if (result && String(result.status || '').toLowerCase() === 'ok') {
+          await sendToWorker('registrarAuditoria', {
+            acao: 'createProduct', usuario: getSessionUser(),
+            detalhe: `Produto "${payloadData.desc}" (cód. ${payloadData.cod}) cadastrado`,
+            timestamp: new Date().toISOString()
+          });
           showToast('Produto cadastrado com sucesso!', 'success');
           this.reset();
           if (charCount) charCount.textContent = '0';

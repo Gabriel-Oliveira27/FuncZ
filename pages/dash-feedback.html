@@ -269,11 +269,12 @@
     }
     @keyframes spin { to { transform:rotate(360deg); } }
 
+    .warn-banner{background:rgba(220,38,38,.07);border:1px solid rgba(220,38,38,.2);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:.85rem;color:var(--red);display:none}
+    .warn-banner.show{display:block}
+    .warn-banner strong{font-weight:700}
+
     /* Toast */
-    #toast-container {
-      position:fixed; top:1rem; right:1rem;
-      z-index:9999; display:flex; flex-direction:column; gap:.5rem;
-    }
+    #toast-container{position:fixed;bottom:1.25rem;right:1.25rem;z-index:9999;display:flex;flex-direction:column;gap:.5rem;pointer-events:none}
     .toast {
       padding:.75rem 1rem; border-radius:var(--radius-sm);
       border:1px solid transparent; font-size:.85rem;
@@ -316,11 +317,20 @@
     }
     .page-btn:disabled { opacity:.4; cursor:default; }
 
-    @media(max-width:768px) {
-      .charts-grid { grid-template-columns:1fr; }
-      .expand-grid { grid-template-columns:1fr; }
-      .header { grid-template-columns:auto auto; }
-      .header-title { display:none; }
+    @media(max-width:768px){
+      .charts-grid{grid-template-columns:1fr}
+      .expand-grid{grid-template-columns:1fr}
+      .header{grid-template-columns:auto auto}
+      .header-title{display:none}
+      .filter-bar{flex-direction:column;align-items:stretch}
+      .search-input{max-width:none}
+      .table-wrap{overflow-x:auto}
+      table{min-width:520px}
+    }
+    @media(max-width:480px){
+      .kpi-grid{grid-template-columns:1fr 1fr}
+      .container{padding:1.25rem 1rem}
+      #toast-container{right:.75rem;left:.75rem;bottom:.75rem}
     }
   </style>
 </head>
@@ -337,8 +347,9 @@
       </svg>
       Painel
     </a>
-    <div class="header-title">
-      📊 Dashboard Feedback <span>/ Análise de Respostas</span>
+    <div class="header-title" style="display:flex;align-items:center;gap:.5rem">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Dashboard Feedback <span>/ Análise de Respostas</span>
     </div>
   </div>
   <div></div>
@@ -383,12 +394,16 @@
     <p id="lastUpdate">Carregando dados...</p>
   </div>
 
+  <div class="warn-banner" id="warnBanner">
+    <strong>Acesso restrito</strong> — Requer permissão <strong>admin</strong> ou <strong>suporte</strong>.
+  </div>
+
   <!-- KPIs -->
   <div class="kpi-grid" id="kpiGrid">
     <div class="kpi-card blue">
       <div class="kpi-top">
         <div class="kpi-label">Total Respostas</div>
-        <div class="kpi-icon-box">📋</div>
+        <div class="kpi-icon-box"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></div>
       </div>
       <div class="kpi-value" id="kpiTotal">—</div>
       <div class="kpi-sub">feedbacks recebidos</div>
@@ -396,7 +411,7 @@
     <div class="kpi-card green">
       <div class="kpi-top">
         <div class="kpi-label">Avaliação Média</div>
-        <div class="kpi-icon-box">⭐</div>
+        <div class="kpi-icon-box"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg></div>
       </div>
       <div class="kpi-value" id="kpiAvgGeral">—</div>
       <div class="kpi-sub">de 10 — avaliação geral</div>
@@ -404,7 +419,7 @@
     <div class="kpi-card amber">
       <div class="kpi-top">
         <div class="kpi-label">Facilidade Média</div>
-        <div class="kpi-icon-box">🖱️</div>
+        <div class="kpi-icon-box"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></div>
       </div>
       <div class="kpi-value" id="kpiAvgFacil">—</div>
       <div class="kpi-sub">de 10 — facilidade de uso</div>
@@ -412,7 +427,7 @@
     <div class="kpi-card purple">
       <div class="kpi-top">
         <div class="kpi-label">Querem Novidade</div>
-        <div class="kpi-icon-box">💡</div>
+        <div class="kpi-icon-box"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m1.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg></div>
       </div>
       <div class="kpi-value" id="kpiNovaFunc">—</div>
       <div class="kpi-sub">solicitaram nova funcionalidade</div>
@@ -445,7 +460,7 @@
 
   <!-- Lista -->
   <div class="section-header">
-    <div class="section-title-sm">📋 Lista de Feedbacks</div>
+    <div class="section-title-sm"> Lista de Feedbacks</div>
     <span id="listCount" style="font-size:.8rem;color:var(--muted)"></span>
   </div>
   <div class="filter-bar">
@@ -475,23 +490,27 @@
 
 <script>
 /* ══════════════════════════════════════════
+   SESSÃO / CONTROLE DE ACESSO
+   Dashboard Feedback: admin e suporte apenas
+══════════════════════════════════════════ */
+function getSession() {
+  try {
+    if (window.SessionGuard?.getSessionData) {
+      const s = window.SessionGuard.getSessionData();
+      if (s) return s;
+    }
+    const raw = localStorage.getItem('authSession');
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+function isPrivileged(perm) {
+  return ['admin','suporte'].includes(String(perm||'').toLowerCase());
+}
+
+/* ══════════════════════════════════════════
    CONFIG
 ══════════════════════════════════════════ */
-// Troque pela URL real da sua GAS doGet
-const GAS_URL = 'https://conexao-fallback-3.gab-oliveirab27.workers.dev/';
-// Parâmetro de ação
-const GAS_ACTION = 'getFeedbacks';
-
-// Dados mock para demonstração enquanto GAS não está configurado
-const MOCK_DATA = [
-  { nome:'Carlos Souza', loja:'Filial 01', avaliacao_geral:9, facilidade_uso:8, ponto_melhoria:'', deseja_nova_funcionalidade:'Não', sugestao_funcionalidade:'', experiencia:'Sistema muito bom, rápido e intuitivo.', autorizacao_uso_feedback:true, autorizacao_nome_imagem:true, timestamp:'2025-03-01T09:12:00Z' },
-  { nome:'Ana Lima', loja:'Filial 02', avaliacao_geral:5, facilidade_uso:4, ponto_melhoria:'A navegação poderia ser mais simples.', deseja_nova_funcionalidade:'Sim', sugestao_funcionalidade:'Relatório de vendas por período.', experiencia:'Funciona mas tem muito clique até chegar onde quero.', autorizacao_uso_feedback:true, autorizacao_nome_imagem:false, timestamp:'2025-03-03T14:00:00Z' },
-  { nome:'Pedro Martins', loja:'Filial 01', avaliacao_geral:10, facilidade_uso:9, ponto_melhoria:'', deseja_nova_funcionalidade:'Sim', sugestao_funcionalidade:'Dashboard mobile.', experiencia:'Excelente! Uso todos os dias.', autorizacao_uso_feedback:true, autorizacao_nome_imagem:true, timestamp:'2025-03-05T10:30:00Z' },
-  { nome:'Fernanda Rocha', loja:'Filial 03', avaliacao_geral:3, facilidade_uso:3, ponto_melhoria:'Muitas telas, difícil encontrar o que preciso.', deseja_nova_funcionalidade:'Sim', sugestao_funcionalidade:'Menu de favoritos.', experiencia:'Ainda estou me acostumando, acho complexo.', autorizacao_uso_feedback:true, autorizacao_nome_imagem:false, timestamp:'2025-03-07T08:45:00Z' },
-  { nome:'Lucas Vieira', loja:'Filial 02', avaliacao_geral:7, facilidade_uso:8, ponto_melhoria:'', deseja_nova_funcionalidade:'Não', sugestao_funcionalidade:'', experiencia:'Bom sistema, atende bem as necessidades do dia a dia.', autorizacao_uso_feedback:true, autorizacao_nome_imagem:true, timestamp:'2025-03-10T11:20:00Z' },
-  { nome:'Julia Alves', loja:'Filial 01', avaliacao_geral:8, facilidade_uso:7, ponto_melhoria:'', deseja_nova_funcionalidade:'Sim', sugestao_funcionalidade:'Notificações por WhatsApp.', experiencia:'Gosto muito, só precisava de notificações.', autorizacao_uso_feedback:true, autorizacao_nome_imagem:true, timestamp:'2025-03-12T16:00:00Z' },
-  { nome:'', loja:'Filial 04', avaliacao_geral:6, facilidade_uso:5, ponto_melhoria:'Poderia ter atalhos de teclado.', deseja_nova_funcionalidade:'Sim', sugestao_funcionalidade:'Atalhos de teclado para ações rápidas.', experiencia:'Uso funcional, mas lento para quem já conhece.', autorizacao_uso_feedback:true, autorizacao_nome_imagem:false, timestamp:'2025-03-15T09:00:00Z' },
-];
+const WORKER_URL = 'https://conexao-fallback-3.gab-oliveirab27.workers.dev/';
 
 /* ══════════════════════════════════════════
    ESTADO
@@ -529,15 +548,24 @@ document.getElementById('themeToggle').addEventListener('click', ()=>{
    FETCH DE DADOS
 ══════════════════════════════════════════ */
 async function fetchData(){
+  const session = getSession();
   try {
-    const url = `${GAS_URL}?action=${GAS_ACTION}`;
-    const resp = await fetch(url);
+    const resp = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'getFeedbacks',
+        solicitante:     session?.user || '',
+        permSolicitante: session?.perm || ''
+      })
+    });
     if(!resp.ok) throw new Error('HTTP '+resp.status);
-    const data = await resp.json();
-    return Array.isArray(data) ? data : (data.data || data.feedbacks || []);
+    const result = await resp.json();
+    if (result.status === 'error') throw new Error(result.message || 'Erro do servidor');
+    return result.feedbacks || (Array.isArray(result) ? result : (result.data || []));
   } catch(e) {
-    console.warn('GAS indisponível, usando mock:', e.message);
-    return MOCK_DATA;
+    console.warn('Feedback indisponível:', e.message);
+    return [];
   }
 }
 
@@ -670,7 +698,7 @@ function renderTable(data){
   document.getElementById('listCount').textContent = `${data.length} resultado${data.length!==1?'s':''}`;
 
   if(!data.length){
-    wrap.innerHTML=`<div class="state-box"><div class="icon">🔍</div><p>Nenhum feedback encontrado.</p></div>`;
+    wrap.innerHTML=`<div class="state-box"><div class="icon"></div><p>Nenhum feedback encontrado.</p></div>`;
     document.getElementById('pagination').innerHTML='';
     return;
   }
@@ -776,6 +804,15 @@ function applyFilters(){
    INIT
 ══════════════════════════════════════════ */
 async function init(){
+  const session = getSession();
+  if (!session || !isPrivileged(session.perm)) {
+    document.getElementById('warnBanner').classList.add('show');
+    document.getElementById('lastUpdate').textContent = 'Acesso negado — permissão insuficiente.';
+    document.getElementById('kpiGrid').style.display = 'none';
+    document.getElementById('tableWrap').innerHTML = '<div class="state-box"><div class="icon" style="font-size:2rem"></div><p>Sem permissão para visualizar esta dashboard.</p></div>';
+    document.getElementById('pagination').innerHTML = '';
+    return;
+  }
   document.getElementById('lastUpdate').textContent='Buscando dados...';
   const data = await fetchData();
   allData = data;
@@ -792,13 +829,23 @@ async function init(){
 
 document.getElementById('refreshBtn').addEventListener('click',()=>{ init(); });
 
+const _FTI={
+  success:'<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+  error:  '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+  info:   '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+};
 function showToast(msg,type='info'){
   const c=document.getElementById('toast-container');
   const t=document.createElement('div');
   t.className=`toast ${type}`;
-  t.textContent=msg;
+  t.style.cssText='display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:8px;border-left:3px solid;box-shadow:0 4px 16px rgba(0,0,0,.1);min-width:240px;max-width:320px;pointer-events:all;animation:toastSlideIn .25s ease';
+  const cols={success:'#16a34a',error:'#dc2626',info:'#2563eb'};
+  const bgs={success:'#f0fdf4',error:'#fef2f2',info:'#eff6ff'};
+  t.style.borderColor=cols[type]||cols.info;t.style.background=bgs[type]||bgs.info;
+  t.innerHTML=`<span style="color:${cols[type]||cols.info};flex-shrink:0;margin-top:1px;display:flex">${_FTI[type]||_FTI.info}</span><span style="font-size:.84rem;color:#1e293b;line-height:1.4">${msg}</span>`;
+  if(!document.getElementById('_ftk')){const s=document.createElement('style');s.id='_ftk';s.textContent='@keyframes toastSlideIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}';document.head.appendChild(s);}
   c.appendChild(t);
-  setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300);},3000);
+  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(8px)';t.style.transition='all .2s';setTimeout(()=>t.remove(),220);},3000);
 }
 
 init();

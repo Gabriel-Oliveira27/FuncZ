@@ -3,11 +3,11 @@
 /* ===== CONFIGURAÇÃO DE TEMPOS (em ms) ===== */
 const SESSION_RULES = {
   voucher: 5 * 60 * 1000,        // 5 minutos
-  crediario: 4 * 60 * 60 * 1000, // 4 horas
-  vendas: 3 * 60 * 60 * 1000,    // 3 horas
-  faturamento: 6 * 60 * 60 * 1000, // 6 horas
+  cred: 4 * 60 * 60 * 1000, // 4 horas
+  vendedor: 3 * 60 * 60 * 1000,    // 3 horas
+  fat: 6 * 60 * 60 * 1000, // 6 horas
   admin: Infinity,
-  gerente: Infinity,
+  ger: Infinity,
   suporte: Infinity
 };
 
