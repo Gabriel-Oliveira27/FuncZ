@@ -928,11 +928,12 @@ async function submitToDatabase() {
 
   const avista = +precoVal.toFixed(2);
   const payload = {
-    cod:        document.getElementById('newCodigo').value.trim(),
-    desc:       document.getElementById('newDesc').value.trim(),
-    tamanho:    document.getElementById('newTamanho').value || '',
-    preco:      String(avista),
-    solicitante: session?.user || 'desconhecido'
+    cod:             document.getElementById('newCodigo').value.trim(),
+    desc:            document.getElementById('newDesc').value.trim(),
+    tamanho:         document.getElementById('newTamanho').value || '',
+    preco:           String(avista),
+    solicitante:     session?.user || 'desconhecido',
+    permSolicitante: session?.perm || ''
   };
 
   try {
