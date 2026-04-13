@@ -308,6 +308,87 @@ var _esperar = function(ms) {
   return new Promise(function(r) { setTimeout(r, ms); });
 };
 
+// ── Cache de produtos da API remota (GAS) ────────────────────────────────────
+// Usado como fallback quando o produto não é encontrado em produtos.json.
+var _apiProdutosCache  = null;   // null = não carregado ainda; [] = carregado (mesmo que vazio)
+var _apiProdutosPromise = null;  // garante um único fetch simultâneo
+
+/**
+ * Busca produtos da API remota (Google Apps Script / API_URL) e armazena em cache.
+ * Retorna o produto com o código solicitado ou null se não encontrar.
+ */
+async function _buscarProdutoNaAPI(codigo) {
+  if (typeof API_URL === 'undefined' || !API_URL) return null;
+
+  // Usa o cache se já carregado
+  if (_apiProdutosCache !== null) {
+    return _apiProdutosCache.find(function(p) {
+      return String(p.codigo) === String(codigo);
+    }) || null;
+  }
+
+  // Primeiro acesso: baixa todos os produtos da API e armazena em cache
+  if (!_apiProdutosPromise) {
+    _apiProdutosPromise = (async () => {
+      try {
+        const ctrl = new AbortController();
+        const tid  = setTimeout(() => ctrl.abort(), 10000);
+        const res  = await fetch(API_URL, { signal: ctrl.signal, cache: 'no-cache' });
+        clearTimeout(tid);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const dados = await res.json();
+
+        const lista = [];
+        const toBRL = v => {
+          if (v === null || v === undefined || v === '') return '';
+          if (typeof v === 'number') return v.toFixed(2).replace('.', ',');
+          return String(v).replace('.', ',');
+        };
+
+        if (Array.isArray(dados.produtos)) {
+          dados.produtos.forEach(p => {
+            if (!p.codigo || !p.descricao) return;
+            lista.push({
+              codigo:     String(p.codigo),
+              descricao:  p.descricao,
+              avista:     toBRL(p.avista) || '0,00',
+              garantia12: toBRL(p.garantia12),
+              tamanho:    (p.tamanho || '').toUpperCase().trim() || null,
+            });
+          });
+        } else {
+          // Formato legado Google Sheets
+          ['Gabriel', 'Júlia', 'Giovana'].forEach(nome => {
+            (dados[nome] || []).forEach(item => {
+              if (!item['Código'] || !item['Descrição']) return;
+              lista.push({
+                codigo:     String(item['Código']),
+                descricao:  item['Descrição'],
+                avista:     toBRL(item['Total à vista']) || '0,00',
+                garantia12: toBRL(item['Tot. G.E 12'] || ''),
+                tamanho:    null,
+              });
+            });
+          });
+        }
+
+        _apiProdutosCache = lista;
+        console.log('[API-GAS] ' + lista.length + ' produto(s) carregado(s) da API remota.');
+      } catch(e) {
+        console.warn('[API-GAS] Falha ao carregar da API:', e.message);
+        _apiProdutosCache = [];
+      }
+    })();
+  }
+
+  await _apiProdutosPromise;
+
+  if (!_apiProdutosCache || _apiProdutosCache.length === 0) return null;
+  return _apiProdutosCache.find(function(p) {
+    return String(p.codigo) === String(codigo);
+  }) || null;
+}
+
 function _classificarErro(err) {
   if (!err) return 'Mal contato com a API';
   if (err.name === 'AbortError') return 'Internet oscilando';
@@ -368,42 +449,65 @@ async function _buscarCodigo(codigo) {
   mostrarOverlayBusca('Buscando informações', 'Procurando código ' + codigo + '…');
 
   var ok = await _garantirCache();
-  if (!ok) {
-    ocultarOverlay();
-    showToast('error', 'Erro ao carregar', 'Não foi possível acessar produtos.json.');
-    return;
+
+  // ── 1ª tentativa: base local (produtos.json) ──
+  var item = null;
+  if (ok) {
+    for (var i = 0; i < todosProdutos.length; i++) {
+      if (String(todosProdutos[i].codigo) === String(codigo)) { item = todosProdutos[i]; break; }
+    }
   }
 
-  var item = null;
-  for (var i = 0; i < todosProdutos.length; i++) {
-    if (String(todosProdutos[i].codigo) === String(codigo)) { item = todosProdutos[i]; break; }
+  // ── 2ª tentativa: API remota (GAS) se não encontrado localmente ──
+  if (!item) {
+    mostrarOverlayBusca(
+      'Produto não encontrado localmente',
+      'Buscando na base de dados da API…'
+    );
+    await _esperar(350);
+    item = await _buscarProdutoNaAPI(codigo);
+    // Adiciona ao cache local para buscas futuras nesta sessão
+    if (item && typeof todosProdutos !== 'undefined') {
+      todosProdutos.push(item);
+    }
   }
 
   if (item) {
     mostrarOverlaySucesso('Informações encontradas', 'Preenchendo campos…');
     await _esperar(600);
+    try {
+      var partes = (item.descricao || '').split(' - ');
+      document.getElementById('descricao').value    = (partes[0] || '').trim().toUpperCase();
+      // partes[1] pode ser undefined quando não há " - " — || '' protege
+      document.getElementById('subdescricao').value = (partes[1] || '').trim().toUpperCase();
 
-    var partes = (item.descricao || '').split(' - ');
-    document.getElementById('descricao').value    = (partes[0] || '').trim().toUpperCase();
-    document.getElementById('subdescricao').value = (partes[1] || '').trim().toUpperCase();
+      // Garante string antes de parseCurrency (avista pode chegar como number da API)
+      var avVal = parseCurrency(String(item.avista || '0'));
+      document.getElementById('avista').value = formatCurrency(avVal.toFixed(2));
 
-    var avVal = parseCurrency(item.avista);
-    document.getElementById('avista').value = formatCurrency(avVal.toFixed(2));
+      if (item.garantia12) {
+        document.getElementById('garantia12').value =
+          formatCurrency(parseCurrency(String(item.garantia12)).toFixed(2));
+      }
 
-    if (item.garantia12) {
-      document.getElementById('garantia12').value =
-        formatCurrency(parseCurrency(item.garantia12).toFixed(2));
+      setTimeout(function() { window.aplicarDicionarioAoCampos(); }, 100);
+      showToast('success', 'Produto encontrado', 'Dados preenchidos automaticamente.');
+    } catch (fillErr) {
+      console.error('[Dict] Erro ao preencher campos:', fillErr.message, fillErr);
+      showToast('warning', 'Produto carregado', 'Código localizado — verifique os campos.');
+    } finally {
+      ocultarOverlay();
     }
 
-    ocultarOverlay();
-    setTimeout(function() { window.aplicarDicionarioAoCampos(); }, 100);
-    showToast('success', 'Produto encontrado', 'Dados preenchidos automaticamente.');
-
   } else {
-    mostrarOverlayErro('Informações inexistentes', 'Código ' + codigo + ' não encontrado');
-    await _esperar(1200);
+    mostrarOverlayErro(
+      'Produto não encontrado',
+      'Código ' + codigo + ' não existe na base local nem na API'
+    );
+    await _esperar(1400);
     ocultarOverlay();
-    showToast('warning', 'Produto não encontrado', 'Código não cadastrado. Preencha manualmente.');
+    showToast('warning', 'Produto não encontrado',
+      'Código ' + codigo + ' não foi localizado em nenhuma base de dados.');
   }
 }
 
@@ -420,10 +524,19 @@ async function _buscarMesclar(cod1, cod2) {
   var prod1 = todosProdutos.find(function(p) { return String(p.codigo) === String(cod1); });
   var prod2 = todosProdutos.find(function(p) { return String(p.codigo) === String(cod2); });
 
+  // Fallback para API remota se algum produto não estiver na base local
+  if (!prod1 || !prod2) {
+    mostrarOverlayBusca('Buscando na API remota', 'Produto não encontrado localmente…');
+    await _esperar(300);
+    if (!prod1) prod1 = await _buscarProdutoNaAPI(cod1);
+    if (!prod2) prod2 = await _buscarProdutoNaAPI(cod2);
+  }
+
   if (!prod1 || !prod2) {
     ocultarOverlay();
     var falta = !prod1 ? cod1 : cod2;
-    showToast('error', 'Produto não encontrado', 'Código ' + falta + ' não existe no cadastro');
+    showToast('error', 'Produto não encontrado',
+      'Código ' + falta + ' não existe na base local nem na API');
     return;
   }
 
@@ -685,61 +798,215 @@ document.addEventListener('DOMContentLoaded', function() {
   setTimeout(function() { _garantirCache(); }, 3000);
 });
 
+
 // ═══════════════════════════════════════════════════════════════
-// §10  DICIONÁRIO REMOTO — doGet (Google Apps Script)
+// §10  DICIONÁRIO REMOTO — carregamento automático via GAS
 // ─────────────────────────────────────────────────────────────
-// Estrutura esperada do endpoint:
+//
+// O sistema carrega automaticamente um dicionário remoto do
+// Google Apps Script e mescla com o nativo (sem substituir).
+// Funciona offline — o dicionário nativo é sempre o fallback.
+//
+// ESTRUTURA ESPERADA DO ENDPOINT (doGet com action=dicionario):
 //
 //   {
-//     "descricao": ["Berço", "Sofá"],
-//     "marcas":    ["Marca1", "Marca2"],
-//     "features":  ["Feature1"],
-//     "cores":     ["Roxo", "Turquesa"],
-//     "padroes":   ["\\b\\d+\\s*rpm\\b"]
+//     "descricao": ["Berço", "Sofá"],          ← palavras protegidas
+//     "marcas":    ["Marca1", "Marca2"],        ← movidas para subdesc.
+//     "features":  ["Feature1", "Google TV"],   ← movidas para feat-1/2/3
+//     "cores":     ["Roxo", "Turquesa"],        ← idem
+//     "padroes":   ["\\b\\d+\\s*rpm\\b"]   ← regex de padrões numéricos
 //   }
 //
-// O dicionário remoto é MESCLADO com o nativo (sem substituir).
-// Sistema funciona offline — nativo é sempre o fallback.
-//
-// Para ativar:
-//   1. Publique o Apps Script como Web App (acesso público)
-//   2. Defina DICIONARIO_REMOTE_URL abaixo
-//   3. Descomente o bloco de inicialização no final
+// CONFIGURAÇÃO:
+//   • Se DICIONARIO_REMOTE_URL estiver vazio, o sistema deriva
+//     automaticamente da API_URL adicionando &action=dicionario.
+//   • Para usar URL própria: defina DICIONARIO_REMOTE_URL abaixo.
+//   • Cache local (localStorage) com validade de 1 hora — permite
+//     uso offline com termos da sessão anterior.
 // ──────────────────────────────────────────────────────────────
 
-// var DICIONARIO_REMOTE_URL =
-//   'https://script.google.com/macros/s/SEU_ID/exec?action=dicionario';
+/**
+ * URL explícita do endpoint do dicionário remoto.
+ * Deixe '' para derivar automaticamente do API_URL do sistema.
+ * Exemplo: 'https://script.google.com/macros/s/SEU_ID/exec?action=dicionario'
+ */
+var DICIONARIO_REMOTE_URL = '';
 
-async function carregarDicionarioRemoto(url) {
-  if (!url) return;
+/** Estado público do carregamento — consultável por outros módulos */
+window.DICIONARIO_ESTADO = {
+  carregado: false,   // true após sucesso
+  offline:   false,   // true se falhou (usa somente nativo)
+  cache:     false,   // true se veio do localStorage
+  novos:     0,       // termos adicionados ao nativo nesta sessão
+  fonte:     null,    // URL efetivamente utilizada
+};
+
+// ── Helpers internos ───────────────────────────────────────────
+
+/** Deriva URL do dicionário a partir do API_URL global, se possível */
+function _derivarURLDicionario() {
+  // Só usa DICIONARIO_REMOTE_URL explícita — não deriva automaticamente do API_URL,
+  // pois o endpoint de produtos não responde à action=dicionario.
+  return DICIONARIO_REMOTE_URL || null;
+}
+
+/**
+ * Cria ou atualiza o badge de status do dicionário remoto
+ * no rodapé da sidebar. Invisível e discreto.
+ * estados: 'carregando' | 'ok' | 'parcial' | 'offline'
+ */
+function _atualizarBadgeDicionario(estado, texto) {
+  var BADGE_ID = 'dict-remote-status-badge';
+  var badge = document.getElementById(BADGE_ID);
+
+  if (!badge) {
+    var footer = document.querySelector('.sidebar-footer');
+    if (!footer) return;
+    badge = document.createElement('div');
+    badge.id = BADGE_ID;
+    // Inserir antes do primeiro parágrafo de versão
+    var firstP = footer.querySelector('p');
+    footer.insertBefore(badge, firstP || null);
+  }
+
+  var icons = {
+    carregando: 'fa-rotate fa-spin',
+    ok:         'fa-book-open-reader',
+    parcial:    'fa-book-open-reader',
+    offline:    'fa-book',
+  };
+
+  // Usa data-estado para que o CSS (não o style inline) controle as cores —
+  // assim dark mode funciona via seletor CSS sem precisar de !important frágil.
+  badge.setAttribute('data-estado', estado);
+  badge.style.cssText = [
+    'display:flex;align-items:center;gap:5px;',
+    'padding:4px 10px 4px 8px;border-radius:20px;',
+    'margin-bottom:8px;cursor:default;',
+    'font-size:10px;font-weight:600;line-height:1;',
+    'transition:all .4s ease;user-select:none;',
+  ].join('');
+
+  badge.innerHTML = '<i class="fa-solid ' + (icons[estado] || 'fa-book') + '" style="font-size:9px;flex-shrink:0;"></i>'
+    + '<span>' + texto + '</span>';
+  badge.title = 'Dicionário remoto · ' + texto;
+}
+
+/**
+ * Mescla os dados do GAS no dicionário ativo sem duplicatas (case-insensitive).
+ * Retorna o número de termos novos adicionados.
+ */
+function _mesclarDicionario(dado) {
+  var total = 0;
+  var merge = function(ativo, novas) {
+    if (!Array.isArray(novas)) return;
+    novas.forEach(function(item) {
+      if (!item) return;
+      var existe = ativo.some(function(x) {
+        return String(x).toLowerCase() === String(item).toLowerCase();
+      });
+      if (!existe) { ativo.push(item); total++; }
+    });
+  };
+  merge(window.DICIONARIO.descricao, dado.descricao);
+  merge(window.DICIONARIO.marcas,    dado.marcas);
+  merge(window.DICIONARIO.features,  dado.features);
+  merge(window.DICIONARIO.cores,     dado.cores);
+  merge(window.DICIONARIO.padroes,   dado.padroes);
+  return total;
+}
+
+// ── Função principal ───────────────────────────────────────────
+
+/**
+ * Carrega o dicionário remoto do GAS e mescla com o nativo.
+ * Executa em background, sem bloquear a interface.
+ * Fallback automático para cache localStorage (1h de validade).
+ *
+ * @param {string} [urlOverride] — sobrescreve DICIONARIO_REMOTE_URL
+ */
+async function carregarDicionarioRemoto(urlOverride) {
+  var url = urlOverride || _derivarURLDicionario();
+
+  if (!url) {
+    // Sem URL configurada — dicionário nativo em uso, nenhum feedback visual
+    console.info('[Dict] Sem URL de dicionário remoto configurada — usando apenas nativo.');
+    return;
+  }
+
+  window.DICIONARIO_ESTADO.fonte = url;
+  _atualizarBadgeDicionario('carregando', 'Sincronizando dict...');
+
   try {
-    var res = await fetch(url, { cache: 'no-cache' });
+    var ctrl = new AbortController();
+    var tid  = setTimeout(function() { ctrl.abort(); }, 8000);
+    var res  = await fetch(url, { signal: ctrl.signal, cache: 'no-cache' });
+    clearTimeout(tid);
+
     if (!res.ok) throw new Error('HTTP ' + res.status);
     var dado = await res.json();
 
-    var merge = function(ativo, novas) {
-      if (!Array.isArray(novas)) return;
-      novas.forEach(function(item) {
-        var existe = ativo.some(function(x) {
-          return String(x).toLowerCase() === String(item).toLowerCase();
-        });
-        if (!existe) ativo.push(item);
-      });
-    };
+    // Validar: precisa de ao menos uma chave com dados
+    var chaves = ['descricao', 'marcas', 'features', 'cores', 'padroes'];
+    var temDados = chaves.some(function(k) {
+      return Array.isArray(dado[k]) && dado[k].length > 0;
+    });
+    if (!temDados) throw new Error('Resposta sem dados de dicionário válidos');
 
-    merge(window.DICIONARIO.descricao, dado.descricao);
-    merge(window.DICIONARIO.marcas,    dado.marcas);
-    merge(window.DICIONARIO.features,  dado.features);
-    merge(window.DICIONARIO.cores,     dado.cores);
-    merge(window.DICIONARIO.padroes,   dado.padroes);
+    var novos = _mesclarDicionario(dado);
 
-    console.log('✅ Dicionário remoto mesclado com sucesso.');
+    // Salvar em cache local (validade: 1 hora)
+    try {
+      localStorage.setItem('dict_remote_cache', JSON.stringify({ ts: Date.now(), dados: dado }));
+    } catch(e) { /* quota excedida ou modo privado */ }
+
+    window.DICIONARIO_ESTADO.carregado = true;
+    window.DICIONARIO_ESTADO.novos     = novos;
+
+    if (novos > 0) {
+      _atualizarBadgeDicionario('ok', 'Dict. +' + novos + ' termos');
+      console.log('[Dict] Remoto mesclado: ' + novos + ' novo(s) termo(s).');
+    } else {
+      _atualizarBadgeDicionario('ok', 'Dict. em dia');
+      console.log('[Dict] Remoto: nenhum termo novo (dicionário já atualizado).');
+    }
+
   } catch(err) {
-    console.warn('⚠️ Dicionário remoto indisponível — usando nativo.', err.message);
+    window.DICIONARIO_ESTADO.offline = true;
+    console.warn('[Dict] Remoto indisponível:', err.message);
+
+    // Tentar cache local antes de desistir
+    try {
+      var cached = localStorage.getItem('dict_remote_cache');
+      if (cached) {
+        var obj   = JSON.parse(cached);
+        var idade = (Date.now() - (obj.ts || 0)) / 60000; // minutos
+
+        if (idade < 60 && obj.dados) {
+          var novosCache = _mesclarDicionario(obj.dados);
+          var min = Math.round(idade);
+          window.DICIONARIO_ESTADO.cache = true;
+          window.DICIONARIO_ESTADO.novos = novosCache;
+          _atualizarBadgeDicionario('parcial', 'Dict. cache (' + min + 'min)');
+          console.info('[Dict] Usando cache local (' + min + 'min atrás): '
+            + novosCache + ' termo(s) carregado(s).');
+          return;
+        }
+      }
+    } catch(cacheErr) { /* localStorage indisponível */ }
+
+    // Nem cache disponível — funciona apenas com o nativo
+    _atualizarBadgeDicionario('offline', 'Dict. offline');
   }
 }
 
-// Descomente para ativar:
-// document.addEventListener('DOMContentLoaded', function() {
-//   carregarDicionarioRemoto(DICIONARIO_REMOTE_URL);
-// });
+// ── Auto-carregamento ──────────────────────────────────────────
+// 1.5s de delay para não competir com a inicialização principal
+// (produtos.json, session-guard, etc.) que já ocorre no DOMContentLoaded.
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(carregarDicionarioRemoto, 1500);
+});
+
+// ── Expor publicamente ─────────────────────────────────────────
+window.carregarDicionarioRemoto = carregarDicionarioRemoto;
+window.DICIONARIO_REMOTE_URL_get = function() { return _derivarURLDicionario(); };

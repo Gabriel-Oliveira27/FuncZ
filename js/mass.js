@@ -774,8 +774,79 @@ function massOpen() {
   _$('mass-overlay').classList.add('active');
   _massBindEvents();
 }
+
 function massClose() {
   _$('mass-overlay').classList.remove('active');
+}
+
+/**
+ * Solicita confirmação antes de fechar se o usuário já passou da tela inicial
+ * ou selecionou produtos. Na tela de seleção sem produtos, fecha direto.
+ * Na tela de progresso (step 3), fecha direto pois o processo já terminou.
+ */
+function _confirmarFecharMass() {
+  // Step 0 (tipo) ou step 3 (progresso/concluído): fecha sem perguntar
+  if (MS.step === 0 || MS.step === 3) {
+    massClose();
+    return;
+  }
+
+  // Step 1 sem nenhum produto selecionado: fecha direto
+  if (MS.step === 1 && MS.selected.size === 0) {
+    massClose();
+    return;
+  }
+
+  // Nos demais casos: pede confirmação usando o dialog interno do Mass
+  const dlgId = 'mass-dlg-fechar-confirm';
+
+  // Cria o dialog se ainda não existir
+  if (!document.getElementById(dlgId)) {
+    const el = document.createElement('div');
+    el.className = 'mass-dialog-overlay';
+    el.id = dlgId;
+    el.innerHTML = `
+      <div class="mass-dialog" style="max-width:420px;">
+        <div class="mass-dialog-hdr">
+          <div class="mass-dialog-ico warn"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          <div>
+            <h4>Fechar gerador em massa?</h4>
+            <p>As seleções e configurações serão perdidas</p>
+          </div>
+        </div>
+        <div class="mass-dialog-body">
+          <p id="mass-dlg-fechar-msg">Tem certeza que deseja fechar?</p>
+        </div>
+        <div class="mass-dialog-footer">
+          <button class="mass-dlg-btn sec" id="mass-dlg-fechar-nao">
+            <i class="fa-solid fa-arrow-left"></i> Não, continuar
+          </button>
+          <button class="mass-dlg-btn warn" id="mass-dlg-fechar-sim">
+            <i class="fa-solid fa-times"></i> Sim, fechar
+          </button>
+        </div>
+      </div>`;
+    _$('mass-modal').appendChild(el);
+
+    document.getElementById('mass-dlg-fechar-nao').addEventListener('click', () => {
+      document.getElementById(dlgId).classList.remove('open');
+    });
+    document.getElementById('mass-dlg-fechar-sim').addEventListener('click', () => {
+      document.getElementById(dlgId).classList.remove('open');
+      massClose();
+    });
+  }
+
+  // Atualiza mensagem com número de produtos selecionados
+  const msgEl = document.getElementById('mass-dlg-fechar-msg');
+  if (msgEl) {
+    const n = MS.selected.size;
+    msgEl.textContent = n > 0
+      ? `Você tem ${n} produto${n > 1 ? 's' : ''} selecionado${n > 1 ? 's' : ''}. Fechar descartará todas as seleções e configurações.`
+      : 'Fechar descartará todas as configurações já definidas.';
+  }
+
+  document.getElementById(dlgId).classList.add('open');
 }
 
 // Conectar o botão da sidebar ao massOpen
@@ -789,13 +860,21 @@ function _massBindEvents() {
   if (MS._evBound) return;
   MS._evBound = true;
 
-  // Fechar
-  _$('mass-btn-close').addEventListener('click', massClose);
+  // Fechar (com confirmação quando relevante)
+  _$('mass-btn-close').addEventListener('click', _confirmarFecharMass);
   _$('mass-overlay').addEventListener('click', e => {
-    if (e.target === _$('mass-overlay')) massClose();
+    if (e.target === _$('mass-overlay')) _confirmarFecharMass();
   });
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && _$('mass-overlay').classList.contains('active')) massClose();
+    if (e.key === 'Escape' && _$('mass-overlay').classList.contains('active')) {
+      // ESC fecha dialog de confirmação se estiver aberto, senão pede confirmação
+      const dlgFechar = document.getElementById('mass-dlg-fechar-confirm');
+      if (dlgFechar && dlgFechar.classList.contains('open')) {
+        dlgFechar.classList.remove('open');
+        return;
+      }
+      _confirmarFecharMass();
+    }
   });
 
   // Voltar
@@ -895,5 +974,6 @@ function _massBindEvents() {
 // ── §17 · EXPORTS ────────────────────────────────────────────────────────────
 window.massOpen  = massOpen;
 window.massClose = massClose;
+window._confirmarFecharMass = _confirmarFecharMass;
 
 console.log('✅ mass.js v2.2 carregado — HTML estático, Gerador em Massa com DICT_BOX ativo.');

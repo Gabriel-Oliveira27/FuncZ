@@ -2649,6 +2649,57 @@ input:checked + .slider:before {
   background: var(--gray-50);
 }
 
+
+/* ==================================================
+   BADGE STATUS DO DICIONÁRIO REMOTO (§10 dict.js)
+   Cores controladas por data-estado (não por style inline)
+   para que dark mode funcione sem !important frágil.
+   ================================================== */
+#dict-remote-status-badge {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+  animation: dictBadgeFadeIn .5s ease .5s both;
+}
+#dict-remote-status-badge span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@keyframes dictBadgeFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Cores por estado (tema claro) ── */
+#dict-remote-status-badge[data-estado="carregando"] {
+  background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af;
+}
+#dict-remote-status-badge[data-estado="ok"] {
+  background: #f0fdf4; border: 1px solid #86efac; color: #166534;
+}
+#dict-remote-status-badge[data-estado="parcial"] {
+  background: #fffbeb; border: 1px solid #fde68a; color: #92400e;
+}
+#dict-remote-status-badge[data-estado="offline"] {
+  background: #f9fafb; border: 1px solid #e5e7eb; color: #9ca3af;
+}
+
+/* ── Cores por estado (tema escuro) ── */
+[data-theme="dark"] #dict-remote-status-badge[data-estado="carregando"] {
+  background: #1e3a5f; border-color: #3b82f6; color: #93c5fd;
+}
+[data-theme="dark"] #dict-remote-status-badge[data-estado="ok"] {
+  background: #0d2b1e; border-color: #166534; color: #86efac;
+}
+[data-theme="dark"] #dict-remote-status-badge[data-estado="parcial"] {
+  background: #1c1a0d; border-color: #854d0e; color: #fef08a;
+}
+[data-theme="dark"] #dict-remote-status-badge[data-estado="offline"] {
+  background: #162032; border-color: #334155; color: #64748b;
+}
+
 /* Impressão da tabela */
 @media print {
   body * {
@@ -4513,20 +4564,13 @@ body.mobile-detected {
   --ge-shift-x: 0%;   /* positivo = direita, negativo = esquerda */
 }
 
-/* HP — padrão (Chrome/Chromium)*/
-
+/* HP — padrão (Chrome e Firefox — valor unificado)
+   Calibrado para funcionar identicamente em ambos os navegadores.
+   ← AJUSTE FINO: altere --ge-shift-y (positivo = sobe, negativo = desce)
+     e --ge-shift-x (positivo = direita, negativo = esquerda) */
 .poster-ge-hp {
-  --ge-shift-y: -2.694%;
-  --ge-shift-x: 0%;
-}
-/* HP-Padrão — compensação Firefox (sobrescreve o bloco acima no Firefox)
-   ← AJUSTE FIREFOX: calibre --ge-shift-y aqui se ficar deslocado no Firefox.
-     Partindo do mesmo valor Chrome; ajuste após teste com régua. */
-@supports (-moz-appearance: none) {
-  .poster-ge-hp {
-    --ge-shift-y: 0.336%;   /* ← ajuste após teste no Firefox */
-    --ge-shift-x: 2.381%;
-  }
+  --ge-shift-y: 0.336%;
+  --ge-shift-x: 2.381%;
 }
 
 /* Brother DCP-1617W — igual ao HP por padrão; ajuste após teste com régua */
@@ -4545,21 +4589,12 @@ body.mobile-detected {
 }
 
 /* ------------------------------------------------------------------
-   HP - A5 (Chrome/Chromium)
+   HP - A5 (Chrome e Firefox — valor unificado)
+   ← AJUSTE FINO: altere --ge-shift-y/x conforme necessário após teste.
    ------------------------------------------------------------------ */
 .poster-ge-hp-a5 {
-  --ge-shift-y: 2.694%;
+  --ge-shift-y: -2.694%;
   --ge-shift-x: 0%;
-}
-
-/* HP-A5 — compensação Firefox (sobrescreve o bloco acima no Firefox)
-   ← AJUSTE FIREFOX: calibre aqui se ficar deslocado no Firefox.
-     Partindo do mesmo valor Chrome; ajuste após teste com régua. */
-@supports (-moz-appearance: none) {
-  .poster-ge-hp-a5 {
-    --ge-shift-y: -2.694%;  /* ← ajuste após teste no Firefox */
-    --ge-shift-x: 0%;
-  }
 }
 
 /* Aumenta fonte 2pt para HP-A5 */
