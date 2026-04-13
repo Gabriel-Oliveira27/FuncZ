@@ -27,24 +27,28 @@ document.addEventListener('DOMContentLoaded', () => {
   let localTentativa = null;
   let isVisitante    = false;
 
-  /* ===== CONFIGURAÇÃO DOS WORKERS ===== */
-  // Preencha as URLs dos seus 4 workers aqui:
+  /* ===== CONFIGURAÇÃO DOS WORKERS =====
+     1-4: Cloudflare Workers
+     5:   Render Python (fallback final — replica o Worker em Python)
+  ===================================== */
   const WORKERS = [
-    'https://proxy-apps-script.gab-oliveirab27.workers.dev/',  
-    'https://conexao-fallback-1.gab-oliveirab27.workers.dev',                   
-    'https://conexao-fallback-2.gab-oliveirab27.workers.dev',                 
-    'https://conexao-fallback-3.gab-oliveirab27.workers.dev'                     
+    'https://proxy-apps-script.gab-oliveirab27.workers.dev/',   // Cloudflare 1 (principal)
+    'https://conexao-fallback-1.gab-oliveirab27.workers.dev',   // Cloudflare 2
+    'https://conexao-fallback-2.gab-oliveirab27.workers.dev',   // Cloudflare 3
+    'https://conexao-fallback-3.gab-oliveirab27.workers.dev',   // Cloudflare 4
+    'https://proxy-worker-python.onrender.com',                 // ← Render Python (5º fallback)
   ];
 
   // Timeout individual por worker (ms)
-  const WORKER_TIMEOUTS = [10000, 12000, 15000, 15000];
+  const WORKER_TIMEOUTS = [10000, 12000, 15000, 15000, 20000];
 
   // Mensagens exibidas ao trocar de worker
   const WORKER_MSGS = [
     null, // Worker 1 não exibe mensagem de troca
     { title: 'Servidor ocupado...', sub: 'Redirecionando para um servidor alternativo. Aguarde!', icon: '⚡' },
     { title: 'Ainda estamos tentando!',  sub: 'Sentimos o transtorno — estamos com uma pequena instabilidade. Já já resolvemos!', icon: '🔄' },
-    { title: 'Última tentativa...',      sub: 'Estamos na reserva final. Segura aí, quase lá!', icon: '🚀' }
+    { title: 'Última tentativa...',      sub: 'Estamos na reserva final. Segura aí, quase lá!', icon: '🚀' },
+    { title: 'Usando servidor reserva...', sub: 'Acionando o servidor de contingência. Pode demorar um pouco mais — aguarde!', icon: '🛡️' },
   ];
 
   /* ===== VERIFICAÇÃO DE SESSÃO EXISTENTE ===== */
@@ -116,7 +120,6 @@ document.addEventListener('DOMContentLoaded', () => {
           to   { opacity: 1; transform: scale(1)    translateY(0); }
         }
 
-        /* Ícone animado */
         #_wIconWrap {
           width: 72px; height: 72px;
           margin: 0 auto 24px;
@@ -156,7 +159,6 @@ document.addEventListener('DOMContentLoaded', () => {
           to   { transform: scale(1);   opacity: 1; }
         }
 
-        /* Textos */
         #_wTitle {
           font-size: 18px;
           font-weight: 700;
@@ -174,7 +176,6 @@ document.addEventListener('DOMContentLoaded', () => {
           margin-bottom: 28px;
         }
 
-        /* Barra de progresso */
         #_wBarWrap {
           background: rgba(255,255,255,0.05);
           border-radius: 99px;
@@ -196,7 +197,6 @@ document.addEventListener('DOMContentLoaded', () => {
           to   { background-position: -200% center; }
         }
 
-        /* Indicador de servidores */
         #_wServers {
           display: flex;
           justify-content: center;
@@ -224,12 +224,27 @@ document.addEventListener('DOMContentLoaded', () => {
           background: #ef4444;
           animation: none;
         }
+        /* Dot do Render (5º) tem formato diferente — diamante */
+        .wserver-dot.render {
+          border-radius: 3px;
+          transform: rotate(45deg);
+        }
+        .wserver-dot.render.ativo {
+          background: #f59e0b;
+          box-shadow: 0 0 8px rgba(245,158,11,0.6);
+        }
         @keyframes _wDotPulse {
           0%,100% { transform: scale(1);   opacity: 1; }
           50%      { transform: scale(1.4); opacity: 0.7; }
         }
+        .wserver-dot.render.ativo {
+          animation: _wDotPulseRender 1.2s ease infinite;
+        }
+        @keyframes _wDotPulseRender {
+          0%,100% { transform: rotate(45deg) scale(1);   opacity: 1; }
+          50%      { transform: rotate(45deg) scale(1.4); opacity: 0.7; }
+        }
 
-        /* Label dos servidores */
         #_wServerLabel {
           font-size: 11px;
           color: rgba(100,116,139,0.7);
@@ -237,7 +252,6 @@ document.addEventListener('DOMContentLoaded', () => {
           letter-spacing: 0.3px;
         }
 
-        /* Contador de tempo */
         #_wTimer {
           font-size: 11px;
           color: rgba(100,116,139,0.5);
@@ -259,12 +273,13 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div id="_wServers">
-          <div class="wserver-dot ativo" id="_wdot0"></div>
-          <div class="wserver-dot"       id="_wdot1"></div>
-          <div class="wserver-dot"       id="_wdot2"></div>
-          <div class="wserver-dot"       id="_wdot3"></div>
+          <div class="wserver-dot ativo" id="_wdot0" title="Cloudflare 1"></div>
+          <div class="wserver-dot"       id="_wdot1" title="Cloudflare 2"></div>
+          <div class="wserver-dot"       id="_wdot2" title="Cloudflare 3"></div>
+          <div class="wserver-dot"       id="_wdot3" title="Cloudflare 4"></div>
+          <div class="wserver-dot render" id="_wdot4" title="Render (reserva)"></div>
         </div>
-        <div id="_wServerLabel">Servidor 1 de 4</div>
+        <div id="_wServerLabel">Servidor 1 de 5</div>
         <div id="_wTimer">0s</div>
       </div>
     `;
@@ -274,22 +289,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function atualizarOverlayWorker(index, falhos = []) {
     const msg = WORKER_MSGS[index];
+    const isRender = index === 4;
 
-    // Emoji e cores do ícone
-    const emojis = ['🔐', '⚡', '🔄', '🚀'];
-    const cores   = [
+    const emojis   = ['🔐', '⚡', '🔄', '🚀', '🛡️'];
+    const cores    = [
       'rgba(59,130,246,0.1)',
       'rgba(245,158,11,0.12)',
       'rgba(168,85,247,0.12)',
-      'rgba(239,68,68,0.12)'
+      'rgba(239,68,68,0.12)',
+      'rgba(245,158,11,0.15)',   // Render — tom âmbar
     ];
     const barCores = [
       'linear-gradient(90deg,#2563eb,#60a5fa,#2563eb)',
       'linear-gradient(90deg,#d97706,#fbbf24,#d97706)',
       'linear-gradient(90deg,#7c3aed,#a78bfa,#7c3aed)',
-      'linear-gradient(90deg,#dc2626,#f87171,#dc2626)'
+      'linear-gradient(90deg,#dc2626,#f87171,#dc2626)',
+      'linear-gradient(90deg,#b45309,#f59e0b,#b45309)',  // Render
     ];
-    const spinCores = ['#3b82f6', '#f59e0b', '#a78bfa', '#f87171'];
+    const spinCores = ['#3b82f6', '#f59e0b', '#a78bfa', '#f87171', '#f59e0b'];
 
     const iconWrap  = document.getElementById('_wIconWrap');
     const iconEmoji = document.getElementById('_wIconEmoji');
@@ -300,16 +317,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!iconWrap) return;
 
-    // Fade out → atualiza → fade in
     title.style.opacity = '0';
     sub.style.opacity   = '0';
 
     setTimeout(() => {
       iconWrap.style.background = cores[index];
-      iconWrap.style.setProperty('--spin-color', spinCores[index]);
-      iconWrap.style.cssText = iconWrap.style.cssText; // force repaint
 
-      // Recria a borda animada com a cor certa via style inline
       const styleId = '_wSpinStyle';
       let s = document.getElementById(styleId);
       if (!s) { s = document.createElement('style'); s.id = styleId; document.head.appendChild(s); }
@@ -319,13 +332,11 @@ document.addEventListener('DOMContentLoaded', () => {
         #_wBar { background: ${barCores[index]} !important; }
       `;
 
-      // Emoji com pop
       iconEmoji.style.animation = 'none';
       void iconEmoji.offsetWidth;
       iconEmoji.textContent = emojis[index];
       iconEmoji.style.animation = '_wPop 0.4s cubic-bezier(0.175,0.885,0.32,1.275)';
 
-      // Textos
       if (msg) {
         title.textContent = msg.title;
         sub.textContent   = msg.sub;
@@ -337,26 +348,33 @@ document.addEventListener('DOMContentLoaded', () => {
       title.style.opacity = '1';
       sub.style.opacity   = '1';
 
-      // Barra de progresso
-      bar.style.width = `${((index) / WORKERS.length) * 100}%`;
+      bar.style.width = `${(index / WORKERS.length) * 100}%`;
 
-      // Dots
+      // Dots — 5 agora (0-4)
       for (let i = 0; i < WORKERS.length; i++) {
         const dot = document.getElementById(`_wdot${i}`);
         if (!dot) continue;
-        dot.className = 'wserver-dot';
+        // Mantém classe "render" no dot 4
+        const isRenderDot = i === 4;
+        dot.className = `wserver-dot${isRenderDot ? ' render' : ''}`;
         if (falhos.includes(i))  dot.classList.add('falhou');
         else if (i < index)      dot.classList.add('ok');
         else if (i === index)    dot.classList.add('ativo');
       }
 
-      label.textContent = `Servidor ${index + 1} de ${WORKERS.length}`;
+      const labels = [
+        'Cloudflare 1 de 4',
+        'Cloudflare 2 de 4',
+        'Cloudflare 3 de 4',
+        'Cloudflare 4 de 4',
+        'Render Python (reserva)',
+      ];
+      label.textContent = labels[index] || `Servidor ${index + 1} de ${WORKERS.length}`;
     }, 200);
   }
 
-  // Atualiza o contador de tempo no overlay
   let _wTimerInterval = null;
-  function iniciarTimerOverlay(timeoutMs) {
+  function iniciarTimerOverlay() {
     const timerEl = document.getElementById('_wTimer');
     if (!timerEl) return;
     let seg = 0;
@@ -375,14 +393,13 @@ document.addEventListener('DOMContentLoaded', () => {
     pararTimerOverlay();
     const el = document.getElementById('_workerOverlay');
     if (!el) return;
-    el.style.animation = 'none';
     el.style.opacity   = '0';
     el.style.transition = 'opacity 0.3s ease';
     setTimeout(() => el.remove(), 300);
   }
 
   /* ===================================================
-     FETCH COM FAILOVER — 4 WORKERS
+     FETCH COM FAILOVER — 4 Cloudflare + 1 Render Python
      ================================================= */
   async function fetchComFailover(body) {
     const falhos = [];
@@ -390,9 +407,8 @@ document.addEventListener('DOMContentLoaded', () => {
     for (let i = 0; i < WORKERS.length; i++) {
       const isUltimo = i === WORKERS.length - 1;
 
-      // Atualiza o visual do overlay
       atualizarOverlayWorker(i, falhos);
-      iniciarTimerOverlay(WORKER_TIMEOUTS[i]);
+      iniciarTimerOverlay();
 
       try {
         const controller = new AbortController();
@@ -421,12 +437,11 @@ document.addEventListener('DOMContentLoaded', () => {
         falhos.push(i);
 
         if (!isUltimo) {
-          // Pequena pausa visual antes de trocar
           await new Promise(r => setTimeout(r, 600));
           continue;
         }
 
-        // Todos falharam
+        // Todos os 5 falharam
         removerOverlayWorker();
         mostrarErroTotal();
         throw new Error('Todos os servidores estão indisponíveis');
@@ -435,7 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ===================================================
-     TELA DE ERRO TOTAL (todos os workers falharam)
+     TELA DE ERRO TOTAL
      ================================================= */
   function mostrarErroTotal() {
     loginBtn.classList.remove('loading');
@@ -484,41 +499,23 @@ document.addEventListener('DOMContentLoaded', () => {
           font-size: 30px;
           animation: etPulse 2.5s ease infinite;
         }
-        .et-title {
-          font-size: 19px; font-weight: 800;
-          color: #f1f5f9; margin-bottom: 10px;
-        }
-        .et-desc {
-          font-size: 13px; color: #64748b;
-          line-height: 1.75; margin-bottom: 28px;
-        }
+        .et-title { font-size: 19px; font-weight: 800; color: #f1f5f9; margin-bottom: 10px; }
+        .et-desc  { font-size: 13px; color: #64748b; line-height: 1.75; margin-bottom: 28px; }
         .et-badge {
           display: inline-flex; align-items: center; gap: 6px;
           padding: 4px 12px;
-          background: rgba(239,68,68,0.1);
-          border: 1px solid rgba(239,68,68,0.2);
-          border-radius: 99px;
-          font-size: 11px; font-weight: 700;
-          color: #fca5a5;
-          text-transform: uppercase; letter-spacing: 0.6px;
-          margin-bottom: 24px;
+          background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);
+          border-radius: 99px; font-size: 11px; font-weight: 700;
+          color: #fca5a5; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 24px;
         }
         .et-contact {
           display: flex; align-items: center; gap: 12px;
-          padding: 13px 16px;
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.06);
-          border-radius: 14px;
-          margin-bottom: 10px;
-          text-align: left;
-          transition: border-color 0.2s;
+          padding: 13px 16px; background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.06); border-radius: 14px;
+          margin-bottom: 10px; text-align: left; transition: border-color 0.2s;
         }
         .et-contact:hover { border-color: rgba(255,255,255,0.12); }
-        .et-contact-icon {
-          width: 40px; height: 40px; border-radius: 50%;
-          display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-          font-size: 18px;
-        }
+        .et-contact-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
         .et-contact-label { font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
         .et-contact-value { font-size: 15px; font-weight: 700; color: #e2e8f0; }
         .et-btn-retry {
@@ -527,16 +524,13 @@ document.addEventListener('DOMContentLoaded', () => {
           color: white; font-weight: 700; font-size: 15px;
           cursor: pointer; transition: all 0.2s;
           box-shadow: 0 4px 20px rgba(59,130,246,0.35);
-          margin-top: 20px; font-family: inherit;
-          letter-spacing: 0.2px;
+          margin-top: 20px; font-family: inherit; letter-spacing: 0.2px;
         }
         .et-btn-retry:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(59,130,246,0.45); }
-        .et-btn-retry:active { transform: translateY(0); }
       </style>
 
       <div id="_erroTotalCard">
         <div class="et-icon">😵</div>
-
         <div class="et-badge">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <circle cx="12" cy="12" r="10"></circle>
@@ -545,14 +539,12 @@ document.addEventListener('DOMContentLoaded', () => {
           </svg>
           Instabilidade detectada
         </div>
-
         <div class="et-title">Login temporariamente indisponível</div>
         <div class="et-desc">
-          Tentamos em todos os nossos servidores e nenhum respondeu.<br>
-          Isso é uma instabilidade temporária na Cloudflare — normalmente se resolve em minutos.<br><br>
-          <strong style="color:#94a3b8">Entre em contato com o desenvolvedor se o problema persistir:</strong>
+          Tentamos em todos os 5 servidores disponíveis<br>
+          (4 Cloudflare + 1 Render) e nenhum respondeu.<br><br>
+          <strong style="color:#94a3b8">Entre em contato com o desenvolvedor:</strong>
         </div>
-
         <div class="et-contact">
           <div class="et-contact-icon" style="background:rgba(96,165,250,0.1)">📞</div>
           <div>
@@ -560,7 +552,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="et-contact-value">302</div>
           </div>
         </div>
-
         <div class="et-contact">
           <div class="et-contact-icon" style="background:rgba(37,211,102,0.1)">💬</div>
           <div>
@@ -568,13 +559,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="et-contact-value">(88) 98856-8911</div>
           </div>
         </div>
-
         <button class="et-btn-retry" onclick="
           document.getElementById('_erroTotalPopup').remove();
           document.getElementById('loginBtn').classList.remove('loading');
-        ">
-          Tentar novamente
-        </button>
+        ">Tentar novamente</button>
       </div>
     `;
 
@@ -588,18 +576,16 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => errorAlert.classList.remove('show'), 5000);
   }
 
-  /* ===== FUNÇÃO: TOAST NOTIFICATION ===== */
+  /* ===== FUNÇÃO: TOAST ===== */
   function showToast(message, type = 'error', duration = 3000) {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-
     const icons = {
       success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>',
       error:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>',
       warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
     };
     const titles = { success: 'Sucesso', error: 'Erro', warning: 'Atenção' };
-
     toast.innerHTML = `
       <div class="toast-icon">${icons[type]}</div>
       <div class="toast-content">
@@ -615,22 +601,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }, duration);
   }
 
-  // Expõe globalmente para actions-log.js poder usar
   window.showToast = showToast;
 
-  /* ===== FUNÇÃO: POPUP "ESQUECI MINHA SENHA" ===== */
+  /* ===== FORGOT PASSWORD ===== */
   window.showForgotPassword = function () {
     if (document.getElementById('_mainForgotPopup')) return;
-
     const popup = document.createElement('div');
     popup.id = '_mainForgotPopup';
-    popup.style.cssText = `
-      position:fixed;inset:0;
-      background:rgba(0,0,0,0.55);
-      backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
-      z-index:9999;display:flex;align-items:center;justify-content:center;
-      padding:20px;animation:fpFadeIn 0.2s ease;
-    `;
+    popup.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;animation:fpFadeIn 0.2s ease;`;
     popup.innerHTML = `
       <style>
         @keyframes fpFadeIn{from{opacity:0}to{opacity:1}}
@@ -666,19 +644,12 @@ document.addEventListener('DOMContentLoaded', () => {
     popup.addEventListener('click', e => { if (e.target === popup) popup.remove(); });
   };
 
-  /* ===== FUNÇÃO: POPUP "PROBLEMAS AO EFETUAR LOGIN" ===== */
+  /* ===== LOGIN HELP ===== */
   window.showLoginHelp = function () {
     if (document.getElementById('_loginHelpPopup')) return;
-
     const popup = document.createElement('div');
     popup.id = '_loginHelpPopup';
-    popup.style.cssText = `
-      position:fixed;inset:0;
-      background:rgba(0,0,0,0.55);
-      backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
-      z-index:9999;display:flex;align-items:center;justify-content:center;
-      padding:20px;animation:lhFadeIn 0.2s ease;
-    `;
+    popup.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;animation:lhFadeIn 0.2s ease;`;
     popup.innerHTML = `
       <style>
         @keyframes lhFadeIn{from{opacity:0}to{opacity:1}}
@@ -689,19 +660,8 @@ document.addEventListener('DOMContentLoaded', () => {
         .lh-step-num{width:28px;height:28px;flex-shrink:0;border-radius:50%;background:linear-gradient(135deg,#003da5 0%,#3b82f6 100%);color:white;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px}
         .lh-step-title{font-size:13px;font-weight:700;color:#1e293b;margin-bottom:3px}
         .lh-step-desc{font-size:12px;color:#64748b;line-height:1.55}
-        .lh-step-tag{display:inline-block;margin-top:5px;padding:2px 8px;background:#dbeafe;color:#1d4ed8;border-radius:5px;font-size:11px;font-weight:600}
-        .lh-divider{border:none;border-top:1px solid #e2e8f0;margin:14px 0}
-        .lh-contact-row{display:flex;gap:8px;margin-top:4px}
-        .lh-contact-btn{flex:1;display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:10px;cursor:pointer;transition:all 0.2s;font-family:inherit;text-align:left}
-        .lh-contact-btn:hover{background:#dbeafe;border-color:#93c5fd}
-        .lh-contact-btn svg{width:16px;height:16px;flex-shrink:0}
-        .lh-contact-label{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.4px}
-        .lh-contact-val{font-size:13px;font-weight:700;color:#1e293b}
         .lh-close{width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,#003da5 0%,#3b82f6 100%);color:white;font-weight:600;font-size:15px;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 16px rgba(0,61,165,0.25);margin-top:14px;font-family:inherit}
         .lh-close:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,61,165,0.35)}
-        .lh-geo-tip{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:#fef9c3;border:1.5px solid #fde047;border-radius:10px;margin-top:6px}
-        .lh-geo-tip svg{width:16px;height:16px;flex-shrink:0;color:#a16207;margin-top:1px}
-        .lh-geo-tip span{font-size:12px;color:#713f12;line-height:1.5}
       </style>
       <div id="_loginHelpCard" style="background:#fff;border-radius:20px;max-width:420px;width:100%;box-shadow:0 25px 60px rgba(0,0,0,0.18);overflow:hidden;">
         <div style="overflow-y:auto;max-height:88vh;padding:32px 28px;box-sizing:border-box;">
@@ -714,42 +674,15 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div class="lh-step">
             <div class="lh-step-num">1</div>
-            <div>
-              <div class="lh-step-title">Usuário e Senha</div>
-              <div class="lh-step-desc">Digite o login e senha fornecidos pelo administrador. Atenção às letras maiúsculas e minúsculas.</div>
-              <span class="lh-step-tag">Exemplo: joaosilva / senha123</span>
-            </div>
+            <div><div class="lh-step-title">Usuário e Senha</div><div class="lh-step-desc">Digite o login e senha fornecidos pelo administrador.</div></div>
           </div>
           <div class="lh-step">
             <div class="lh-step-num">2</div>
-            <div>
-              <div class="lh-step-title">Autorização de Localização</div>
-              <div class="lh-step-desc">O navegador pedirá acesso à sua localização. Clique em <strong>"Permitir"</strong> quando aparecer.</div>
-              <div class="lh-geo-tip">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                <span>O aviso aparece no <strong>canto superior esquerdo</strong>, próximo à barra de endereço (ícone de cadeado 🔒).</span>
-              </div>
-            </div>
+            <div><div class="lh-step-title">Autorização de Localização</div><div class="lh-step-desc">Clique em <strong>"Permitir"</strong> quando o navegador pedir acesso à sua localização.</div></div>
           </div>
           <div class="lh-step">
             <div class="lh-step-num">3</div>
-            <div>
-              <div class="lh-step-title">Se pedir o CEP</div>
-              <div class="lh-step-desc">Caso a localização automática não funcione, informe seu CEP no formato <code style="background:#f1f5f9;padding:1px 5px;border-radius:4px;">00000-000</code>.</div>
-              <span class="lh-step-tag">Use o CEP da sua rua ou de um local conhecido da cidade</span>
-            </div>
-          </div>
-          <hr class="lh-divider">
-          <p style="font-size:12px;font-weight:700;color:#94a3b8;text-align:center;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;">Precisa de ajuda?</p>
-          <div class="lh-contact-row">
-            <div class="lh-contact-btn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#003da5" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.58 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-              <div><div class="lh-contact-label">Ramal</div><div class="lh-contact-val">302</div></div>
-            </div>
-            <div class="lh-contact-btn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-              <div><div class="lh-contact-label">WhatsApp</div><div class="lh-contact-val">(88) 98856-8911</div></div>
-            </div>
+            <div><div class="lh-step-title">Se pedir o CEP</div><div class="lh-step-desc">Informe seu CEP no formato <code style="background:#f1f5f9;padding:1px 5px;border-radius:4px;">00000-000</code>.</div></div>
           </div>
           <button class="lh-close" onclick="document.getElementById('_loginHelpPopup').remove()">Fechar</button>
         </div>
@@ -786,7 +719,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div>
             <div id="_locTitle">Autorize sua localização ↑</div>
-            <div id="_locSub">Clique em <strong style="color:#fff">"Permitir"</strong> no aviso acima, próximo à barra de endereço</div>
+            <div id="_locSub">Clique em <strong style="color:#fff">"Permitir"</strong> no aviso acima</div>
           </div>
         </div>
       `;
@@ -816,10 +749,9 @@ document.addEventListener('DOMContentLoaded', () => {
         <style>
           @keyframes locDeniedIn{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
           @keyframes locDeniedOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-20px)}}
-          @keyframes locDeniedShake{0%,100%{transform:translateX(0)}15%{transform:translateX(-5px)}35%{transform:translateX(5px)}55%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
-          @keyframes locDeniedPulse{0%,100%{box-shadow:0 8px 32px rgba(185,28,28,0.45),0 0 0 1px rgba(255,255,255,0.08)}50%{box-shadow:0 8px 44px rgba(220,38,38,0.7),0 0 0 2px rgba(255,120,120,0.2)}}
+          @keyframes locDeniedPulse{0%,100%{box-shadow:0 8px 32px rgba(185,28,28,0.45)}50%{box-shadow:0 8px 44px rgba(220,38,38,0.7)}}
           #_locDeniedInner{display:flex;align-items:center;gap:12px;padding:12px 18px;background:linear-gradient(135deg,#7f1d1d 0%,#b91c1c 100%);border-radius:14px;max-width:420px;animation:locDeniedIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275) forwards,locDeniedPulse 2s ease 0.6s infinite}
-          #_locDeniedIconWrap{width:36px;height:36px;background:rgba(0,0,0,0.22);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;animation:locDeniedShake 0.45s ease 0.5s}
+          #_locDeniedIconWrap{width:36px;height:36px;background:rgba(0,0,0,0.22);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
           #_locDeniedIconWrap svg{width:18px;height:18px}
           #_locDeniedTitle{font-size:13px;font-weight:700;color:#fff;margin-bottom:2px}
           #_locDeniedSub{font-size:12px;color:#fca5a5}
@@ -827,8 +759,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <div id="_locDeniedInner">
           <div id="_locDeniedIconWrap"><svg viewBox="0 0 24 24" fill="none" stroke="#fca5a5" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
           <div>
-            <div id="_locDeniedTitle">Localização bloqueada pelo navegador 🔒</div>
-            <div id="_locDeniedSub">Clique no <strong style="color:#fff">cadeado 🔒</strong> na barra de endereço para permitir — ou informe seu CEP abaixo</div>
+            <div id="_locDeniedTitle">Localização bloqueada 🔒</div>
+            <div id="_locDeniedSub">Clique no <strong style="color:#fff">cadeado 🔒</strong> para permitir — ou informe seu CEP abaixo</div>
           </div>
         </div>
       `;
@@ -840,23 +772,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  /* ===== PEGAR CIDADE VIA GEOLOCALIZAÇÃO ===== */
+  /* ===== PEGAR CIDADE ===== */
   async function pegarCidade(lat, lng) {
     try {
       const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
       const data = await resp.json();
       return (data.address.city || data.address.town || data.address.village || '').toLowerCase();
-    } catch {
-      return null;
-    }
+    } catch { return null; }
   }
 
   /* ===== PROCESSAR LOGIN ===== */
   async function processarLogin() {
     if (!currentUser || !currentPass) {
-      mostrarErro('Usuário ou senha não preenchidos');
-      showToast('Preencha todos os campos', 'warning');
-      return;
+      mostrarErro('Usuário ou senha não preenchidos'); showToast('Preencha todos os campos', 'warning'); return;
     }
 
     let attemptsData = JSON.parse(localStorage.getItem(`loginAttempts_${currentUser}`) || '{"count":0,"timeout":0}');
@@ -865,14 +793,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (attemptsData.timeout && now < attemptsData.timeout) {
       const remaining = Math.ceil((attemptsData.timeout - now) / 1000);
       mostrarErro(`Muitas tentativas. Aguarde ${remaining} segundos.`);
-      showToast(`Login bloqueado por ${remaining}s`, 'error');
-      return;
+      showToast(`Login bloqueado por ${remaining}s`, 'error'); return;
     }
 
     const actionType = isVisitante ? 'voucher' : 'login';
 
     try {
-      // Cria o overlay de progresso (substitui o overlayAuth padrão)
       criarOverlayWorker();
 
       const result = await fetchComFailover({
@@ -932,7 +858,6 @@ document.addEventListener('DOMContentLoaded', () => {
               setTimeout(() => { modalVoucher.classList.remove('show'); window.location.href = 'pages/selectsetor.html'; }, 500);
             }
           }, 200);
-
         } else {
           showToast('Login realizado com sucesso!', 'success', 2000);
           setTimeout(() => { window.location.href = 'pages/selectsetor.html'; }, 1000);
@@ -962,7 +887,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     } catch (error) {
       removerOverlayWorker();
-      // Se o erro for "todos indisponíveis", mostrarErroTotal já foi chamado dentro do fetchComFailover
       if (!document.getElementById('_erroTotalPopup')) {
         mostrarErro('Falha na conexão com o servidor');
         showToast('Erro de rede. Verifique sua conexão.', 'error');
@@ -972,21 +896,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  /* ===== VALIDAR GEOLOCALIZAÇÃO ===== */
+  /* ===== GEOLOCALIZAÇÃO ===== */
   async function validarGeolocalizacao() {
     try {
       if (!navigator.geolocation) throw { code: 4 };
-
       const pos = await new Promise((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 8000, enableHighAccuracy: true });
       });
-
       const cidade = await pegarCidade(pos.coords.latitude, pos.coords.longitude);
       if (!cidade) throw { code: 3 };
-
       localTentativa = cidade;
       return true;
-
     } catch (error) {
       let msg = 'Não foi possível validar sua localização.';
       if (error.code === 1) msg = 'Permissão de localização negada. Por favor, informe seu CEP.';
@@ -1002,7 +922,6 @@ document.addEventListener('DOMContentLoaded', () => {
   async function confirmarCEP() {
     const cep = cepInput.value.replace(/\D/g, '');
     if (cep.length !== 8) { showToast('CEP inválido. Digite 8 números.', 'warning'); cepInput.focus(); return; }
-
     try {
       cepConfirm.disabled = true;
       cepConfirm.style.opacity = '0.6';
@@ -1024,23 +943,19 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ===== LOGIN PRINCIPAL ===== */
   async function login(e) {
     e.preventDefault();
-
     currentUser = inputUser.value.trim().toLowerCase();
     currentPass = inputPass.value.trim();
 
     if (!currentUser || !currentPass) {
       mostrarErro('Preencha usuário e senha');
-      showToast('Todos os campos são obrigatórios', 'warning');
-      return;
+      showToast('Todos os campos são obrigatórios', 'warning'); return;
     }
 
     let attemptsData = JSON.parse(localStorage.getItem(`loginAttempts_${currentUser}`) || '{"count":0,"timeout":0}');
     const now = Date.now();
-
     if (attemptsData.timeout && now < attemptsData.timeout) {
       const remaining = Math.ceil((attemptsData.timeout - now) / 1000);
-      showToast(`Login bloqueado por ${remaining}s`, 'error');
-      return;
+      showToast(`Login bloqueado por ${remaining}s`, 'error'); return;
     }
 
     loginBtn.classList.add('loading');
@@ -1053,17 +968,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!geoOk && !isVisitante) {
       loginBtn.classList.remove('loading');
       await mostrarIndicadorPermissaoNegada();
-      modalCEP.classList.add('show');
-      cepInput.focus();
-      return;
+      modalCEP.classList.add('show'); cepInput.focus(); return;
     }
-
     if (isVisitante && !localTentativa) {
       loginBtn.classList.remove('loading');
       await mostrarIndicadorPermissaoNegada();
-      modalCEP.classList.add('show');
-      cepInput.focus();
-      return;
+      modalCEP.classList.add('show'); cepInput.focus(); return;
     }
 
     await processarLogin();
