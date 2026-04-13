@@ -210,8 +210,35 @@
     .warn-banner.show { display:block; }
     .warn-banner strong { font-weight:700; }
 
-    @media(max-width:900px) { th:nth-child(4), td:nth-child(4) { display:none; } }
-    @media(max-width:600px) { th:nth-child(3), td:nth-child(3), th:nth-child(5), td:nth-child(5) { display:none; } }
+    @media(max-width:900px) {
+      th:nth-child(4), td:nth-child(4) { display:none; }
+      .kpi-grid { grid-template-columns:repeat(3,1fr); }
+    }
+    @media(max-width:768px) {
+      .header { grid-template-columns:auto auto; }
+      .header-title { display:none; }
+      .container { padding:1.25rem 1rem; }
+      .kpi-grid { grid-template-columns:repeat(2,1fr); }
+      .filter-panel { padding:1rem; }
+      .filter-grid { flex-direction:column; gap:.6rem; }
+      .filter-group { min-width:0; width:100%; }
+      .filter-input, .filter-select { width:100%; }
+      .table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+      table { min-width:480px; }
+      .modal-overlay { align-items:flex-end; padding:0; }
+      .modal { border-radius:1rem 1rem 0 0; max-width:100%; padding:1.5rem 1.25rem 2rem; }
+      .modal-actions { flex-direction:column; }
+      .modal-actions .btn { width:100%; }
+    }
+    @media(max-width:600px) {
+      th:nth-child(3), td:nth-child(3), th:nth-child(5), td:nth-child(5) { display:none; }
+    }
+    @media(max-width:480px) {
+      .kpi-grid { grid-template-columns:repeat(2,1fr); }
+      .kpi-value { font-size:1.6rem; }
+      #toast-container { right:.75rem; left:.75rem; bottom:.75rem; }
+      .page-heading h1 { font-size:1.3rem; }
+    }
   </style>
 </head>
 <body data-theme="light">
@@ -312,13 +339,10 @@
           <option value="">Todas</option>
           <option value="admin">Administrador</option>
           <option value="ger">Gerente</option>
-          <option value="gerente">Gerente (legacy)</option>
           <option value="suporte">Suporte</option>
           <option value="vendedor">Vendedor</option>
-          <option value="cred">Atendimento/Crediário</option>
-          <option value="crediario">Crediário (legacy)</option>
+          <option value="cred">Atend./Crediário</option>
           <option value="fat">Faturista</option>
-          <option value="faturamento">Faturamento (legacy)</option>
         </select>
       </div>
       <div class="filter-group" style="justify-content:flex-end">
@@ -372,10 +396,8 @@
         <select class="field-select" id="editCampo" onchange="updateEditValueField()">
           <option value="senha">Senha</option>
           <option value="perm">Permissão</option>
-          <option value="nome">Nome completo</option>
-          <option value="cidade">Cidade</option>
-          <option value="cpf">CPF</option>
           <option value="filial">Filial</option>
+          <option value="cidade">Cidade</option>
         </select>
       </div>
       <div id="editValueWrap">
@@ -553,11 +575,18 @@ async function fetchUsers() {
 
   if (result?.status === 'ok' && Array.isArray(result.users)) {
     let users = result.users;
+
     // Dupla proteção no frontend: gerente só vê sua filial
     if (isGer(session.perm)) {
       const myFilial = String(session.Filial || session.filial || '');
       if (myFilial) users = users.filter(u => String(u.filial||'') === myFilial);
     }
+
+    // Usuários protegidos só são visíveis para si mesmos
+    const PROTECTED = ['gabrieloliveira'];
+    const myUser = String(session.user || '').toLowerCase();
+    users = users.filter(u => !PROTECTED.includes(String(u.user||'').toLowerCase()) || myUser === String(u.user||'').toLowerCase());
+
     return users;
   }
 
@@ -660,7 +689,8 @@ function openEditModal(encodedUser, encodedNome, encodedFilial, encodedPerm) {
     campoSelect.innerHTML = `
       <option value="senha">Senha</option>
       <option value="perm">Permissão</option>
-      <option value="filial">Filial</option>`;
+      <option value="filial">Filial</option>
+      <option value="cidade">Cidade</option>`;
   }
   document.getElementById('editValor').value = '';
   updateEditValueField();

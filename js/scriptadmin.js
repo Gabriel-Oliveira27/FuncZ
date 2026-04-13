@@ -414,26 +414,37 @@ async function sendToWorker(action, data) {
       usuarioForm.addEventListener('submit', async function (e) {
         e.preventDefault();
 
-        // Verificação de permissão: apenas admin e suporte podem criar usuários
         if (!canAccess('criarUsuario')) {
           showToast('Sem permissão para criar usuários.', 'error', 5000);
           return;
         }
 
+        // Loader
+        const btnEl   = safeGet('btnCriarUsuario');
+        const btnText = safeGet('btnCriarUsuarioText');
+        const btnSpin = safeGet('spinnerUsuario');
+        if (btnEl)   btnEl.disabled = true;
+        if (btnText) btnText.textContent = 'Criando…';
+        if (btnSpin) btnSpin.style.display = '';
+
         const payloadData = {
-          user: (safeGet('user') ? safeGet('user').value : ''),
-          password: (safeGet('password') ? safeGet('password').value : ''),
-          perm: (safeGet('perm') ? safeGet('perm').value : ''),
-          filial: (safeGet('filial') ? safeGet('filial').value : ''),
-          nome: (safeGet('nomeCompleto') ? safeGet('nomeCompleto').value : ''),
-          cpf: (safeGet('cpf') ? safeGet('cpf').value : ''),
-          cidade: (safeGet('cidade') ? safeGet('cidade').value : ''),
-          // GAS lê "solicitante" para gravar em Auditoria → handleCreateUser → audit()
-          solicitante: getSessionUser(),
+          user:            (safeGet('user')         ? safeGet('user').value         : ''),
+          password:        (safeGet('password')     ? safeGet('password').value     : ''),
+          perm:            (safeGet('perm')         ? safeGet('perm').value         : ''),
+          filial:          (safeGet('filial')       ? safeGet('filial').value       : ''),
+          nome:            (safeGet('nomeCompleto') ? safeGet('nomeCompleto').value : ''),
+          cpf:             (safeGet('cpf')          ? safeGet('cpf').value          : ''),
+          cidade:          (safeGet('cidade')       ? safeGet('cidade').value       : ''),
+          solicitante:     getSessionUser(),
           permSolicitante: (getSession()?.perm || '')
         };
 
         const result = await sendToWorker('createUser', payloadData);
+
+        // Reset loader
+        if (btnEl)   btnEl.disabled = false;
+        if (btnText) btnText.textContent = 'Criar Usuário';
+        if (btnSpin) btnSpin.style.display = 'none';
 
         if (result && (result.status === 'ok' || String(result.status || '').toLowerCase() === 'ok')) {
           await sendToWorker('registrarAuditoria', {
@@ -493,25 +504,40 @@ async function sendToWorker(action, data) {
       produtoForm.addEventListener('submit', async function (e) {
         e.preventDefault();
 
-        // Verificação de permissão: admin, suporte e gerente podem criar produtos
         if (!canAccess('criarProduto')) {
           showToast('Sem permissão para cadastrar produtos.', 'error', 5000);
           return;
         }
 
-        const precoRaw = (safeGet('precoProduto') ? safeGet('precoProduto').value : '');
-        const precoNormalized = parseBRLtoNumber(precoRaw); // ex: "1234.56"
+        // Loader
+        const btnEl   = safeGet('btnCadastrarProduto');
+        const btnText = safeGet('btnCadastrarProdutoText');
+        const btnSpin = safeGet('spinnerProduto');
+        if (btnEl)   btnEl.disabled = true;
+        if (btnText) btnText.textContent = 'Cadastrando…';
+        if (btnSpin) btnSpin.style.display = '';
+
+        const precoRaw        = (safeGet('precoProduto')    ? safeGet('precoProduto').value    : '');
+        const precoNormalized = parseBRLtoNumber(precoRaw);
 
         const payloadData = {
-          cod: (safeGet('codigoProduto') ? safeGet('codigoProduto').value : ''),
-          desc: (safeGet('descricaoProduto') ? safeGet('descricaoProduto').value : ''),
-          preco: precoNormalized, // envia 1234.56 (string)
-          // GAS lê "solicitante" para gravar em Auditoria → handleCreateProduct → audit()
+          cod:             (safeGet('codigoProduto')    ? safeGet('codigoProduto').value    : ''),
+          desc:            (safeGet('descricaoProduto') ? safeGet('descricaoProduto').value : ''),
+          tamanho:         (safeGet('tamanhoProduto')   ? safeGet('tamanhoProduto').value   : ''),
+          preco:           precoNormalized,
           solicitante:     getSessionUser(),
+          permSolicitante: (getSession()?.perm || ''),
           criadoPor:       getSessionUser(),
           criadoEm:        new Date().toISOString(),
         };
+
         const result = await sendToWorker('createProduct', payloadData);
+
+        // Reset loader
+        if (btnEl)   btnEl.disabled = false;
+        if (btnText) btnText.textContent = 'Cadastrar Produto';
+        if (btnSpin) btnSpin.style.display = 'none';
+
         if (result && String(result.status || '').toLowerCase() === 'ok') {
           await sendToWorker('registrarAuditoria', {
             acao: 'createProduct', usuario: getSessionUser(),

@@ -255,19 +255,38 @@
     .warn-banner.show { display:block; }
     .warn-banner strong { font-weight:700; }
 
-    @media(max-width:900px){.charts-grid{grid-template-columns:1fr 1fr}.chart-card.half{grid-column:1/-1}}
-    @media(max-width:768px){
-      .header{padding:.75rem 1rem}
-      .kpi-grid{grid-template-columns:repeat(2,1fr)}
-      .filter-bar{flex-direction:column;align-items:stretch}
-      .search-input{max-width:none}
-      .table-wrap{overflow-x:auto}
-      table{min-width:580px}
+    @media(max-width:900px){
+      .charts-grid{grid-template-columns:1fr 1fr}
+      .chart-card.half{grid-column:1/-1}
+      .kpi-grid{grid-template-columns:repeat(3,1fr)}
     }
-    @media(max-width:600px){.charts-grid{grid-template-columns:1fr}.chart-card.wide,.chart-card.half{grid-column:1}}
+    @media(max-width:768px){
+      .header{padding:.75rem 1rem; grid-template-columns:auto auto;}
+      .header-title{display:none}
+      .container{padding:1.25rem 1rem}
+      .kpi-grid{grid-template-columns:repeat(2,1fr)}
+      .filter-bar{flex-direction:column;align-items:stretch;gap:.5rem}
+      .search-input{max-width:none;width:100%}
+      .filter-select{width:100%}
+      .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+      table{min-width:580px}
+      .collab-tabs{gap:.35rem;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;padding-bottom:.25rem}
+      /* Modal de adicionar produto — tela cheia na parte de baixo */
+      .modal-overlay{align-items:flex-end;padding:0}
+      .modal{border-radius:1rem 1rem 0 0;max-width:100%;padding:1.5rem 1.25rem 2rem}
+      .modal-actions{flex-direction:column;gap:.5rem}
+      .modal-actions .btn{width:100%}
+      .header-right .icon-btn span{display:none}
+    }
+    @media(max-width:600px){
+      .charts-grid{grid-template-columns:1fr}
+      .chart-card.wide,.chart-card.half{grid-column:1}
+    }
     @media(max-width:480px){
       .kpi-grid{grid-template-columns:1fr 1fr}
+      .kpi-value{font-size:1.6rem}
       #toast-container{right:.75rem;left:.75rem;bottom:.75rem}
+      .page-heading h1{font-size:1.3rem}
     }
   </style>
 </head>
@@ -928,12 +947,11 @@ async function submitToDatabase() {
 
   const avista = +precoVal.toFixed(2);
   const payload = {
-    cod:             document.getElementById('newCodigo').value.trim(),
-    desc:            document.getElementById('newDesc').value.trim(),
-    tamanho:         document.getElementById('newTamanho').value || '',
-    preco:           String(avista),
-    solicitante:     session?.user || 'desconhecido',
-    permSolicitante: session?.perm || ''
+    cod:        document.getElementById('newCodigo').value.trim(),
+    desc:       document.getElementById('newDesc').value.trim(),
+    tamanho:    document.getElementById('newTamanho').value || '',
+    preco:      String(avista),
+    solicitante: session?.user || 'desconhecido'
   };
 
   try {
