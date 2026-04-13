@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'https://conexao-fallback-1.gab-oliveirab27.workers.dev',   // Cloudflare 2
     'https://conexao-fallback-2.gab-oliveirab27.workers.dev',   // Cloudflare 3
     'https://conexao-fallback-3.gab-oliveirab27.workers.dev',   // Cloudflare 4
-    'https://proxy-worker-python.onrender.com',                 // ← Render Python (5º fallback)
+    'https://pythonlogin-hj3g.onrender.com',                 // ← Render Python (5º fallback)
   ];
 
   // Timeout individual por worker (ms)
