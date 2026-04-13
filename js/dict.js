@@ -33,7 +33,7 @@ const DICIONARIO_NATIVO = {
    */
   marcas: [
     'Zeflex', 'Ortolar', 'Henn', 'Samsung', 'LG', 'Philips', 'Sony', 'Dell', 'Lenovo', 'Asus',
-    'Brastemp', 'Consul', 'Midea', 'Springer', 'Electrolux', 
+    'Brastemp', 'Consul', 'Midea', 'Springer', 'Electrolux',  'TCL', 'Xiaomi', 'Multilaser', 'AOC', 'Acer', 'Avelan',
   ],
 
   /**

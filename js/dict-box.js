@@ -648,6 +648,32 @@ document.addEventListener('DOMContentLoaded', function() {
     }, false);
   }
 
+  // ── FIX capitalização: aplica o modo escolhido (CAIXA ALTA / Primeira Letra)
+  //    ao produto já armazenado em products[], APÓS dict.js ter rodado com _titleCase.
+  //    Usa capture para salvar o comprimento antes, bubble para corrigir depois.
+  if (form) {
+    var _capLenAntes = -1;
+
+    form.addEventListener('submit', function() {
+      if (typeof products !== 'undefined') _capLenAntes = products.length;
+    }, true); // capture — roda antes do handler original
+
+    form.addEventListener('submit', function() {
+      if (typeof products === 'undefined') return;
+      if (products.length <= _capLenAntes) return; // validação falhou, nada adicionado
+
+      var last = products[products.length - 1];
+      if (!last) return;
+
+      last.descricao    = _db_capitalizar(last.descricao    || '');
+      last.subdescricao = _db_capitalizar(last.subdescricao || '');
+      last.features     = (last.features || []).map(function(f) { return _db_capitalizar(f); });
+
+      if (typeof salvarCartazesLocalStorage === 'function') salvarCartazesLocalStorage();
+      if (typeof renderProducts            === 'function') renderProducts();
+    }, false); // bubble — roda após dict.js ter aplicado _titleCase
+  }
+
   // Verificar ao restaurar produtos do localStorage
   setTimeout(function() {
     if (typeof products !== 'undefined' && products.length >= 2) {

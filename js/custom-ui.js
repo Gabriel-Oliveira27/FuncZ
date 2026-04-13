@@ -53,6 +53,18 @@ var BOTOES_CONFIG = [
     titulo: 'Manual do Sistema',
   },
 
+  // ── Feedbacks — header à direita, abre nova aba ──────────────────────────
+  {
+    id:     'cui-feedbacks',
+    label:  'Feedbacks',
+    icon:   'fa-solid fa-comment-dots',
+    estilo: 'ghost',
+    posicao:'header-direita',
+    acao:   'link',
+    href:   '../feedbacks/feedback.html',
+    titulo: 'Enviar feedback',
+  },
+
   // ── Toggle de tema claro/escuro — header à direita, ao lado da Ajuda ──────
   {
     id:     'cui-tema-toggle',
@@ -1131,6 +1143,8 @@ function _cuiCriarBotao(cfg) {
       _cuiToggleTema(btn);
     } else if (cfg.acao === 'manual-ajuda') {
       _cuiAbrirManual(cfg.src, cfg.titulo);
+    } else if (cfg.acao === 'link') {
+      window.open(cfg.href || cfg.src, '_blank');
     } else {
       _cuiAbrirImagem(cfg.src, cfg.titulo);
     }
