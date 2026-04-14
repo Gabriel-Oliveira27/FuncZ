@@ -513,9 +513,13 @@
 
 <script>
 /* ══════════════════════════════════════════
-   CONFIG
+   CONFIG — Fallback
 ══════════════════════════════════════════ */
-const WORKER_URL = 'https://conexao-fallback-3.gab-oliveirab27.workers.dev/';
+const PRIMARY_URL   = 'https://conexao-fallback-3.gab-oliveirab27.workers.dev/';
+const FALLBACK_URL  = 'https://pythonlogin-hj3g.onrender.com';
+const PRIMARY_TIMEOUT_MS   = 8000;
+const FALLBACK_TIMEOUT_MS  = 15000;
+const FALLBACK_MAX_RETRIES = 3;
 // URL do deploy GAS (doGet público — substitua pelo seu link de publicação)
 const GAS_DOGET_URL = 'https://script.google.com/macros/s/AKfycbyVuNZ-eTga_e-_FSTtsVrXvbhoJ3E7qg6-hewH8ldU_E2z_Klsz8jC10bcjPIXilyO/exec';
 /* ══════════════════════════════════════════
@@ -954,27 +958,17 @@ async function submitToDatabase() {
     solicitante: session?.user || 'desconhecido'
   };
 
-  try {
-    const resp = await fetch(WORKER_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'createProduct', ...payload })
-    });
-    const result = await resp.json();
-    if(result?.status === 'ok') {
-      showToast(`Produto "${payload.desc}" salvo no Banco de Dados!`, 'success');
-      closeAddModal();
-      init();
-    } else {
-      showToast(result?.message || 'Erro ao salvar no Banco de Dados.', 'error');
-    }
-  } catch(err) {
-    showToast('Erro de comunicação com o servidor.', 'error');
-  } finally {
-    btn.disabled = false;
-    btnText.style.display = '';
-    spinner.style.display = 'none';
+  const result = await workerPost('createProduct', payload);
+  if(result?.status === 'ok') {
+    showToast(`Produto "${payload.desc}" salvo no Banco de Dados!`, 'success');
+    closeAddModal();
+    init();
+  } else {
+    showToast(result?.message || 'Erro ao salvar no Banco de Dados.', 'error');
   }
+  btn.disabled = false;
+  btnText.style.display = '';
+  spinner.style.display = 'none';
 }
 
 /* ══════════════════════════════════════════
@@ -1047,23 +1041,68 @@ async function init(){
 }
 document.getElementById('refreshBtn').addEventListener('click',init);
 
+/* ── fetchWithTimeout + dismissToast + workerPost (com fallback) ── */
+async function fetchWithTimeout(url, bodyText, timeoutMs) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const resp = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:bodyText, signal:ctrl.signal });
+    clearTimeout(timer);
+    return JSON.parse(await resp.text());
+  } catch(err) { clearTimeout(timer); throw err; }
+}
+function dismissToast(el) {
+  if (!el) return;
+  el.style.opacity = '0'; el.style.transform = 'translateX(10px)';
+  setTimeout(() => el.remove(), 220);
+}
+async function workerPost(action, data={}) {
+  const bodyText = JSON.stringify({ action, ...data });
+  try { return await fetchWithTimeout(PRIMARY_URL, bodyText, PRIMARY_TIMEOUT_MS); } catch(_) {}
+  let st = showToast('Servidor principal indisponível — conectando ao servidor alternativo…','loading',0);
+  for (let i = 1; i <= FALLBACK_MAX_RETRIES; i++) {
+    if (i > 1) {
+      const m = st.querySelector('span:last-child');
+      if (m) m.textContent = `Aguardando resposta… tentativa ${i} de ${FALLBACK_MAX_RETRIES}`;
+      await new Promise(r => setTimeout(r, 2000*(i-1)));
+    }
+    try {
+      const res = await fetchWithTimeout(FALLBACK_URL, bodyText, FALLBACK_TIMEOUT_MS);
+      dismissToast(st);
+      if (i > 1) showToast('Conectado ao servidor alternativo!','success',3500);
+      return res;
+    } catch(_) {
+      if (i === FALLBACK_MAX_RETRIES) {
+        dismissToast(st);
+        showToast('Nenhum servidor respondeu. Verifique sua conexão e tente novamente.','error',7000);
+        return { status:'error', message:'Servidores temporariamente indisponíveis.' };
+      }
+    }
+  }
+  return { status:'error', message:'Servidores temporariamente indisponíveis.' };
+}
+
 const _PTI={
   success:'<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
   error:  '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
   info:   '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+  loading:'<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="animation:toastSpin .8s linear infinite;transform-origin:center"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>',
 };
-function showToast(msg,type='info'){
+function showToast(msg, type='info', duration=3000) {
+  const cols={success:'#16a34a',error:'#dc2626',info:'#2563eb',loading:'#7c3aed'};
+  const bgs ={success:'#f0fdf4',error:'#fef2f2',info:'#eff6ff',loading:'#f5f3ff'};
+  if(!document.getElementById('_ptk')){
+    const s=document.createElement('style');s.id='_ptk';
+    s.textContent='@keyframes toastSlideIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}@keyframes toastSpin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(s);
+  }
   const c=document.getElementById('toast-container');
   const t=document.createElement('div');
-  t.className=`toast ${type}`;
-  t.style.cssText='display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:8px;border-left:3px solid;box-shadow:0 4px 16px rgba(0,0,0,.1);min-width:240px;max-width:320px;pointer-events:all;animation:toastSlideIn .25s ease';
-  const cols={success:'#16a34a',error:'#dc2626',info:'#2563eb'};
-  const bgs={success:'#f0fdf4',error:'#fef2f2',info:'#eff6ff'};
-  t.style.borderColor=cols[type]||cols.info;t.style.background=bgs[type]||bgs.info;
-  t.innerHTML=`<span style="color:${cols[type]||cols.info};flex-shrink:0;margin-top:1px;display:flex">${_PTI[type]||_PTI.info}</span><span style="font-size:.84rem;color:#1e293b;line-height:1.4">${msg}</span>`;
-  if(!document.getElementById('_ptk')){const s=document.createElement('style');s.id='_ptk';s.textContent='@keyframes toastSlideIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}';document.head.appendChild(s);}
+  t.style.cssText=`display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:9px;border-left:3px solid ${cols[type]||cols.info};background:${bgs[type]||bgs.info};box-shadow:0 4px 20px rgba(0,0,0,.12);min-width:270px;max-width:360px;pointer-events:all;animation:toastSlideIn .25s ease;transition:opacity .2s,transform .2s`;
+  t.innerHTML=`<span style="color:${cols[type]||cols.info};flex-shrink:0;margin-top:1px;display:flex">${_PTI[type]||_PTI.info}</span><span style="font-size:.84rem;color:#1e293b;line-height:1.45;flex:1">${msg}</span>`;
   c.appendChild(t);
-  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(8px)';t.style.transition='all .2s';setTimeout(()=>t.remove(),220);},3000);
+  if (duration > 0) setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(10px)';setTimeout(()=>t.remove(),220);}, duration);
+  return t;
 }
 
 init();

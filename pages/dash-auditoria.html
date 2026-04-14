@@ -295,6 +295,43 @@
     </div>
   </div>
 
+  <!-- Gráfico de logins por hora -->
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;box-shadow:var(--shadow);margin-bottom:2rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:.5rem">
+      <div style="font-size:.85rem;font-weight:700;display:flex;align-items:center;gap:.5rem">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--blue)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Logins por Hora do Dia
+        <span style="font-size:.68rem;background:var(--blue-dim);color:var(--blue);border-radius:50px;padding:.15rem .5rem;font-weight:600" id="loginChartBadge">—</span>
+      </div>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+        <select id="loginChartFilter" style="background:var(--bg-input);border:1.5px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.32rem .6rem;font-size:.76rem;cursor:pointer">
+          <option value="all">Todos os dias</option>
+          <option value="today">Hoje</option>
+          <option value="7d">Últimos 7 dias</option>
+          <option value="30d">Últimos 30 dias</option>
+        </select>
+        <select id="loginUserFilter" style="background:var(--bg-input);border:1.5px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.32rem .6rem;font-size:.76rem;cursor:pointer">
+          <option value="">Todos os usuários</option>
+        </select>
+      </div>
+    </div>
+    <canvas id="chartLoginHora" style="max-height:220px"></canvas>
+    <div style="display:flex;justify-content:center;gap:1.5rem;margin-top:.85rem;flex-wrap:wrap" id="loginHoraStats">
+      <div style="text-align:center">
+        <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Hora de pico</div>
+        <div style="font-size:1.1rem;font-weight:800;color:var(--blue)" id="peakHour">—</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Total logins</div>
+        <div style="font-size:1.1rem;font-weight:800;color:var(--green)" id="totalLogins">—</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Média/hora ativa</div>
+        <div style="font-size:1.1rem;font-weight:800;color:var(--amber)" id="avgLogins">—</div>
+      </div>
+    </div>
+  </div>
+
   <!-- TABS -->
   <div class="tab-bar">
     <button class="tab-btn active" onclick="switchTab('auditoria',this)">
@@ -310,7 +347,7 @@
   <!-- ─────── TAB AUDITORIA ─────── -->
   <div class="tab-panel active" id="tabAuditoria">
     <div class="filter-bar">
-      <input class="search-input" type="text" id="searchAudit" placeholder="Filtrar por usuário ou ação...">
+      <input class="search-input" type="text" id="searchAudit" placeholder="Filtrar por usuário, ação ou detalhe…">
       <select class="filter-select" id="filterAcao">
         <option value="">Todas as ações</option>
         <option value="login">Login</option>
@@ -319,6 +356,12 @@
         <option value="getUsers">Consultar usuários</option>
         <option value="updateUser">Editar usuário</option>
         <option value="getLogs">Consultar logs</option>
+      </select>
+      <select class="filter-select" id="filterAuditData">
+        <option value="">Qualquer data</option>
+        <option value="today">Hoje</option>
+        <option value="7d">Últimos 7 dias</option>
+        <option value="30d">Últimos 30 dias</option>
       </select>
     </div>
 
@@ -333,11 +376,12 @@
             <th>#</th>
             <th>Usuário</th>
             <th>Ação</th>
+            <th>Detalhe</th>
             <th>Data / Hora</th>
           </tr>
         </thead>
         <tbody id="auditBody">
-          <tr><td colspan="4"><div class="state-box"><div class="spinner-ring"></div><p>Carregando...</p></div></td></tr>
+          <tr><td colspan="5"><div class="state-box"><div class="spinner-ring"></div><p>Carregando...</p></div></td></tr>
         </tbody>
       </table>
     </div>
@@ -354,6 +398,12 @@
         <option value="local-nao-permitido">Local não permitido</option>
         <option value="usuarionaoexiste">Usuário não existe</option>
         <option value="acesso-negado">Acesso negado</option>
+      </select>
+      <select class="filter-select" id="filterErroData">
+        <option value="">Qualquer data</option>
+        <option value="today">Hoje</option>
+        <option value="7d">Últimos 7 dias</option>
+        <option value="30d">Últimos 30 dias</option>
       </select>
     </div>
 
@@ -386,7 +436,11 @@
 /* ══════════════════════════════════════════
    CONFIG
 ══════════════════════════════════════════ */
-const WORKER_URL = 'https://conexao-fallback-3.gab-oliveirab27.workers.dev/';
+const PRIMARY_URL   = 'https://conexao-fallback-3.gab-oliveirab27.workers.dev/';
+const FALLBACK_URL  = 'https://pythonlogin-hj3g.onrender.com';
+const PRIMARY_TIMEOUT_MS   = 8000;
+const FALLBACK_TIMEOUT_MS  = 15000;
+const FALLBACK_MAX_RETRIES = 3;
 const PAGE_SIZE  = 20;
 
 /* ══════════════════════════════════════════
@@ -430,20 +484,50 @@ document.getElementById('themeToggle').addEventListener('click',()=>{
 });
 
 /* ══════════════════════════════════════════
-   WORKER POST
+   WORKER POST — com fallback automático
 ══════════════════════════════════════════ */
-async function workerPost(action, data={}) {
+async function fetchWithTimeout(url, bodyText, timeoutMs) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    const resp = await fetch(WORKER_URL,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action,...data})
-    });
-    const text = await resp.text();
-    return JSON.parse(text);
-  } catch(err) {
-    return { status:'error', message:err.message };
+    const resp = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:bodyText, signal:ctrl.signal });
+    clearTimeout(timer);
+    return JSON.parse(await resp.text());
+  } catch(err) { clearTimeout(timer); throw err; }
+}
+
+function dismissToast(el) {
+  if (!el) return;
+  el.style.opacity = '0'; el.style.transform = 'translateX(10px)';
+  setTimeout(() => el.remove(), 220);
+}
+
+async function workerPost(action, data={}) {
+  const bodyText = JSON.stringify({ action, ...data });
+  // 1. Primário
+  try { return await fetchWithTimeout(PRIMARY_URL, bodyText, PRIMARY_TIMEOUT_MS); } catch(_) {}
+  // 2. Fallback com retries
+  let st = showToast('Servidor principal indisponível — conectando ao servidor alternativo…','loading',0);
+  for (let i = 1; i <= FALLBACK_MAX_RETRIES; i++) {
+    if (i > 1) {
+      const m = st.querySelector('span:last-child');
+      if (m) m.textContent = `Aguardando resposta… tentativa ${i} de ${FALLBACK_MAX_RETRIES}`;
+      await new Promise(r => setTimeout(r, 2000 * (i-1)));
+    }
+    try {
+      const res = await fetchWithTimeout(FALLBACK_URL, bodyText, FALLBACK_TIMEOUT_MS);
+      dismissToast(st);
+      if (i > 1) showToast('Conectado ao servidor alternativo!','success',3500);
+      return res;
+    } catch(_) {
+      if (i === FALLBACK_MAX_RETRIES) {
+        dismissToast(st);
+        showToast('Nenhum servidor respondeu. Verifique sua conexão e tente novamente.','error',7000);
+        return { status:'error', message:'Servidores temporariamente indisponíveis.' };
+      }
+    }
   }
+  return { status:'error', message:'Servidores temporariamente indisponíveis.' };
 }
 
 /* ══════════════════════════════════════════
@@ -525,26 +609,25 @@ function renderKPIs(audit, erros) {
   document.getElementById('kpiLocal').textContent  = erros.filter(r=>String(r.motivo||'').toLowerCase().includes('local')).length;
 }
 
-/* ══════════════════════════════════════════
-   RENDER AUDITORIA
-══════════════════════════════════════════ */
 function renderAudit(data) {
   const body = document.getElementById('auditBody');
   document.getElementById('auditCount').textContent = `${data.length} registro${data.length!==1?'s':''}`;
   if (!data.length) {
-    body.innerHTML=`<tr><td colspan="4"><div class="state-box"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:36px;height:36px;color:var(--dim)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><p>Nenhum registro encontrado.</p></div></td></tr>`;
+    body.innerHTML=`<tr><td colspan="5"><div class="state-box"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:36px;height:36px;color:var(--dim)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><p>Nenhum registro encontrado.</p></div></td></tr>`;
     document.getElementById('auditPagination').innerHTML='';
     return;
   }
   const start=(auditPage-1)*PAGE_SIZE, end=start+PAGE_SIZE;
-  body.innerHTML = data.slice(start,end).map((r,i)=>`
-    <tr>
+  body.innerHTML = data.slice(start,end).map((r,i)=>{
+    const det = r.detalhe || '';
+    return `<tr>
       <td style="color:var(--dim);font-size:.75rem">${start+i+1}</td>
       <td><code style="font-size:.82rem;background:var(--bg-input);padding:.1rem .4rem;border-radius:.3rem">${r.usuario||'—'}</code></td>
       <td>${actionBadge(r.acao)}</td>
+      <td style="font-size:.78rem;color:var(--muted);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${det}">${det||'—'}</td>
       <td class="ts-text">${fmtDate(r.timestamp)}</td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
   renderPagination('audit', data.length);
 }
 
@@ -597,18 +680,29 @@ function goPage(type, n) {
 function applyAuditFilter() {
   const search = document.getElementById('searchAudit').value.toLowerCase();
   const acao   = document.getElementById('filterAcao').value.toLowerCase();
+  const range  = document.getElementById('filterAuditData').value;
+  const now    = new Date();
   auditFiltered = auditAll.filter(r => {
     if (search) {
       if (!String(r.usuario||'').toLowerCase().includes(search) &&
-          !String(r.acao||'').toLowerCase().includes(search)) return false;
+          !String(r.acao||'').toLowerCase().includes(search) &&
+          !String(r.detalhe||'').toLowerCase().includes(search)) return false;
     }
     if (acao && !String(r.acao||'').toLowerCase().startsWith(acao.toLowerCase())) return false;
+    if (range === 'today') {
+      const d = now.toISOString().slice(0,10);
+      if (!String(r.timestamp||'').startsWith(d)) return false;
+    } else if (range === '7d') {
+      if (!r.timestamp || new Date(r.timestamp) < new Date(now - 7*24*60*60*1000)) return false;
+    } else if (range === '30d') {
+      if (!r.timestamp || new Date(r.timestamp) < new Date(now - 30*24*60*60*1000)) return false;
+    }
     return true;
   });
   auditPage=1;
   renderAudit(auditFiltered);
 }
-['searchAudit','filterAcao'].forEach(id=>{
+['searchAudit','filterAcao','filterAuditData'].forEach(id=>{
   const el=document.getElementById(id);
   if(el){ el.addEventListener('input',applyAuditFilter); el.addEventListener('change',applyAuditFilter); }
 });
@@ -619,6 +713,8 @@ function applyAuditFilter() {
 function applyErroFilter() {
   const search  = document.getElementById('searchErro').value.toLowerCase();
   const motivo  = document.getElementById('filterMotivo').value.toLowerCase();
+  const range   = document.getElementById('filterErroData').value;
+  const now     = new Date();
   erroFiltered = erroAll.filter(r => {
     if (search) {
       if (!String(r.usuario||'').toLowerCase().includes(search) &&
@@ -626,12 +722,20 @@ function applyErroFilter() {
           !String(r.local||'').toLowerCase().includes(search)) return false;
     }
     if (motivo && !String(r.motivo||'').toLowerCase().includes(motivo)) return false;
+    if (range === 'today') {
+      const d = now.toISOString().slice(0,10);
+      if (!String(r.timestamp||'').startsWith(d)) return false;
+    } else if (range === '7d') {
+      if (!r.timestamp || new Date(r.timestamp) < new Date(now - 7*24*60*60*1000)) return false;
+    } else if (range === '30d') {
+      if (!r.timestamp || new Date(r.timestamp) < new Date(now - 30*24*60*60*1000)) return false;
+    }
     return true;
   });
   erroPage=1;
   renderErros(erroFiltered);
 }
-['searchErro','filterMotivo'].forEach(id=>{
+['searchErro','filterMotivo','filterErroData'].forEach(id=>{
   const el=document.getElementById(id);
   if(el){ el.addEventListener('input',applyErroFilter); el.addEventListener('change',applyErroFilter); }
 });
@@ -681,6 +785,7 @@ async function init() {
 
   renderKPIs(auditAll, erroAll);
   buildCharts(auditAll, erroAll);
+  buildLoginHoraChart(auditAll);
   renderAudit(auditFiltered);
   renderErros(erroFiltered);
 
@@ -702,10 +807,12 @@ function showToast(msg, type='info') {
 /* ══════════════════════════════════════
    CHARTS DONUT
 ══════════════════════════════════════ */
-let _cA=null,_cE=null;
-function _gc(){const d=document.body.getAttribute('data-theme')==='dark';return{text:d?'#94a3b8':'#64748b'};}
-function buildCharts(audit,erros){
+let _cA=null,_cE=null,_cL=null;
+function _gc(){const d=document.body.getAttribute('data-theme')==='dark';return{text:d?'#94a3b8':'#64748b',grid:d?'rgba(255,255,255,.06)':'rgba(0,0,0,.06)'};}
+
+function buildCharts(audit, erros){
   const c=_gc();
+  // ── Donut ações ──
   const ac={};
   audit.forEach(r=>{
     const a=String(r.acao||'outro').toLowerCase();
@@ -724,6 +831,8 @@ function buildCharts(audit,erros){
       backgroundColor:['#2563eb','#16a34a','#d97706','#7c3aed','#0d9488','#64748b'],
       borderWidth:2,borderColor:'transparent'}]},
     options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:c.text,padding:10,font:{size:11}}}}}});
+
+  // ── Donut erros ──
   const ec={};
   erros.forEach(r=>{
     const m=String(r.motivo||'outro').toLowerCase();
@@ -743,18 +852,138 @@ function buildCharts(audit,erros){
     options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:c.text,padding:10,font:{size:11}}}}}});
 }
 
+/* ══════════════════════════════════════════
+   CHART — LOGINS POR HORA
+══════════════════════════════════════════ */
+function buildLoginHoraChart(audit) {
+  const rangeVal  = document.getElementById('loginChartFilter')?.value  || 'all';
+  const userFilter = document.getElementById('loginUserFilter')?.value  || '';
+
+  // Preenche select de usuários (logins únicos)
+  const usersEl = document.getElementById('loginUserFilter');
+  if (usersEl) {
+    const loginUsers = [...new Set(
+      audit.filter(r=>String(r.acao||'').toLowerCase().startsWith('login'))
+           .map(r=>r.usuario||'')
+           .filter(Boolean)
+    )].sort();
+    const cur = usersEl.value;
+    usersEl.innerHTML = '<option value="">Todos os usuários</option>' +
+      loginUsers.map(u=>`<option value="${u}"${u===cur?' selected':''}>${u}</option>`).join('');
+  }
+
+  // Filtra logins
+  const now = new Date();
+  let logins = audit.filter(r => String(r.acao||'').toLowerCase().startsWith('login'));
+  if (userFilter) logins = logins.filter(r => (r.usuario||'') === userFilter);
+  if (rangeVal === 'today') {
+    const d = now.toISOString().slice(0,10);
+    logins = logins.filter(r => (r.timestamp||'').startsWith(d));
+  } else if (rangeVal === '7d') {
+    const cutoff = new Date(now - 7*24*60*60*1000);
+    logins = logins.filter(r => r.timestamp && new Date(r.timestamp) >= cutoff);
+  } else if (rangeVal === '30d') {
+    const cutoff = new Date(now - 30*24*60*60*1000);
+    logins = logins.filter(r => r.timestamp && new Date(r.timestamp) >= cutoff);
+  }
+
+  // Agrupa por hora
+  const byHour = Array(24).fill(0);
+  logins.forEach(r => {
+    try { const h = new Date(r.timestamp).getHours(); if(h>=0&&h<24) byHour[h]++; } catch{}
+  });
+
+  const labels = Array.from({length:24}, (_,i)=>`${String(i).padStart(2,'0')}h`);
+  const maxH = byHour.indexOf(Math.max(...byHour));
+  const total = logins.length;
+  const activeHours = byHour.filter(v=>v>0).length;
+
+  // Stats
+  document.getElementById('peakHour').textContent  = total > 0 ? `${String(maxH).padStart(2,'0')}h` : '—';
+  document.getElementById('totalLogins').textContent = total;
+  document.getElementById('avgLogins').textContent  = activeHours > 0 ? (total/activeHours).toFixed(1) : '—';
+  const badgeEl = document.getElementById('loginChartBadge');
+  if (badgeEl) badgeEl.textContent = total + ' login' + (total!==1?'s':'');
+
+  // Cores por horário: madrugada=roxo, manhã=verde, tarde=azul, noite=âmbar
+  const colors = byHour.map((_, i) =>
+    i < 6  ? 'rgba(124,58,237,.7)'  :
+    i < 12 ? 'rgba(22,163,74,.75)'  :
+    i < 18 ? 'rgba(37,99,235,.75)'  :
+             'rgba(217,119,6,.75)'
+  );
+  const borderColors = byHour.map((_, i) =>
+    i < 6  ? '#7c3aed' : i < 12 ? '#16a34a' : i < 18 ? '#2563eb' : '#d97706'
+  );
+
+  const c = _gc();
+  if (_cL) _cL.destroy();
+  _cL = new Chart(document.getElementById('chartLoginHora'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Logins',
+        data: byHour,
+        backgroundColor: colors,
+        borderColor: borderColors,
+        borderWidth: 1.5,
+        borderRadius: 5,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: items => `${items[0].label} — ${items[0].raw} login${items[0].raw!==1?'s':''}`,
+            label: () => ''
+          }
+        }
+      },
+      scales: {
+        x: { grid:{color:c.grid}, ticks:{color:c.text, font:{size:11}} },
+        y: { grid:{color:c.grid}, ticks:{color:c.text, stepSize:1}, beginAtZero:true }
+      }
+    }
+  });
+}
+
+// Listeners dos filtros do gráfico de login
+['loginChartFilter','loginUserFilter'].forEach(id => {
+  document.getElementById(id)?.addEventListener('change', () => buildLoginHoraChart(auditAll));
+});
+
 const _TI={
   success:'<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
   error:  '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
   info:   '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+  loading:'<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="animation:toastSpin .8s linear infinite;transform-origin:center"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>',
 };
-function showToast(msg,type='info'){
-  const c=document.getElementById('toast-container');
-  const t=document.createElement('div');
-  t.className=`toast ${type}`;
-  t.innerHTML=`${_TI[type]||_TI.info}<span class="toast-msg">${msg}</span>`;
+const _TC={
+  success:{border:'#16a34a',bg:'#f0fdf4',icon:'#16a34a'},
+  error:  {border:'#dc2626',bg:'#fef2f2',icon:'#dc2626'},
+  info:   {border:'#2563eb',bg:'#eff6ff',icon:'#2563eb'},
+  loading:{border:'#7c3aed',bg:'#f5f3ff',icon:'#7c3aed'},
+};
+function showToast(msg, type='info', duration=4000) {
+  if (!document.getElementById('_atkStyle')) {
+    const s = document.createElement('style'); s.id='_atkStyle';
+    s.textContent='@keyframes toastSlideIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}@keyframes toastSpin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(s);
+  }
+  const c = document.getElementById('toast-container');
+  const cols = _TC[type]||_TC.info;
+  const t = document.createElement('div');
+  Object.assign(t.style,{display:'flex',alignItems:'flex-start',gap:'10px',padding:'12px 14px',borderRadius:'9px',
+    background:cols.bg,borderLeft:'3px solid '+cols.border,boxShadow:'0 4px 20px rgba(0,0,0,.12)',
+    minWidth:'270px',maxWidth:'360px',pointerEvents:'all',animation:'toastSlideIn .25s ease',transition:'opacity .2s,transform .2s'});
+  t.innerHTML=`<span style="color:${cols.icon};flex-shrink:0;margin-top:1px;display:flex">${_TI[type]||_TI.info}</span><span style="font-size:.84rem;color:#1e293b;line-height:1.45;flex:1">${msg}</span>`;
   c.appendChild(t);
-  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(8px)';t.style.transition='all .2s';setTimeout(()=>t.remove(),220);},3500);
+  if (duration > 0) setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(10px)'; setTimeout(()=>t.remove(),220); }, duration);
+  return t;
 }
 
 init();
