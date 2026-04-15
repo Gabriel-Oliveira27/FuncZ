@@ -1,21 +1,4 @@
 'use strict';
-// ════════════════════════════════════════════════════════════════════════════
-//  EDITCART.JS v1.0 — Editor de Cartazes Prontos
-//
-//  Depende de: script.js
-//    parseCurrency, formatCurrency, arredondar90, brl
-//    FATORES, salvarCartazesLocalStorage
-//    renderProducts, generatePosterHTML
-//    showToast, showUndoToast, showConfirm
-//
-//  Como usar:
-//    Importe APÓS todos os outros scripts no final do <body>:
-//    <script src="../js/editcart.js"></script>
-//
-//  O script cria um painel lateral deslizante com botão "Editar cartaz"
-//  em cada card de produto. Não altera nenhuma lógica existente.
-// ════════════════════════════════════════════════════════════════════════════
-
 (function _ECEditor() {
 
   // ── Estado ─────────────────────────────────────────────────────────────
@@ -210,7 +193,7 @@
       '<div id="ec-hdr">',
         '<div class="ec-hdr-ico"><i class="fa-solid fa-pen-to-square"></i></div>',
         '<span id="ec-title">Editando cartaz</span>',
-        '<button id="ec-x" type="button" title="Fechar editor (ESC)">&#215;</button>',
+        '<button id="ec-x" type="button" title="Fechar editor (ESC)">×</button>',
       '</div>',
 
       '<div id="ec-body">',
@@ -223,18 +206,18 @@
 
           '<div class="ec-f">',
             '<label for="ec-desc">',
-              'Descri&#231;&#227;o *',
+              'Descrição *',
               '<span id="ec-desc-count" class="ec-desc-count" style="float:right">0 / 38</span>',
             '</label>',
             '<input type="text" id="ec-desc" maxlength="38" ',
-              'placeholder="Descri&#231;&#227;o do produto">',
+              'placeholder="Descrição do produto">',
             '<span class="ec-err" id="ec-desc-err">',
-              'M&#225;ximo 38 caracteres &#8212; reduza antes de salvar',
+              'Máximo 38 caracteres — reduza antes de salvar',
             '</span>',
           '</div>',
 
           '<div class="ec-f">',
-            '<label for="ec-subdesc">Sub descri&#231;&#227;o</label>',
+            '<label for="ec-subdesc">Sub descrição</label>',
             '<input type="text" id="ec-subdesc" placeholder="Marca / complemento">',
           '</div>',
 
@@ -253,11 +236,11 @@
         // Seção: Preço
         '<div class="ec-sec">',
           '<div class="ec-sec-ttl">',
-            '<i class="fa-solid fa-dollar-sign"></i> Pre&#231;o e parcelamento',
+            '<i class="fa-solid fa-dollar-sign"></i> Preço e parcelamento',
           '</div>',
 
           '<div class="ec-f">',
-            '<label for="ec-avista">Valor &#224; vista *</label>',
+            '<label for="ec-avista">Valor à vista *</label>',
             '<div class="ec-cur">',
               '<span>R$</span>',
               '<input type="text" id="ec-avista" placeholder="0,00">',
@@ -304,14 +287,14 @@
             '</div>',
             '<div class="ec-note">',
               '<i class="fa-solid fa-calculator" style="font-size:9px;"></i>',
-              ' Recalcula ao alterar &#224; vista, parcelamento ou taxa',
+              ' Recalcula ao alterar à vista, parcelamento ou taxa',
             '</div>',
           '</div>',
 
           // Checkbox: sem juros (disponível para todos os métodos)
           '<label class="ec-chk vis" id="ec-chk-sj-lbl">',
             '<input type="checkbox" id="ec-chk-sj">',
-            '<span>Mostrar &#8220;Sem juros!&#8221; no cartaz</span>',
+            '<span>Mostrar "Sem juros!"; no cartaz</span>',
           '</label>',
         '</div>',
 
@@ -320,13 +303,13 @@
         // Seção: Prévia
         '<div class="ec-sec">',
           '<div class="ec-sec-ttl">',
-            '<i class="fa-solid fa-eye"></i> Pr&#233;via do cartaz',
+            '<i class="fa-solid fa-eye"></i> Prévia do cartaz',
           '</div>',
           '<div class="ec-prev-wrap">',
             '<div class="ec-prev-inner" id="ec-prev"></div>',
           '</div>',
           '<p style="font-size:10px;color:#9ca3af;text-align:center;margin-top:6px;">',
-            'A pr&#233;via atualiza automaticamente',
+            'A prévia atualiza automaticamente',
           '</p>',
         '</div>',
 
@@ -335,7 +318,7 @@
       '<div id="ec-foot">',
         '<button type="button" id="ec-cancel">Cancelar</button>',
         '<button type="button" id="ec-save">',
-          '<i class="fa-solid fa-floppy-disk"></i> Salvar altera&#231;&#245;es',
+          '<i class="fa-solid fa-floppy-disk"></i> Salvar alterações',
         '</button>',
       '</div>',
     ].join('');
@@ -458,8 +441,8 @@
     }
     showConfirm({
       title:       'Editar cartaz',
-      subtitle:    'Aten&#231;&#227;o antes de editar',
-      message:     'Cuidado com suas altera&#231;&#245;es! Elas podem modificar valores ou informa&#231;&#245;es que deveriam permanecer fixos no cartaz. Deseja continuar?',
+      subtitle:    'Atenção antes de editar',
+      message:     'Cuidado com suas alterações! Elas podem modificar valores ou informações que deveriam permanecer fixos no cartaz. Deseja continuar?',
       confirmText: 'Sim, editar',
       cancelText:  'Voltar',
       iconType:    'warning',
@@ -798,7 +781,5 @@
     // Adicionar botões nos cards já renderizados (carregados do localStorage)
     setTimeout(_addBtns, 300);
   });
-
-  console.log('\u2705 editcart.js v1.0 carregado \u2014 Editor de cartazes prontos ativo.');
 
 }());
