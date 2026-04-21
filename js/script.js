@@ -418,6 +418,7 @@ function salvarCartazesLocalStorage() {
         garantia36: p.garantia36 || 0,
         modelo: p.modelo || "padrao",
         semJuros: p.semJuros || false,
+        campanha: p.campanha || "",
         moverValidade: p.moverValidade || false,
         layoutPersonalizado: p.layoutPersonalizado || '',
         posicaoGarantia: p.posicaoGarantia || 'hp',
@@ -453,65 +454,7 @@ function carregarCartazesLocalStorage() {
   }
 }
 
-// Gerar JSON para download
-function gerarJSONCartazes() {
-  if (products.length === 0) {
-    showToast(
-      "warning",
-      "Nenhum cartaz",
-      "Não há cartazes para gerar JSON.",
-    );
-    return;
-  }
 
-  const dadosCartazes = {
-    versao: "1.0",
-    dataGeracao: new Date().toISOString(),
-    totalCartazes: products.length,
-    cartazes: products.map((p) => ({
-      id: p.id,
-      codigo: p.codigo,
-      descricao: p.descricao,
-      subdescricao: p.subdescricao || "",
-      features: p.features,
-      metodo: p.metodo,
-      juros: p.juros,
-      avista: p.avista,
-      parcela: p.parcela,
-      motivo: p.motivo || "",
-      validade: p.validade || "",
-      validadeInicio: p.validadeInicio || "",
-      autorizacao: p.autorizacao || "",
-      garantia12: p.garantia12 || 0,
-      garantia24: p.garantia24 || 0,
-      garantia36: p.garantia36 || 0,
-      semJuros: p.semJuros || false,
-      moverValidade: p.moverValidade || false,
-      layoutPersonalizado: p.layoutPersonalizado || '',
-      posicaoGarantia: p.posicaoGarantia || 'hp',
-    })),
-  };
-
-  // Criar blob e fazer download
-  const jsonString = JSON.stringify(dadosCartazes, null, 2);
-  const blob = new Blob([jsonString], {
-    type: "application/json",
-  });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `cartazes_${new Date().toISOString().split("T")[0]}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-
-  showToast(
-    "success",
-    "JSON gerado!",
-    `${products.length} cartazes exportados com sucesso.`,
-  );
-}
 
 // Tabela de fatores para cálculo de parcelas
 const FATORES = {
@@ -1011,19 +954,24 @@ jurosSelect.addEventListener("change", () => {
   const juros = jurosSelect.value;
   const metodo = document.getElementById("metodo").value;
   const metodosSemTaxa = ["1x", "3x", "5x", "10x"];
+  const campoCampanha = document.getElementById("campo-campanha");
 
   // Esconder todos primeiro
   extrasContainer.style.display = "none";
   campoMotivo.style.display = "none";
   campoValidade.style.display = "none";
   campoAutorizacao.style.display = "none";
+  if (campoCampanha) campoCampanha.style.display = "none";
 
   if (juros === "carne") {
     extrasContainer.style.display = "none";
   } else if (juros === "cartao") {
-    // Cartão: mostra APENAS validade (sem motivo)
+    // Cartão: mostra validade + campanha (para 12x automático; não-12x via checkbox)
     extrasContainer.style.display = "block";
     campoValidade.style.display = "block";
+    if (metodo === "12x" && campoCampanha) {
+      campoCampanha.style.display = "block";
+    }
   } else if (juros === "virado") {
     // Preço virado: mostra motivo + autorização
     extrasContainer.style.display = "block";
@@ -1334,6 +1282,9 @@ productForm.addEventListener("submit", (e) => {
   const semJurosCheck = document.getElementById("mostrar-sem-juros");
   const semJuros = semJurosCheck ? semJurosCheck.checked : false;
 
+  // Capturar campanha
+  const campanha = (document.getElementById("campanha")?.value || "").trim().toUpperCase();
+
   const features = [feature1, feature2, feature3].filter(
     (f) => f !== "",
   );
@@ -1397,6 +1348,7 @@ productForm.addEventListener("submit", (e) => {
     garantia36: g36Val,
     modelo: modeloAtual, // Adiciona o modelo selecionado
     semJuros: semJuros,  // Controla exibição de "Sem juros!" no rodapé
+    campanha: campanha || "", // Texto de campanha opcional
     moverValidade: false, // Padrão: validade lateral; toggle no card da preview
     layoutPersonalizado: '', // Layout customizado (ex: 'a5-loja53')
     posicaoGarantia: 'hp', // Posição da GE no template físico (hp/brother/custom)
@@ -1440,6 +1392,15 @@ productForm.addEventListener("submit", (e) => {
   if (semJurosCheckReset) semJurosCheckReset.checked = false;
   const checkboxSemJurosReset = document.getElementById("checkbox-sem-juros");
   if (checkboxSemJurosReset) checkboxSemJurosReset.style.display = "none";
+  // Resetar campanha
+  const campanhaCampoReset = document.getElementById("campo-campanha");
+  const campanhaInputReset = document.getElementById("campanha");
+  const checkboxCampanhaReset = document.getElementById("checkbox-campanha");
+  const inserirCampanhaReset = document.getElementById("inserir-campanha");
+  if (campanhaCampoReset) campanhaCampoReset.style.display = "none";
+  if (campanhaInputReset) campanhaInputReset.value = "";
+  if (checkboxCampanhaReset) checkboxCampanhaReset.style.display = "none";
+  if (inserirCampanhaReset) inserirCampanhaReset.checked = false;
 
   // Mudar para view de produtos
   navButtons[1].click();
@@ -1518,6 +1479,7 @@ function renderProducts() {
                         ${modeloBadge}
                     </div>
                     ${product.subdescricao ? `<p style="font-style: italic; color: #666; margin-top: 0;">${product.subdescricao}</p>` : ""}
+                    ${product.campanha ? `<p style="margin-top:2px;"><span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:#fef3c7;border:1px solid #fde68a;border-radius:10px;font-size:11px;font-weight:700;color:#92400e;"><i class="fa-solid fa-bullhorn" style="font-size:10px;"></i>${product.campanha}</span></p>` : ""}
                     <p>Código: ${product.codigo}</p>
                     ${
                       featuresText
@@ -1754,6 +1716,7 @@ function generatePosterHTML(product, isPreview = false) {
                 <div class="poster-table-right">
                     <div class="poster-table-main-text" style="font-family: var(--font-lato);">${brl(product.avista)} À VISTA</div>
                     ${product.autorizacao ? `<div class="poster-table-sub-text" style="margin-top: 8px;">${product.autorizacao}</div>` : ""}
+                    ${product.campanha ? `<div class="poster-campanha-text">${product.campanha}</div>` : ""}
                 </div>
             </div>
 
@@ -3008,6 +2971,9 @@ document.addEventListener("DOMContentLoaded", () => {
     metodoSelect.addEventListener("change", function() {
       const checkboxSemJuros = document.getElementById("checkbox-sem-juros");
       const mostrarSemJurosInput = document.getElementById("mostrar-sem-juros");
+      const checkboxCampanha = document.getElementById("checkbox-campanha");
+      const inserirCampanha = document.getElementById("inserir-campanha");
+      const campoCampanha = document.getElementById("campo-campanha");
       const metodoVal = this.value;
 
       if (metodosTaxaOpcional.includes(metodoVal)) {
@@ -3016,6 +2982,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (labelTaxa) labelTaxa.textContent = `Aplicar taxa em ${metodoVal}`;
         // Mostrar checkbox "Sem juros?"
         if (checkboxSemJuros) checkboxSemJuros.style.display = "flex";
+        // Mostrar checkbox campanha (independe de taxa)
+        if (checkboxCampanha) checkboxCampanha.style.display = "flex";
         // Mostrar checkbox de validade
         _sincValidadeCheckbox(metodoVal);
 
@@ -3024,6 +2992,8 @@ document.addEventListener("DOMContentLoaded", () => {
           jurosSelect.removeAttribute("required");
           jurosSelect.value = "";
           jurosSelect.disabled = true;
+          // Ocultar campo campanha se não estava ativo
+          if (inserirCampanha && !inserirCampanha.checked && campoCampanha) campoCampanha.style.display = "none";
 
           if (metodoVal === "1x") {
             // 1x sem taxa: parcela vazia e desabilitada
@@ -3039,9 +3009,13 @@ document.addEventListener("DOMContentLoaded", () => {
         // 12x ou outros: taxa obrigatória
         checkboxTaxa1x.style.display = "none";
         habilitarTaxa1x.checked = false;
-        // Ocultar e resetar checkbox "Sem juros?"
+        // Ocultar checkbox "Sem juros?" e campanha (para 12x campanha aparece se juros=cartao via juros handler)
         if (checkboxSemJuros) checkboxSemJuros.style.display = "none";
         if (mostrarSemJurosInput) mostrarSemJurosInput.checked = false;
+        if (checkboxCampanha) checkboxCampanha.style.display = "none";
+        if (inserirCampanha) inserirCampanha.checked = false;
+        if (campoCampanha) campoCampanha.style.display = "none";
+        if (document.getElementById("campanha")) document.getElementById("campanha").value = "";
         jurosSelect.disabled = false;
         jurosSelect.setAttribute("required", "required");
         parcelaInput.disabled = false;
@@ -3076,6 +3050,19 @@ document.addEventListener("DOMContentLoaded", () => {
             recalcularParcela();
           }
         }
+      }
+    });
+  }
+
+  // Listener do checkbox "Inserir campanha" (para métodos 1x/3x/5x/10x)
+  const inserirCampanhaChk = document.getElementById("inserir-campanha");
+  const campoCampanhaDom = document.getElementById("campo-campanha");
+  if (inserirCampanhaChk && campoCampanhaDom) {
+    inserirCampanhaChk.addEventListener("change", function() {
+      campoCampanhaDom.style.display = this.checked ? "block" : "none";
+      if (!this.checked) {
+        const inp = document.getElementById("campanha");
+        if (inp) inp.value = "";
       }
     });
   }

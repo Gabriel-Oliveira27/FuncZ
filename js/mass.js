@@ -18,6 +18,8 @@ const MS = {
   loaded:   false,
   boxPairs: [],
   _evBound: false,
+  featuresPatch: {},     // codigo → [feat1, feat2, feat3]
+  _semFeatures:  [],     // produtos sem características encontradas
 };
 
 const MS_FATORES = {
@@ -584,6 +586,106 @@ function _getJuros() {
   return _$('mass-juros-sel')?.value || '';
 }
 
+// ── §14-A · PRÉ-GERAÇÃO: checar características ausentes ────────────────────
+async function _massPreGenerate() {
+  MS._semFeatures = [];
+  MS.featuresPatch = MS.featuresPatch || {};
+
+  // Ler valores editados na confirmação (precisa rodar antes de checar features)
+  document.querySelectorAll('.mass-price-input').forEach(inp => {
+    const cod = inp.dataset.cod;
+    const val = msParseR(inp.value);
+    if (MS.selected.has(cod)) MS.selected.get(cod).product.avista = val;
+  });
+
+  // Detectar produtos sem características identificadas pelo dicionário
+  const selEntries = [...MS.selected.values()].filter(e => e.product);
+  const semFeats = [];
+  selEntries.forEach(entry => {
+    const p = entry.product;
+    const feats = msFeatures(p.descricao || '');
+    if (feats.length === 0 && !(MS.featuresPatch[p.codigo] && MS.featuresPatch[p.codigo].length > 0)) {
+      semFeats.push(p);
+    }
+  });
+
+  if (semFeats.length === 0) {
+    _massGenerate();
+    return;
+  }
+
+  // Montar dialog com campo por produto
+  const body = _$('mass-features-body');
+  if (!body) { _massGenerate(); return; }
+
+  body.innerHTML = semFeats.map(p => {
+    const desc = (p.descricao || '').split(' - ')[0].substring(0, 50);
+    const safeId = p.codigo.replace(/[^a-zA-Z0-9]/g, '_');
+    return `
+      <div class="mass-feat-item" data-cod="${p.codigo}" style="margin-bottom:18px;padding:14px;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:12px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <span style="font-size:10px;font-weight:700;color:#1d4ed8;background:#eff6ff;padding:2px 8px;border-radius:8px;font-family:monospace;">${p.codigo}</span>
+          <span style="font-size:12px;font-weight:600;color:#111827;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${desc}">${desc}</span>
+        </div>
+        <div class="mass-feat-tags-wrap" id="feat-tags-${safeId}" style="display:flex;flex-wrap:wrap;gap:6px;min-height:28px;margin-bottom:8px;"></div>
+        <div style="display:flex;gap:6px;">
+          <input type="text" id="feat-input-${safeId}" placeholder="Digite e pressione Enter ou +" maxlength="30"
+            style="flex:1;padding:7px 10px;border:1.5px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();massFeatAdd('${p.codigo}','${safeId}');}">
+          <button type="button" onclick="massFeatAdd('${p.codigo}','${safeId}')"
+            style="padding:7px 12px;background:#2563eb;color:white;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s;"
+            onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">
+            <i class="fa-solid fa-plus"></i>
+          </button>
+        </div>
+        <p style="font-size:10px;color:#9ca3af;margin-top:5px;">Máx. 3 características · Deixe vazio para usar "Consulte características"</p>
+      </div>`;
+  }).join('');
+
+  _$('mass-dlg-features').classList.add('open');
+}
+
+window.massFeatAdd = function(codigo, safeId) {
+  MS.featuresPatch = MS.featuresPatch || {};
+  const input = document.getElementById(`feat-input-${safeId}`);
+  const wrap  = document.getElementById(`feat-tags-${safeId}`);
+  if (!input || !wrap) return;
+
+  const val = input.value.trim().toUpperCase();
+  if (!val) return;
+
+  MS.featuresPatch[codigo] = MS.featuresPatch[codigo] || [];
+  if (MS.featuresPatch[codigo].length >= 3) {
+    msToast('warning', 'Limite atingido', 'Máximo de 3 características por produto.');
+    return;
+  }
+  if (MS.featuresPatch[codigo].includes(val)) {
+    input.value = '';
+    return;
+  }
+  MS.featuresPatch[codigo].push(val);
+  input.value = '';
+
+  // Renderizar tag
+  const tag = document.createElement('span');
+  tag.className = 'mass-feat-tag';
+  tag.innerHTML = `${val} <button type="button" onclick="massFeatRemove('${codigo}','${safeId}','${val.replace(/'/g,'\\\'')}')" style="all:unset;margin-left:4px;cursor:pointer;opacity:.7;font-size:12px;">×</button>`;
+  wrap.appendChild(tag);
+  input.focus();
+};
+
+window.massFeatRemove = function(codigo, safeId, val) {
+  MS.featuresPatch = MS.featuresPatch || {};
+  if (!MS.featuresPatch[codigo]) return;
+  MS.featuresPatch[codigo] = MS.featuresPatch[codigo].filter(f => f !== val);
+  const wrap = document.getElementById(`feat-tags-${safeId}`);
+  if (!wrap) return;
+  // Re-renderizar tags
+  wrap.querySelectorAll('.mass-feat-tag').forEach(el => {
+    if (el.textContent.replace('×','').trim() === val) el.remove();
+  });
+};
+
 // ── §14 · GERAÇÃO + PDF ──────────────────────────────────────────────────────
 async function _massGenerate() {
   const metodo  = _$('mass-metodo')?.value;
@@ -646,7 +748,25 @@ async function _massGenerate() {
 
     // Features via dicionário
     let features = msFeatures(p.descricao);
-    if (features.length === 0) features = ['Consulte características'];
+    // Checar patch manual (adicionado pelo usuário no dialog de features)
+    if (features.length === 0 && MS.featuresPatch && MS.featuresPatch[p.codigo]) {
+      features = MS.featuresPatch[p.codigo].slice(0, 3);
+    }
+    // Se ainda vazio, marcar para perguntar depois (ou usar fallback)
+    if (features.length === 0) {
+      MS._semFeatures = MS._semFeatures || [];
+      if (!MS._semFeatures.find(x => x.codigo === p.codigo)) {
+        MS._semFeatures.push({ codigo: p.codigo, descricao: desc });
+      }
+      features = ['Consulte características'];
+    }
+
+    // Campanha
+    const campanhaToggle = _$('mass-campanha-toggle');
+    const campanhaTxt    = _$('mass-campanha-txt');
+    const campanha = (campanhaToggle && campanhaToggle.checked && campanhaTxt)
+      ? (campanhaTxt.value || '').trim().toUpperCase()
+      : '';
 
     // Validade
     const valFim = _hasValidade() ? (_$('mass-val-fim')?.value || '') : '';
@@ -674,6 +794,7 @@ async function _massGenerate() {
       garantia36:          0,
       modelo:              'padrao',
       semJuros:            false,
+      campanha:            campanha,
       moverValidade:       false,
       layoutPersonalizado: layout,
       posicaoGarantia:     'hp',
@@ -770,6 +891,7 @@ function massOpen() {
   MS.type = null; MS.step = 0;
   MS.selected.clear(); MS.selSize = null;
   MS.filter = 'all'; MS.page = 1; MS.boxPairs = [];
+  MS.featuresPatch = {}; MS._semFeatures = [];
   _goStep(0);
   _$('mass-overlay').classList.add('active');
   _massBindEvents();
@@ -931,7 +1053,7 @@ function _massBindEvents() {
   _$('mass-btn-next').addEventListener('click', _goConfirm);
 
   // Confirm → gerar PDF
-  _$('mass-btn-confirm').addEventListener('click', _massGenerate);
+  _$('mass-btn-confirm').addEventListener('click', _massPreGenerate);
 
   // Dialog: mismatch ok
   _$('mass-dlg-mismatch-ok').addEventListener('click', () => {
@@ -968,6 +1090,30 @@ function _massBindEvents() {
   _$('mass-dlg-box-no').addEventListener('click', () => {
     _$('mass-dlg-box').classList.remove('open');
     _buildConfirmScreen();
+  });
+  // Campanha toggle
+  const massCampanhaToggle = _$('mass-campanha-toggle');
+  const massCampanhaFields = _$('mass-campanha-fields');
+  if (massCampanhaToggle && massCampanhaFields) {
+    massCampanhaToggle.addEventListener('change', () => {
+      massCampanhaFields.style.display = massCampanhaToggle.checked ? 'block' : 'none';
+    });
+  }
+
+  // Dialog: features ausentes — botões
+  _$('mass-dlg-features-skip')?.addEventListener('click', () => {
+    _$('mass-dlg-features').classList.remove('open');
+    _massGenerate();
+  });
+  _$('mass-dlg-features-confirm')?.addEventListener('click', () => {
+    _$('mass-dlg-features').classList.remove('open');
+    _massGenerate();
+  });
+  _$('mass-dlg-features-help-btn')?.addEventListener('click', () => {
+    _$('mass-dlg-feat-help').classList.add('open');
+  });
+  _$('mass-feat-help-close-btn')?.addEventListener('click', () => {
+    _$('mass-dlg-feat-help').classList.remove('open');
   });
 }
 

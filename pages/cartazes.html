@@ -130,10 +130,7 @@
                         <i class="fa-solid fa-code"></i>
                         <span>Ver JSON atual</span>
                     </button>
-                    <button class="nav-item" id="btn-gerar-json">
-                        <i class="fa-solid fa-file-code"></i>
-                        <span>Gerar JSON de cartazes</span>
-                    </button>
+
                 </div>
             </nav>
 
@@ -215,6 +212,14 @@
                                         <label for="mostrar-sem-juros">Mostrar "Sem juros!"?</label>
                                     </div>
                                 </div>
+
+                                <!-- Checkbox para inserir campanha no cartaz (métodos 1x/3x/5x/10x) -->
+                                <div id="checkbox-campanha" class="checkbox-taxa-inline" style="display: none;">
+                                    <div class="checkbox-wrapper-13">
+                                        <input id="inserir-campanha" type="checkbox">
+                                        <label for="inserir-campanha">Inserir campanha</label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -294,6 +299,11 @@
                             <div class="form-group" id="campo-autorizacao" style="display: none;">
                                 <label for="autorizacao">Autorização</label>
                                 <input type="text" id="autorizacao" placeholder="Ex: REJANE/ALLAN KARDEC">
+                            </div>
+
+                            <div class="form-group" id="campo-campanha" style="display: none;">
+                                <label for="campanha">Campanha</label>
+                                <input type="text" id="campanha" placeholder="Ex: LIQUIDA VERÃO 2025" maxlength="40">
                             </div>
                         </div>
 
@@ -1044,6 +1054,19 @@
                 <strong>Garantia estendida indisponível</strong> no modo em massa.
               </p>
             </div>
+            <div class="mass-cfg-section" id="mass-cfg-campanha">
+              <div class="mass-cfg-title"><i class="fa-solid fa-bullhorn"></i> Campanha</div>
+              <div class="mass-toggle-row">
+                <label class="mass-sw"><input type="checkbox" id="mass-campanha-toggle"><span class="mass-sw-slider"></span></label>
+                <span class="mass-sw-label">Adicionar campanha aos cartazes</span>
+              </div>
+              <div id="mass-campanha-fields" style="display:none;margin-top:10px;">
+                <div class="mass-cfg-field">
+                  <label for="mass-campanha-txt">Nome da campanha</label>
+                  <input type="text" id="mass-campanha-txt" placeholder="Ex: LIQUIDA VERÃO 2025" maxlength="40">
+                </div>
+              </div>
+            </div>
             <div style="flex:1;"></div>
             <div id="mass-counter">
               <div class="mass-counter-row">
@@ -1173,5 +1196,59 @@
     <script src="../js/custom-ui.js"></script>
     <script src="../js/editcart.js"></script>
             
+    <!-- ═══ MASS DIALOG: CARACTERÍSTICAS AUSENTES ═══ -->
+    <div class="mass-dialog-overlay" id="mass-dlg-features">
+      <div class="mass-dialog" style="max-width:600px;display:flex;flex-direction:column;max-height:85vh;">
+        <div class="mass-dialog-hdr" style="flex-shrink:0;">
+          <div class="mass-dialog-ico warn"><i class="fa-solid fa-tags"></i></div>
+          <div>
+            <h4>Características não identificadas</h4>
+            <p>Adicione palavras-chave para os produtos listados</p>
+          </div>
+          <button id="mass-dlg-features-help-btn" title="Como adicionar características" style="margin-left:auto;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:12px;font-weight:600;color:#1d4ed8;display:flex;align-items:center;gap:5px;transition:all .15s;flex-shrink:0;">
+            <i class="fa-solid fa-circle-question"></i> Como funciona?
+          </button>
+        </div>
+        <div class="mass-dialog-body" id="mass-features-body" style="flex:1;overflow-y:auto;padding:16px 22px;"></div>
+        <div class="mass-dialog-footer" style="flex-shrink:0;">
+          <button class="mass-dlg-btn sec" id="mass-dlg-features-skip"><i class="fa-solid fa-forward"></i> Ignorar e continuar</button>
+          <button class="mass-dlg-btn prim" id="mass-dlg-features-confirm"><i class="fa-solid fa-bolt"></i> Confirmar e gerar PDF</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ MASS DIALOG: HELP CARACTERÍSTICAS (passo a passo animado) ═══ -->
+    <div class="mass-dialog-overlay" id="mass-dlg-feat-help">
+      <div class="mass-dialog" style="max-width:460px;">
+        <div class="mass-dialog-hdr">
+          <div class="mass-dialog-ico info"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+          <div><h4>Como adicionar características</h4><p>Passo a passo ilustrado</p></div>
+        </div>
+        <div class="mass-dialog-body">
+          <div class="mass-feat-help-steps">
+            <div class="mass-feat-help-step" style="animation-delay:0s">
+              <div class="mass-feat-step-num">1</div>
+              <div class="mass-feat-step-txt"><strong>Digite uma característica</strong> no campo de texto do produto<br><span style="color:#6b7280;font-size:11px;">Ex: 4K, Bluetooth, 128GB, Smart TV, Inox...</span></div>
+            </div>
+            <div class="mass-feat-help-step" style="animation-delay:0.35s">
+              <div class="mass-feat-step-num">2</div>
+              <div class="mass-feat-step-txt"><strong>Pressione Enter</strong> ou clique no botão <span class="mass-feat-step-inline-btn"><i class="fa-solid fa-plus"></i></span> para adicionar</div>
+            </div>
+            <div class="mass-feat-help-step" style="animation-delay:0.7s">
+              <div class="mass-feat-step-num">3</div>
+              <div class="mass-feat-step-txt">A característica aparece como <span class="mass-feat-tag" style="animation:none;display:inline-flex;font-size:11px;pointer-events:none;">EXEMPLO <button style="all:unset;opacity:.7;margin-left:3px;">×</button></span>. Clique em <strong>×</strong> para remover</div>
+            </div>
+            <div class="mass-feat-help-step" style="animation-delay:1.05s">
+              <div class="mass-feat-step-num">4</div>
+              <div class="mass-feat-step-txt">Máximo de <strong>3 características</strong> por produto. Produtos sem nenhuma usarão <em>"Consulte características"</em> automaticamente</div>
+            </div>
+          </div>
+        </div>
+        <div class="mass-dialog-footer">
+          <button class="mass-dlg-btn prim" id="mass-feat-help-close-btn">Entendido!</button>
+        </div>
+      </div>
+    </div>
+
 </body>
 </html>

@@ -149,7 +149,8 @@ function carregarViewVerJSON() {
             garantia12: item.garantia12 || 0,
             garantia24: item.garantia24 || 0,
             garantia36: item.garantia36 || 0,
-            semJuros: item.semJuros || false
+            semJuros: item.semJuros || false,
+            campanha: item.campanha || ''
         }))
     };
     
@@ -919,7 +920,8 @@ document.getElementById('btn-aplicar-json-editado')?.addEventListener('click', (
             garantia12: item.garantia12 || 0,
             garantia24: item.garantia24 || 0,
             garantia36: item.garantia36 || 0,
-            semJuros: item.semJuros || false
+            semJuros: item.semJuros || false,
+            campanha: item.campanha || ''
         }));
         
         if (typeof salvarCartazesLocalStorage === 'function') {
@@ -953,14 +955,7 @@ document.getElementById('btn-cancelar-edicao')?.addEventListener('click', () => 
     if (btnAplicar) btnAplicar.style.display = 'none';
 });
 
-// Botão Gerar JSON
-document.getElementById('btn-gerar-json')?.addEventListener('click', () => {
-    if (!isAdminOuSuporte()) {
-        showToast('error', 'Acesso negado', 'Você não tem permissão para acessar esta funcionalidade.');
-        return;
-    }
-    gerarJSONCartazes();
-});
+
 
 // ==================================================
 // FUNÇÕES DO MODAL VER JSON (fecharModalVerJSON + copiarJSON)
@@ -1020,6 +1015,7 @@ function aplicarAlteracoesJSON() {
                     garantia36:         parseFloat(item.garantia36) || 0,
                     modelo:             item.modelo || 'padrao',
                     semJuros:           item.semJuros || false,
+                    campanha:           item.campanha || '',
                     moverValidade:      item.moverValidade || false,
                     layoutPersonalizado: item.layoutPersonalizado || '',
                     posicaoGarantia:    item.posicaoGarantia || 'hp',
@@ -1074,7 +1070,8 @@ function abrirModalVerJSON() {
             garantia12: item.garantia12 || 0,
             garantia24: item.garantia24 || 0,
             garantia36: item.garantia36 || 0,
-            semJuros: item.semJuros || false
+            semJuros: item.semJuros || false,
+            campanha: item.campanha || ''
         })) : []
     };
 
@@ -1367,7 +1364,8 @@ function importarCartazesDaCloud(jsonData) {
             garantia36: parseFloat(cartaz.garantia36) || 0,
             motivo: cartaz.motivo || '',
             validade: cartaz.validade || '',
-            autorizacao: cartaz.autorizacao || ''
+            autorizacao: cartaz.autorizacao || '',
+            campanha: cartaz.campanha || ''
         };
         
         if (typeof products !== 'undefined') {

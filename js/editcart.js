@@ -296,6 +296,16 @@
             '<input type="checkbox" id="ec-chk-sj">',
             '<span>Mostrar "Sem juros!"; no cartaz</span>',
           '</label>',
+
+          // Campo: campanha (visível quando há campanha ou ao marcar checkbox)
+          '<label class="ec-chk" id="ec-chk-campanha-lbl" style="display:flex;">',
+            '<input type="checkbox" id="ec-chk-campanha">',
+            '<span>Inserir campanha no cartaz</span>',
+          '</label>',
+          '<div class="ec-f" id="ec-campanha-field" style="display:none;">',
+            '<label for="ec-campanha">Campanha</label>',
+            '<input type="text" id="ec-campanha" maxlength="40" placeholder="Ex: LIQUIDA VER\u00c3O 2025">',
+          '</div>',
         '</div>',
 
         '<div class="ec-div"></div>',
@@ -367,6 +377,17 @@
 
     // Checkbox sem juros → apenas prévia
     _$('ec-chk-sj').addEventListener('change', _prev);
+
+    // Checkbox campanha → mostrar/ocultar campo campanha + prévia
+    _$('ec-chk-campanha').addEventListener('change', function() {
+      var f = _$('ec-campanha-field');
+      if (f) f.style.display = this.checked ? 'block' : 'none';
+      if (!this.checked) { var c = _$('ec-campanha'); if (c) c.value = ''; }
+      _prev();
+    });
+
+    // Campo campanha → prévia
+    _$('ec-campanha').addEventListener('input', _prev);
 
     // Descrição → validar comprimento + contador + prévia
     _$('ec-desc').addEventListener('input', function() {
@@ -512,6 +533,13 @@
     // Sem juros
     _$('ec-chk-sj').checked = !!(p.semJuros);
 
+    // Campanha
+    var temCampanha = !!(p.campanha && p.campanha.trim());
+    _$('ec-chk-campanha').checked = temCampanha;
+    _v('ec-campanha', p.campanha || '');
+    var campField = _$('ec-campanha-field');
+    if (campField) campField.style.display = temCampanha ? 'block' : 'none';
+
     // Título do painel
     _$('ec-title').textContent = 'Editando: ' + (p.descricao || '').substring(0, 26);
 
@@ -628,6 +656,9 @@
     var feats   = [_gv('ec-feat1'), _gv('ec-feat2'), _gv('ec-feat3')].filter(Boolean);
 
     // Objeto temporário apenas para a prévia — não altera products[]
+    var campanhaVal = _$('ec-chk-campanha') && _$('ec-chk-campanha').checked
+      ? ((_gv('ec-campanha') || '').trim().toUpperCase())
+      : '';
     var tmp = Object.assign({}, p, {
       descricao:    (descRaw ? descRaw : p.descricao).toUpperCase(),
       subdescricao: ((_gv('ec-subdesc') || p.subdescricao || '').trim()).toUpperCase(),
@@ -637,6 +668,7 @@
       metodo:       metodo,
       juros:        jurosFinal,
       semJuros:     _$('ec-chk-sj').checked,
+      campanha:     campanhaVal,
     });
 
     var container = _$('ec-prev');
@@ -717,6 +749,9 @@
     products[idx].metodo       = metodo;
     products[idx].juros        = jurosFinal;
     products[idx].semJuros     = _$('ec-chk-sj').checked;
+    products[idx].campanha     = (_$('ec-chk-campanha') && _$('ec-chk-campanha').checked)
+      ? ((_gv('ec-campanha') || '').trim().toUpperCase())
+      : '';
 
     // Persistir e re-renderizar
     if (typeof salvarCartazesLocalStorage === 'function') salvarCartazesLocalStorage();
