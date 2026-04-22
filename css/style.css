@@ -1862,6 +1862,21 @@ input:checked + .slider:before {
   background: #fff;
 }
 
+/* 1x puro (sem taxa, sem "Sem juros!") — célula única centralizada */
+.poster-footer-table.poster-footer-table-single {
+  grid-template-columns: 1fr;
+}
+
+.poster-table-full {
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  min-height: 60px;
+}
+
 .poster-table-left,
 .poster-table-right {
   padding: 10px 14px;

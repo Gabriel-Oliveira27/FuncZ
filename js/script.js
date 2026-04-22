@@ -1655,6 +1655,9 @@ function generatePosterHTML(product, isPreview = false) {
     paymentInfoSection = `<div class="poster-payment-info"><div class="poster-payment-type" style="font-family: var(--font-lato); font-weight: 400; font-size: 20pt; line-height: 1.2;">Sem juros!</div></div>`;
   }
 
+  // 1x puro: sem taxa aplicada E sem "Sem juros!" → tabela mesclada e centralizada
+  const is1xPuro = product.metodo === "1x" && !mostrar1xComTaxa && !product.semJuros;
+
   // Classe adicional para modelo cameba
   const modeloClass =
     product.modelo === "cameba" ? "poster-cameba" : "";
@@ -1701,6 +1704,15 @@ function generatePosterHTML(product, isPreview = false) {
             
             ${validadeExtensa ? `<div class="poster-validity${product.moverValidade ? ' poster-validity-baixo' : ''}">${validadeExtensa}</div>` : ""}
             
+            ${is1xPuro ? `
+            <div class="poster-footer-table poster-footer-table-single">
+                <div class="poster-table-full">
+                    <div class="poster-table-main-text" style="font-family: var(--font-lato);">${brl(product.avista)} À VISTA</div>
+                    ${product.autorizacao ? `<div class="poster-table-sub-text" style="margin-top: 8px;">${product.autorizacao}</div>` : ""}
+                    ${product.campanha ? `<div class="poster-campanha-text">${product.campanha}</div>` : ""}
+                </div>
+            </div>
+            ` : `
             <div class="poster-footer-table">
                 <div class="poster-table-left" ${semJurosSemTaxa ? 'style="align-items: center;"' : ''}>
                     <div class="poster-price-line" ${semJurosSemTaxa ? 'style="width: 100%; justify-content: center;"' : ''}>
@@ -1719,6 +1731,7 @@ function generatePosterHTML(product, isPreview = false) {
                     ${product.campanha ? `<div class="poster-campanha-text">${product.campanha}</div>` : ""}
                 </div>
             </div>
+            `}
 
             ${renderGarantiaOverlay(product)}
         </div>
