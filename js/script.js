@@ -95,6 +95,23 @@ async function inicializarProdutos() {
 let modeloAtual = "padrao";
 
 // ==================================================
+// ESTILOS GLOBAIS DE CARTAZ
+// Persistidos em localStorage; lidos no submit do form
+// ==================================================
+const ESTILOS_KEY = 'cartazes-estilos-globais';
+
+function getEstilosGlobais() {
+  try {
+    const s = localStorage.getItem(ESTILOS_KEY);
+    return s ? JSON.parse(s) : { negritoSubdesc: false, validadeBaixo: false };
+  } catch { return { negritoSubdesc: false, validadeBaixo: false }; }
+}
+
+function salvarEstilosGlobais(estilos) {
+  try { localStorage.setItem(ESTILOS_KEY, JSON.stringify(estilos)); } catch {}
+}
+
+// ==================================================
 // GARANTIA ESTENDIDA — OFFSETS GLOBAIS POR MODELO
 // ==================================================
 let GARANTIA_OFFSETS = (() => {
@@ -419,6 +436,7 @@ function salvarCartazesLocalStorage() {
         modelo: p.modelo || "padrao",
         semJuros: p.semJuros || false,
         campanha: p.campanha || "",
+        negritoSubdesc: p.negritoSubdesc || false,
         moverValidade: p.moverValidade || false,
         layoutPersonalizado: p.layoutPersonalizado || '',
         posicaoGarantia: p.posicaoGarantia || 'hp',
@@ -1329,6 +1347,8 @@ productForm.addEventListener("submit", (e) => {
     jurosFinal = "";
   }
 
+  const _estilosAtivos = getEstilosGlobais();
+
   const product = {
     id: Date.now(),
     codigo,
@@ -1346,12 +1366,13 @@ productForm.addEventListener("submit", (e) => {
     garantia12: g12Val,
     garantia24: g24Val,
     garantia36: g36Val,
-    modelo: modeloAtual, // Adiciona o modelo selecionado
-    semJuros: semJuros,  // Controla exibição de "Sem juros!" no rodapé
-    campanha: campanha || "", // Texto de campanha opcional
-    moverValidade: false, // Padrão: validade lateral; toggle no card da preview
-    layoutPersonalizado: '', // Layout customizado (ex: 'a5-loja53')
-    posicaoGarantia: 'hp', // Posição da GE no template físico (hp/brother/custom)
+    modelo: modeloAtual,
+    semJuros: semJuros,
+    campanha: campanha || "",
+    negritoSubdesc:  _estilosAtivos.negritoSubdesc,  // estilo global
+    moverValidade:   _estilosAtivos.validadeBaixo,   // estilo global
+    layoutPersonalizado: '',
+    posicaoGarantia: 'hp',
   };
 
   products.push(product);
@@ -1520,6 +1541,13 @@ function renderProducts() {
                             ${product.moverValidade ? 'checked' : ''}>
                         <span>Mover validade</span>
                     </label>` : ''}
+                    ${product.subdescricao ? `
+                    <label class="chk-mover-validade-label" style="margin-top:4px;" onclick="event.stopPropagation()">
+                        <input type="checkbox"
+                            onchange="toggleNegritoSubdesc(${product.id}, this.checked)"
+                            ${product.negritoSubdesc ? 'checked' : ''}>
+                        <span>Sub descrição em negrito</span>
+                    </label>` : ''}
                     <div style="display: flex; align-items: center; gap: 8px; margin-top: 12px;">
                         <select class="select-layout-personalizado${product.layoutPersonalizado ? ' layout-ativo' : ''}"
                             onchange="alterarLayoutPersonalizado(${product.id}, this.value)"
@@ -1670,7 +1698,7 @@ function generatePosterHTML(product, isPreview = false) {
         <div class="${finalClasses}" data-digits="${digitsAttr}">
             <div class="poster-header">
                 <div class="poster-title">${product.descricao}</div>
-                ${product.subdescricao ? `<div class="poster-subtitle">${product.subdescricao}</div>` : ""}
+                ${product.subdescricao ? `<div class="poster-subtitle${product.negritoSubdesc ? ' poster-subtitle-bold' : ''}">${product.subdescricao}</div>` : ""}
                 ${featuresText ? `<div class="poster-features">${featuresText}</div>` : ""}
                 <div class="poster-code">${product.codigo}</div>
             </div>
@@ -1791,6 +1819,60 @@ window.deleteProduct = function (id) {
   });
 };
 
+// Painel lateral de Configurações de Estilo
+window.abrirPainelEstilos = function () {
+  const panel    = document.getElementById('estilos-panel');
+  const backdrop = document.getElementById('estilos-backdrop');
+  const btn      = document.getElementById('btn-estilos-gear');
+  if (!panel) return;
+  panel.classList.add('open');
+  backdrop && backdrop.classList.add('open');
+  btn && btn.classList.add('active');
+  // Sincronizar estado dos botões de cap ao abrir
+  _sincEstilosCapBtns();
+  setTimeout(() => {
+    const firstFocus = panel.querySelector('button, input');
+    if (firstFocus) firstFocus.focus();
+  }, 330);
+};
+
+window.fecharPainelEstilos = function () {
+  const panel    = document.getElementById('estilos-panel');
+  const backdrop = document.getElementById('estilos-backdrop');
+  const btn      = document.getElementById('btn-estilos-gear');
+  panel && panel.classList.remove('open');
+  backdrop && backdrop.classList.remove('open');
+  btn && btn.classList.remove('active');
+};
+
+window.estilosSetCap = function (modo) {
+  // Usa a API do dict-box.js se disponível
+  if (typeof window.DICT_BOX !== 'undefined' && typeof window.DICT_BOX.setCapMode === 'function') {
+    window.DICT_BOX.setCapMode(modo);
+  } else {
+    try { localStorage.setItem('cartazes-cap-mode', modo); } catch {}
+  }
+  _sincEstilosCapBtns();
+  _mostrarBadgeEstilos();
+};
+
+function _sincEstilosCapBtns () {
+  const modoAtual = (typeof window.DICT_BOX !== 'undefined' && typeof window.DICT_BOX.getCapMode === 'function')
+    ? window.DICT_BOX.getCapMode()
+    : (localStorage.getItem('cartazes-cap-mode') || 'upper');
+  document.querySelectorAll('.estilos-cap-btn').forEach(function (btn) {
+    btn.classList.toggle('active', btn.dataset.cap === modoAtual);
+  });
+}
+
+function _mostrarBadgeEstilos () {
+  const badge = document.getElementById('estilos-panel-badge');
+  if (!badge) return;
+  badge.style.display = 'flex';
+  clearTimeout(badge._timer);
+  badge._timer = setTimeout(function () { badge.style.display = 'none'; }, 2500);
+}
+
 window.showPreview = function (id) {
   const product = products.find((p) => p.id === id);
   if (!product) return;
@@ -1799,6 +1881,16 @@ window.showPreview = function (id) {
     "Visualização",
     'Clique em "Gerar PDF" para visualizar o cartaz completo.',
   );
+};
+
+// Alternar negrito na sub descrição de um cartaz individual
+window.toggleNegritoSubdesc = function (id, checked) {
+  const product = products.find((p) => p.id === id);
+  if (!product) return;
+  product.negritoSubdesc = checked;
+  salvarCartazesLocalStorage();
+  const previewEl = document.querySelector(`.product-preview[data-preview-id="${id}"]`);
+  if (previewEl) previewEl.innerHTML = generatePosterHTML(product, true);
 };
 
 // Alterar layout personalizado de um produto
@@ -1831,6 +1923,30 @@ window.toggleMoverValidade = function (id, checked) {
   const previewEl = document.querySelector(`.product-preview[data-preview-id="${id}"]`);
   if (previewEl) {
     previewEl.innerHTML = generatePosterHTML(product, true);
+  }
+
+  // Verificar se há 3 ou mais cartazes com validade para oferecer aplicação em massa
+  const comValidade = products.filter((p) => p.validade);
+  if (comValidade.length >= 3) {
+    const posLabel = checked ? "abaixo (centralizada)" : "lateral";
+    showConfirm({
+      title: "Aplicar em todos?",
+      subtitle: `${comValidade.length} cartazes têm validade`,
+      message: `Deseja aplicar a posição "${posLabel}" em todos os ${comValidade.length} cartazes que têm validade?`,
+      confirmText: "Sim, aplicar a todos",
+      cancelText: "Só neste",
+      iconType: "info",
+      onConfirm: () => {
+        products.forEach((p) => { if (p.validade) p.moverValidade = checked; });
+        salvarCartazesLocalStorage();
+        renderProducts();
+        showToast(
+          "success",
+          "Posição atualizada!",
+          `Validade ${posLabel} aplicada em ${comValidade.length} cartazes.`
+        );
+      },
+    });
   }
 };
 
@@ -2843,6 +2959,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
   renderProducts();
   updateHeader("gerar");
+
+  // Restaurar e conectar switches de Estilos
+  const _estilosInit = getEstilosGlobais();
+  const swNegrito = document.getElementById("estilo-negrito-subdesc");
+  const swValBaixo = document.getElementById("estilo-validade-baixo");
+  if (swNegrito) swNegrito.checked = _estilosInit.negritoSubdesc;
+  if (swValBaixo) swValBaixo.checked = _estilosInit.validadeBaixo;
+  const _salvarEstilos = () => {
+    salvarEstilosGlobais({
+      negritoSubdesc: !!(swNegrito && swNegrito.checked),
+      validadeBaixo:  !!(swValBaixo && swValBaixo.checked),
+    });
+    _mostrarBadgeEstilos();
+  };
+  swNegrito && swNegrito.addEventListener("change", _salvarEstilos);
+  swValBaixo && swValBaixo.addEventListener("change", _salvarEstilos);
+
+  // Fechar painel de estilos com ESC
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+      const panel = document.getElementById("estilos-panel");
+      if (panel && panel.classList.contains("open")) {
+        fecharPainelEstilos();
+      }
+    }
+  });
 
   const switchModelo = document.getElementById("switch-modelo");
   

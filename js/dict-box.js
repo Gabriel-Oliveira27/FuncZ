@@ -247,44 +247,9 @@ window.DICT_BOX.setCapMode  = _db_setCapMode;
 
 /** Injeta o toggle de capitalização no formulário, antes do botão "Adicionar" */
 function _db_injectCapToggle() {
-  if (document.getElementById('cap-mode-toggle-wrap')) return;
-  var submitBtn = document.querySelector('#product-form [type="submit"]');
-  if (!submitBtn) return;
-  var row = submitBtn.closest('div');
-  if (!row) return;
-
-  var wrap = document.createElement('div');
-  wrap.id = 'cap-mode-toggle-wrap';
-  wrap.style.cssText = 'display:flex;align-items:center;gap:7px;flex-shrink:0;';
-
-  var label = document.createElement('span');
-  label.style.cssText = 'font-size:11px;font-weight:600;color:#9ca3af;white-space:nowrap;';
-  label.textContent = 'Estilo:';
-
-  var group = document.createElement('div');
-  group.className = 'cap-mode-wrap';
-
-  var modo = _db_getCapMode();
-  [
-    { m:'upper', icon:'fa-font',        text:'CAIXA ALTA',     tip:'Todos os campos em MAIÚSCULO'             },
-    { m:'title', icon:'fa-text-height', text:'Primeira Letra', tip:'Primeira letra de cada palavra maiúscula' },
-  ].forEach(function(opt) {
-    var btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'cap-mode-btn' + (modo === opt.m ? ' active' : '');
-    btn.dataset.cap = opt.m;
-    btn.title = opt.tip;
-    btn.innerHTML = '<i class="fa-solid ' + opt.icon + '"></i> ' + opt.text;
-    btn.addEventListener('click', function() {
-      _db_setCapMode(opt.m);
-      _db_reaplicarCap();
-    });
-    group.appendChild(btn);
-  });
-
-  wrap.appendChild(label);
-  wrap.appendChild(group);
-  row.insertBefore(wrap, row.firstChild);
+  // A UI de capitalização foi movida para o painel lateral "Configurações de estilo"
+  // (acessado pelo botão de engrenagem no formulário principal).
+  // Esta função está intencionalmente desativada para evitar duplicação.
 }
 
 var _CAP_FIELDS = ['descricao','subdescricao','feature-1','feature-2','feature-3'];
