@@ -42,27 +42,6 @@
 
     <div class="fw-panel" id="fwPanel" aria-hidden="true">
 
-        <!-- ── Clima ── -->
-        <div class="fw-block fw-block-weather">
-            <div class="fw-block-header">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
-                Clima · <span id="fwCity">Iguatu, CE</span>
-                <button class="fw-icon-btn" id="fwWeatherRefresh" title="Atualizar clima">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                </button>
-            </div>
-            <div class="fw-weather-body" id="fwWeatherBody">
-                <div class="fw-weather-main">
-                    <span class="fw-weather-icon" id="fwWeatherEmoji">⛅</span>
-                    <span class="fw-weather-temp" id="fwWeatherTemp">--°</span>
-                </div>
-                <div class="fw-weather-desc" id="fwWeatherDesc">Carregando...</div>
-                <div class="fw-weather-extra" id="fwWeatherExtra"></div>
-            </div>
-        </div>
-
-        <div class="fw-divider"></div>
-
         <!-- ── Meta do dia ── -->
         <div class="fw-block fw-block-meta">
             <div class="fw-block-header">
@@ -144,10 +123,6 @@
 <main>
     <!-- Welcome -->
     <div class="welcome-section">
-        <div class="welcome-badge">
-            <span class="status-dot"></span>
-            Sistema Online
-        </div>
         <h2 id="welcomeHeadline" class="welcome-title">
             Olá, <span id="userName" class="user-name-highlight">Usuário</span>!
         </h2>
@@ -305,14 +280,12 @@
         <div class="lock-date" id="lockDate"></div>
         <div class="lock-quote"><p id="lockQuote"></p></div>
         <div class="lock-info-grid">
-            <div class="lock-info-card">
-                <svg class="icon" id="weatherIcon" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="5"></circle>
-                    <line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line>
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                    <line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line>
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                </svg>
+            <div class="lock-info-card" id="lockStatsCard">
+                <div style="text-align:center;width:100%">
+                    <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.55;margin-bottom:6px">Turno atual</div>
+                    <div id="lockShiftLabel" style="font-size:1.05rem;font-weight:700;opacity:.95">—</div>
+                    <div id="lockShiftSub" style="font-size:.72rem;opacity:.6;margin-top:4px">—</div>
+                </div>
             </div>
             <div class="lock-info-card" id="infoCard">
                 <div id="infoCardContainer"><div class="info-loading">Carregando...</div></div>
@@ -346,13 +319,13 @@ function initCardFX() {
         if (!shine) { shine = document.createElement('div'); shine.className = 'card-shine'; card.appendChild(shine); }
         card.addEventListener('mousemove', e => {
             const r = card.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
-            card.style.transition = 'box-shadow .12s ease';
-            card.style.transform = `translateY(-8px) rotateX(${((y-r.height/2)/r.height/2)*-6}deg) rotateY(${((x-r.width/2)/r.width/2)*6}deg) scale(1.01)`;
-            shine.style.background = `radial-gradient(circle at ${(x/r.width)*100}% ${(y/r.height)*100}%, rgba(255,255,255,0.17) 0%, transparent 65%)`;
+            card.style.transition = 'box-shadow .1s ease';
+            card.style.transform = `translateY(-9px) rotateX(${((y-r.height/2)/r.height)*-7}deg) rotateY(${((x-r.width/2)/r.width)*7}deg) scale(1.01)`;
+            shine.style.background = `radial-gradient(circle at ${(x/r.width)*100}% ${(y/r.height)*100}%, rgba(255,255,255,0.18) 0%, transparent 60%)`;
             shine.style.opacity = '1';
         });
         card.addEventListener('mouseleave', () => {
-            card.style.transition = 'all .44s cubic-bezier(.34,1.56,.64,1)';
+            card.style.transition = 'all .4s cubic-bezier(.34,1.56,.64,1)';
             card.style.transform = ''; shine.style.opacity = '0';
         });
     });
@@ -370,319 +343,471 @@ new MutationObserver(() => setTimeout(initCardFX, 80))
     .observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class'] });
 
 /* ══════════════════════════════════════
-   2. ✈️ AVIÃO INFINITO NO CANVAS
-   Paisagem: céu gradiente, nuvens, chão,
-   prédios e montanhas desfilam da direita
+   2. ✈️ AVIÃO — ciclo DIA → NOITE (2 min)
+   Fases: madrugada → amanhecer → decolagem
+          → cruzeiro dia → pôr do sol → noite
+   Ao atingir a noite: sorteia pouso ou voo lento
 ══════════════════════════════════════ */
 let planeRAF = null;
 let planeActive = false;
 
 const PlaneScene = (function () {
     let canvas, ctx, W, H;
-    let t = 0; // tempo global
+    let startMs = null;
+    const TOTAL_MS = 120000; // 2 minutos
 
-    /* -- Avião -- */
-    const plane = { x: 0, y: 0, angle: 0, trail: [] };
+    // Sorteado no start(): true = pousa de noite, false = voa lento
+    let willLand = false;
 
-    /* -- Nuvens (parallax 3 camadas) -- */
-    const CLOUD_LAYERS = [
-        { speed: 0.18, scale: 0.55, y: 0.15, opacity: 0.45, clouds: [] },
-        { speed: 0.30, scale: 0.80, y: 0.25, opacity: 0.60, clouds: [] },
-        { speed: 0.50, scale: 1.05, y: 0.38, opacity: 0.75, clouds: [] },
-    ];
-
-    /* -- Objetos de chão (prédios + montanhas) -- */
-    const GROUND = { items: [], speed: 0.9 };
-
-    function rng(min, max) { return min + Math.random() * (max - min); }
-
-    function initClouds() {
-        CLOUD_LAYERS.forEach(layer => {
-            layer.clouds = [];
-            for (let i = 0; i < 5; i++) {
-                layer.clouds.push({ x: rng(0, W), size: rng(55, 110) * layer.scale });
-            }
-        });
+    function rng(a, b) { return a + Math.random() * (b - a); }
+    function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+    function lerp(a, b, t) { return a + (b - a) * clamp(t, 0, 1); }
+    function lerpColor(c1, c2, t) {
+        const h = s => parseInt(s, 16);
+        const r1=h(c1.slice(1,3)),g1=h(c1.slice(3,5)),b1=h(c1.slice(5,7));
+        const r2=h(c2.slice(1,3)),g2=h(c2.slice(3,5)),b2=h(c2.slice(5,7));
+        return `rgb(${Math.round(lerp(r1,r2,t))},${Math.round(lerp(g1,g2,t))},${Math.round(lerp(b1,b2,t))})`;
     }
 
-    function spawnGround() {
-        /* spawn prédio ou montanha */
-        const type = Math.random() < 0.52 ? 'building' : 'mountain';
-        const groundY = H * 0.74; // linha do chão
-        if (type === 'building') {
-            const w = rng(28, 62);
-            const h = rng(40, 130);
-            GROUND.items.push({
-                type: 'building',
-                x: W + rng(0, 80),
-                y: groundY - h,
-                w, h,
-                windows: Math.floor(rng(2, 6)),
-                color: `hsl(${rng(200,225)},${rng(18,35)}%,${rng(30,50)}%)`
-            });
+    // Fase progress 0-1
+    // 0.00 - 0.07 : pré-amanhecer (escuro, avião no solo)
+    // 0.07 - 0.18 : amanhecer → decola
+    // 0.18 - 0.58 : dia claro, cruzeiro
+    // 0.58 - 0.78 : pôr do sol
+    // 0.78 - 1.00 : noite
+
+    function getSkyGradient(p) {
+        // [topColor, midColor, bottomColor, sunOpacity, sunColor]
+        if (p < 0.07) {
+            const t = p / 0.07;
+            return {
+                top: lerpColor('#010614', '#040f2a', t),
+                mid: lerpColor('#020a1c', '#081848', t),
+                bot: lerpColor('#030b14', '#0a2060', t),
+                starsAlpha: lerp(1, 0.7, t),
+                sun: 0, sunY: 0.9, moonAlpha: lerp(0.8, 0.4, t)
+            };
+        } else if (p < 0.18) {
+            const t = (p - 0.07) / 0.11;
+            return {
+                top: lerpColor('#040f2a', '#0a2a6e', t),
+                mid: lerpColor('#e8622a', '#2a5fbf', t),
+                bot: lerpColor('#f5a642', '#4a90e8', t),
+                starsAlpha: lerp(0.7, 0, t),
+                sun: lerp(0, 0.85, t), sunY: lerp(0.82, 0.60, t),
+                sunColor: `rgba(255,${Math.round(lerp(180,230,t))},${Math.round(lerp(50,100,t))},${lerp(0,.85,t)})`,
+                moonAlpha: lerp(0.4, 0, t)
+            };
+        } else if (p < 0.58) {
+            const t = (p - 0.18) / 0.40;
+            return {
+                top: lerpColor('#0a2a6e', '#0d3580', t),
+                mid: lerpColor('#2a5fbf', '#1a4fd6', t),
+                bot: lerpColor('#4a90e8', '#3b82f6', t),
+                starsAlpha: 0,
+                sun: lerp(0.85, 1, t), sunY: lerp(0.60, 0.18, t),
+                sunColor: `rgba(255,245,180,${lerp(.85,1,t)})`,
+                moonAlpha: 0
+            };
+        } else if (p < 0.78) {
+            const t = (p - 0.58) / 0.20;
+            return {
+                top: lerpColor('#0d3580', '#150b38', t),
+                mid: lerpColor('#1a4fd6', '#c0391a', t),
+                bot: lerpColor('#3b82f6', '#e05c20', t),
+                starsAlpha: lerp(0, 0.5, t),
+                sun: lerp(1, 0.2, t), sunY: lerp(0.18, 0.75, t),
+                sunColor: `rgba(255,120,30,${lerp(1,.2,t)})`,
+                moonAlpha: lerp(0, 0.6, t)
+            };
         } else {
-            const w = rng(90, 200);
-            const h = rng(60, 160);
-            GROUND.items.push({
-                type: 'mountain',
-                x: W + rng(0, 60),
-                y: groundY,
-                w, h,
-                color: `hsl(${rng(195,215)},${rng(15,28)}%,${rng(28,44)}%)`
-            });
+            const t = (p - 0.78) / 0.22;
+            return {
+                top: lerpColor('#150b38', '#020617', t),
+                mid: lerpColor('#3d1408', '#050e2a', t),
+                bot: lerpColor('#6b2c12', '#0a1a40', t),
+                starsAlpha: lerp(0.5, 1, t),
+                sun: 0, sunY: 1,
+                moonAlpha: lerp(0.6, 0.95, t)
+            };
         }
-        /* schedule next */
-        const delay = rng(1200, 3000);
-        if (planeActive) setTimeout(spawnGround, delay);
     }
 
-    function drawCloud(cx, cy, size, opacity) {
+    // Clouds
+    const clouds = [];
+    function initClouds() {
+        clouds.length = 0;
+        for (let i = 0; i < 8; i++) {
+            clouds.push({
+                x: rng(0, W), y: rng(H*0.08, H*0.42),
+                size: rng(50, 130), speed: rng(0.12, 0.45),
+                alpha: rng(0.25, 0.7)
+            });
+        }
+    }
+    function drawCloud(cx, cy, sz, alpha, skyP) {
+        // Clouds fade out at sunset/night
+        const cloudAlpha = alpha * clamp(1 - (skyP - 0.55) / 0.25, 0, 1);
+        if (cloudAlpha <= 0.01) return;
         ctx.save();
-        ctx.globalAlpha = opacity;
-        ctx.fillStyle = 'rgba(255,255,255,0.92)';
-        ctx.shadowColor = 'rgba(255,255,255,0.4)';
-        ctx.shadowBlur = 10;
+        ctx.globalAlpha = cloudAlpha;
+        ctx.fillStyle = skyP < 0.18 ? 'rgba(255,200,150,0.9)' : 'rgba(255,255,255,0.92)';
         const puffs = [
-            { dx: 0, dy: 0, r: size * 0.50 },
-            { dx: -size * 0.38, dy: size * 0.10, r: size * 0.36 },
-            { dx:  size * 0.38, dy: size * 0.10, r: size * 0.36 },
-            { dx: -size * 0.18, dy: -size * 0.20, r: size * 0.28 },
-            { dx:  size * 0.18, dy: -size * 0.20, r: size * 0.28 },
+            [0, 0, sz*.50], [-sz*.38, sz*.10, sz*.36], [sz*.38, sz*.10, sz*.36],
+            [-sz*.18, -sz*.20, sz*.28], [sz*.18, -sz*.20, sz*.28]
         ];
-        puffs.forEach(p => {
-            ctx.beginPath();
-            ctx.arc(cx + p.dx, cy + p.dy, p.r, 0, Math.PI * 2);
-            ctx.fill();
+        puffs.forEach(([dx,dy,r]) => {
+            ctx.beginPath(); ctx.arc(cx+dx, cy+dy, r, 0, Math.PI*2); ctx.fill();
         });
         ctx.restore();
     }
 
-    function drawBuilding(item) {
-        ctx.save();
-        /* main body */
-        ctx.fillStyle = item.color;
-        ctx.fillRect(item.x, item.y, item.w, item.h);
-        /* roof accent */
-        ctx.fillStyle = `hsl(210,25%,22%)`;
-        ctx.fillRect(item.x, item.y, item.w, 6);
-        /* windows grid */
-        ctx.fillStyle = `rgba(255,220,100,0.55)`;
-        const cols = item.windows, rows = Math.floor(item.h / 22);
-        const ww = (item.w - 10) / cols, wh = 10;
-        for (let row = 1; row <= rows; row++) {
-            for (let col = 0; col < cols; col++) {
-                if (Math.random() > 0.28) {
-                    ctx.fillRect(item.x + 5 + col * ww, item.y + row * 18, ww - 4, wh);
-                }
+    // Ground objects
+    const groundItems = [];
+    let lastSpawnTs = 0;
+    function spawnGround(p) {
+        const groundY = H * 0.76;
+        const type = Math.random() < 0.55 ? 'building' : 'mountain';
+        if (type === 'building') {
+            const w = rng(22,58), h = rng(35,120);
+            groundItems.push({ type:'building', x:W+rng(0,80), y:groundY-h, w, h,
+                wins: Math.floor(rng(2,6)), color:`hsl(${rng(200,225)},${rng(18,36)}%,${rng(28,48)}%)` });
+        } else {
+            const w = rng(80,190), h = rng(55,150);
+            groundItems.push({ type:'mountain', x:W+rng(0,60), y:groundY, w, h,
+                color:`hsl(${rng(195,215)},${rng(14,28)}%,${rng(26,42)}%)` });
+        }
+    }
+    function drawBuilding(it, p) {
+        const isNight = p > 0.7;
+        ctx.fillStyle = it.color;
+        ctx.fillRect(it.x, it.y, it.w, it.h);
+        ctx.fillStyle = `hsl(210,25%,20%)`;
+        ctx.fillRect(it.x, it.y, it.w, 5);
+        // windows
+        const cols = it.wins, rows = Math.floor(it.h/20);
+        for (let row=1; row<=rows; row++) {
+            for (let col=0; col<cols; col++) {
+                const lit = isNight ? (Math.random() > 0.35) : (Math.random() > 0.7);
+                if (!lit) continue;
+                const ww = (it.w-8)/cols;
+                ctx.fillStyle = isNight ? `rgba(255,220,90,${rng(0.4,0.8)})` : `rgba(200,220,255,0.3)`;
+                ctx.fillRect(it.x+4+col*ww, it.y+row*17, ww-3, 9);
             }
         }
+    }
+    function drawMountain(it) {
+        ctx.fillStyle = `hsl(210,18%,20%)`;
+        ctx.beginPath();
+        ctx.moveTo(it.x-it.w*.2, it.y);
+        ctx.lineTo(it.x+it.w*.55, it.y-it.h*1.1);
+        ctx.lineTo(it.x+it.w*1.1, it.y); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = it.color;
+        ctx.beginPath();
+        ctx.moveTo(it.x,it.y); ctx.lineTo(it.x+it.w/2,it.y-it.h); ctx.lineTo(it.x+it.w,it.y);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,.7)';
+        ctx.beginPath();
+        ctx.moveTo(it.x+it.w*.35, it.y-it.h*.72);
+        ctx.lineTo(it.x+it.w*.5,  it.y-it.h);
+        ctx.lineTo(it.x+it.w*.65, it.y-it.h*.72);
+        ctx.closePath(); ctx.fill();
+    }
+
+    // Runway
+    function drawRunway(alpha) {
+        if (alpha <= 0) return;
+        const groundY = H * 0.76;
+        const ry = groundY + 8, rh = 16, rx = W * 0.2, rw = W * 0.6;
+        ctx.save(); ctx.globalAlpha = alpha;
+        ctx.fillStyle = '#1a1a2a';
+        ctx.fillRect(rx, ry, rw, rh);
+        // center line dashes
+        ctx.fillStyle = '#f5d76e';
+        for (let i=0; i<10; i++) {
+            const x = rx + (i/10)*rw + rng(-1,1);
+            ctx.fillRect(x, ry + rh/2 - 2, rw*0.07, 3);
+        }
+        // runway lights
+        for (let i=0; i<=12; i++) {
+            const lx = rx + (i/12)*rw;
+            ctx.fillStyle = i%2===0 ? 'rgba(255,80,80,.9)' : 'rgba(255,255,100,.9)';
+            ctx.beginPath(); ctx.arc(lx, ry+2, 3, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(lx, ry+rh-2, 3, 0, Math.PI*2); ctx.fill();
+        }
         ctx.restore();
     }
 
-    function drawMountain(item) {
+    // Trail
+    const trail = [];
+    function drawTrail(alpha) {
+        if (trail.length < 2) return;
         ctx.save();
-        /* shadow mountain behind */
-        ctx.fillStyle = `hsl(210,18%,22%)`;
-        ctx.beginPath();
-        ctx.moveTo(item.x - item.w * 0.2, item.y);
-        ctx.lineTo(item.x + item.w * 0.55, item.y - item.h * 1.1);
-        ctx.lineTo(item.x + item.w * 1.1, item.y);
-        ctx.closePath();
-        ctx.fill();
-        /* main mountain */
-        ctx.fillStyle = item.color;
-        ctx.beginPath();
-        ctx.moveTo(item.x, item.y);
-        ctx.lineTo(item.x + item.w / 2, item.y - item.h);
-        ctx.lineTo(item.x + item.w, item.y);
-        ctx.closePath();
-        ctx.fill();
-        /* snow cap */
-        ctx.fillStyle = 'rgba(255,255,255,0.75)';
-        ctx.beginPath();
-        ctx.moveTo(item.x + item.w * 0.35, item.y - item.h * 0.72);
-        ctx.lineTo(item.x + item.w * 0.5, item.y - item.h);
-        ctx.lineTo(item.x + item.w * 0.65, item.y - item.h * 0.72);
-        ctx.closePath();
-        ctx.fill();
-        ctx.restore();
-    }
-
-    function drawPlane(px, py, angle) {
-        ctx.save();
-        ctx.translate(px, py);
-        ctx.rotate(angle);
-        ctx.scale(0.85, 0.85);
-
-        /* fuselagem */
-        ctx.fillStyle = 'rgba(255,255,255,0.96)';
-        ctx.beginPath();
-        ctx.ellipse(0, 0, 34, 10, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        /* nariz */
-        ctx.beginPath();
-        ctx.moveTo(28, -3);
-        ctx.quadraticCurveTo(44, 0, 28, 3);
-        ctx.closePath();
-        ctx.fill();
-
-        /* asa principal */
-        ctx.fillStyle = 'rgba(255,255,255,0.88)';
-        ctx.beginPath();
-        ctx.moveTo(5, -2);
-        ctx.lineTo(-8, -22);
-        ctx.lineTo(-18, -22);
-        ctx.lineTo(-12, -2);
-        ctx.closePath();
-        ctx.fill();
-        /* asa direita (espelho) */
-        ctx.beginPath();
-        ctx.moveTo(5, 2);
-        ctx.lineTo(-8, 22);
-        ctx.lineTo(-18, 22);
-        ctx.lineTo(-12, 2);
-        ctx.closePath();
-        ctx.fill();
-
-        /* cauda vertical */
-        ctx.fillStyle = 'rgba(255,255,255,0.75)';
-        ctx.beginPath();
-        ctx.moveTo(-28, -2);
-        ctx.lineTo(-22, -14);
-        ctx.lineTo(-14, -2);
-        ctx.closePath();
-        ctx.fill();
-
-        /* cauda horizontal */
-        ctx.beginPath();
-        ctx.moveTo(-26, 0);
-        ctx.lineTo(-22, -8);
-        ctx.lineTo(-14, 0);
-        ctx.lineTo(-14, 4);
-        ctx.lineTo(-22, 4);
-        ctx.closePath();
-        ctx.fill();
-
-        /* janelas */
-        ctx.fillStyle = '#1a4fd6';
-        [-8, 0, 8, 16].forEach(dx => {
-            ctx.globalAlpha = 0.65;
-            ctx.fillRect(dx, -5, 7, 5);
-        });
-        ctx.globalAlpha = 1;
-
-        /* motor */
-        ctx.fillStyle = 'rgba(200,210,230,0.8)';
-        ctx.fillRect(-6, -26, 14, 6);
-        ctx.fillRect(-6,  20, 14, 6);
-
-        ctx.restore();
-    }
-
-    function drawTrail() {
-        if (plane.trail.length < 2) return;
-        ctx.save();
-        for (let i = 1; i < plane.trail.length; i++) {
-            const alpha = (i / plane.trail.length) * 0.22;
-            const size  = (i / plane.trail.length) * 5;
+        for (let i=1; i<trail.length; i++) {
+            const frac = i/trail.length;
             ctx.beginPath();
-            ctx.arc(plane.trail[i].x, plane.trail[i].y, size, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+            ctx.arc(trail[i].x, trail[i].y, frac*4.5, 0, Math.PI*2);
+            ctx.fillStyle = `rgba(255,255,255,${frac * 0.22 * alpha})`;
             ctx.fill();
         }
         ctx.restore();
     }
 
-    let lastSpawn = 0;
-
-    function frame(ts) {
-        if (!planeActive) return;
-        t += 0.016;
-
-        ctx.clearRect(0, 0, W, H);
-
-        /* -- SKY GRADIENT -- */
-        const sky = ctx.createLinearGradient(0, 0, 0, H * 0.75);
-        sky.addColorStop(0, '#060f2a');
-        sky.addColorStop(0.45, '#0c2060');
-        sky.addColorStop(1, '#1a4fd6');
-        ctx.fillStyle = sky;
-        ctx.fillRect(0, 0, W, H * 0.75);
-
-        /* stars (tiny, only in top half) */
-        ctx.fillStyle = 'rgba(255,255,255,0.5)';
-        for (let s = 0; s < 55; s++) {
-            const sx = ((s * 137.5 + t * 4) % W);
-            const sy = (s * 29.3) % (H * 0.4);
-            const sr = (Math.sin(t * 2 + s) * 0.5 + 0.7) * 1.2;
+    // Plane drawing
+    function drawPlane(px, py, angle, sc) {
+        ctx.save();
+        ctx.translate(px, py); ctx.rotate(angle); ctx.scale(sc, sc);
+        // fuselagem
+        ctx.fillStyle = 'rgba(255,255,255,.96)';
+        ctx.beginPath(); ctx.ellipse(0,0,36,10,0,0,Math.PI*2); ctx.fill();
+        // nariz
+        ctx.beginPath(); ctx.moveTo(30,-3); ctx.quadraticCurveTo(46,0,30,3); ctx.closePath(); ctx.fill();
+        // asas
+        ctx.fillStyle = 'rgba(255,255,255,.88)';
+        [[4,-2,-8,-23,-19,-23,-13,-2],[4,2,-8,23,-19,23,-13,2]].forEach(pts => {
             ctx.beginPath();
-            ctx.arc(sx, sy, sr, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        /* -- CLOUDS (parallax) -- */
-        CLOUD_LAYERS.forEach(layer => {
-            layer.clouds.forEach(c => {
-                c.x -= layer.speed;
-                if (c.x + c.size * 1.5 < 0) { c.x = W + c.size; c.size = rng(55, 110) * layer.scale; }
-                drawCloud(c.x, H * layer.y, c.size, layer.opacity);
-            });
+            ctx.moveTo(pts[0],pts[1]); ctx.lineTo(pts[2],pts[3]); ctx.lineTo(pts[4],pts[5]); ctx.lineTo(pts[6],pts[7]);
+            ctx.closePath(); ctx.fill();
         });
+        // cauda v
+        ctx.fillStyle='rgba(255,255,255,.75)';
+        ctx.beginPath();ctx.moveTo(-30,-2);ctx.lineTo(-23,-15);ctx.lineTo(-14,-2);ctx.closePath();ctx.fill();
+        // cauda h
+        ctx.beginPath();ctx.moveTo(-28,0);ctx.lineTo(-23,-9);ctx.lineTo(-14,0);ctx.lineTo(-14,4);ctx.lineTo(-23,4);ctx.closePath();ctx.fill();
+        // janelas
+        ctx.fillStyle='#1a4fd6';
+        [-9,0,9,18].forEach(dx=>{ctx.globalAlpha=.65;ctx.fillRect(dx,-5,7,5);});
+        ctx.globalAlpha=1;
+        // motores
+        ctx.fillStyle='rgba(200,210,230,.8)';
+        ctx.fillRect(-7,-27,15,6); ctx.fillRect(-7,21,15,6);
+        ctx.restore();
+    }
 
-        /* -- GROUND -- */
-        const groundY = H * 0.74;
+    // Get plane state from progress p (0-1)
+    function getPlaneState(p) {
+        const groundY = H * 0.76;
+        const cruiseY = H * 0.34;
 
-        /* ground band */
-        const grd = ctx.createLinearGradient(0, groundY, 0, H);
-        grd.addColorStop(0, '#0a1a3a');
-        grd.addColorStop(0.4, '#071228');
-        grd.addColorStop(1, '#040c1e');
-        ctx.fillStyle = grd;
-        ctx.fillRect(0, groundY, W, H - groundY);
+        if (p < 0.07) {
+            // On ground, engines warming up
+            return { x: W*0.15, y: groundY - 14, angle: 0, sc: 0.75, trailAlpha: 0 };
+        } else if (p < 0.18) {
+            // Takeoff roll + climb
+            const t = (p - 0.07) / 0.11;
+            const groundRoll = clamp((t - 0) / 0.3, 0, 1);
+            const climb = clamp((t - 0.25) / 0.75, 0, 1);
+            const x = W*0.15 + W*0.2*groundRoll;
+            const y = lerp(groundY-14, cruiseY, Math.pow(climb, 0.6));
+            const angle = climb < 0.9 ? lerp(0, -0.32, Math.sin(climb*Math.PI)) : lerp(-0.32*Math.sin((climb-0.9)/0.1*Math.PI), 0, (climb-0.9)/0.1);
+            return { x, y, angle, sc: lerp(0.75, 0.95, climb), trailAlpha: lerp(0, 1, climb) };
+        } else if (p < 0.78) {
+            // Cruise (gentle sine wave)
+            const age = (p - 0.18) / 0.60;
+            const sineY = Math.sin(age * Math.PI * 6) * H * 0.045;
+            const dy = Math.cos(age * Math.PI * 6) * H * 0.045 * Math.PI * 6 / (0.60 * TOTAL_MS / 1000);
+            return { x: W*0.35, y: cruiseY + sineY, angle: Math.atan2(dy, 300)*0.4, sc: 0.95, trailAlpha: 1 };
+        } else if (willLand) {
+            // Landing approach
+            const t = (p - 0.78) / 0.22;
+            const x = lerp(W*0.35, W*0.78, t);
+            const y = lerp(cruiseY, groundY - 14, Math.pow(t, 0.7));
+            const angle = lerp(0, 0.22, t);
+            return { x, y, angle, sc: lerp(0.95, 0.88, t), trailAlpha: lerp(1, 0.3, t) };
+        } else {
+            // Night slow cruise — lower altitude
+            const t = (p - 0.78) / 0.22;
+            const nightY = lerp(cruiseY, cruiseY + H*0.07, t);
+            const sineY = Math.sin(t * Math.PI * 2.5) * H * 0.025;
+            return { x: W*0.32, y: nightY + sineY, angle: 0, sc: 0.88, trailAlpha: lerp(1, 0.6, t) };
+        }
+    }
 
-        /* horizon glow */
-        const hglow = ctx.createLinearGradient(0, groundY - 18, 0, groundY + 12);
-        hglow.addColorStop(0, 'rgba(26,79,214,0.55)');
-        hglow.addColorStop(1, 'transparent');
-        ctx.fillStyle = hglow;
-        ctx.fillRect(0, groundY - 18, W, 30);
+    // Stars
+    const starSeeds = Array.from({length:80}, (_,i) => ({
+        x: (i*137.508+0.1) % 1, y: (i*93.71+0.3) % 0.55,
+        r: 0.4 + (i%4)*0.3, twinkle: i*0.8
+    }));
 
-        /* city lights on ground */
-        for (let l = 0; l < 60; l++) {
-            const lx = ((l * 211.3 + t * 110) % W);
-            const ly = groundY + rng(8, 30);
-            const bright = Math.sin(t * 3 + l) * 0.3 + 0.7;
-            ctx.fillStyle = `rgba(255,220,80,${bright * 0.5})`;
+    function drawStars(alpha) {
+        if (alpha <= 0) return;
+        ctx.save();
+        starSeeds.forEach(s => {
+            const tw = (Math.sin(Date.now()/1000 * 1.2 + s.twinkle) * 0.35 + 0.65);
+            ctx.globalAlpha = alpha * tw * 0.85;
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(s.x*W, s.y*H, s.r, 0, Math.PI*2);
+            ctx.fill();
+        });
+        ctx.restore();
+    }
+
+    // Moon
+    function drawMoon(alpha, skyInfo) {
+        if (alpha <= 0) return;
+        const mx = W*0.82, my = H * (0.06 + 0.1*(1-alpha));
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        // glow
+        const grd = ctx.createRadialGradient(mx,my,0,mx,my,55);
+        grd.addColorStop(0,'rgba(230,235,255,.35)');
+        grd.addColorStop(1,'transparent');
+        ctx.fillStyle = grd; ctx.fillRect(mx-55,my-55,110,110);
+        // moon disc
+        ctx.fillStyle='rgba(230,235,255,1)';
+        ctx.beginPath(); ctx.arc(mx,my,20,0,Math.PI*2); ctx.fill();
+        // crescent shadow
+        ctx.fillStyle='rgba(15,18,45,.9)';
+        ctx.beginPath(); ctx.arc(mx+8,my,18,0,Math.PI*2); ctx.fill();
+        ctx.restore();
+    }
+
+    // Sun
+    function drawSun(info) {
+        if (!info.sun || info.sun <= 0) return;
+        const sx = W * 0.78, sy = H * info.sunY;
+        ctx.save();
+        ctx.globalAlpha = info.sun * 0.9;
+        // rays
+        const numRays = 12;
+        for (let i=0; i<numRays; i++) {
+            const a = (i/numRays)*Math.PI*2 + Date.now()/8000;
+            const len = 38 + 14*Math.sin(Date.now()/2000+i);
+            ctx.strokeStyle = info.sunColor || 'rgba(255,230,80,.6)';
+            ctx.lineWidth = 2; ctx.globalAlpha = info.sun * 0.25;
+            ctx.beginPath();
+            ctx.moveTo(sx+Math.cos(a)*22, sy+Math.sin(a)*22);
+            ctx.lineTo(sx+Math.cos(a)*(22+len), sy+Math.sin(a)*(22+len));
+            ctx.stroke();
+        }
+        // disc
+        ctx.globalAlpha = info.sun;
+        const sgrd = ctx.createRadialGradient(sx,sy,0,sx,sy,28);
+        sgrd.addColorStop(0, info.sunColor || 'rgba(255,245,180,1)');
+        sgrd.addColorStop(0.6, info.sunColor || 'rgba(255,220,80,.9)');
+        sgrd.addColorStop(1,'transparent');
+        ctx.fillStyle = sgrd;
+        ctx.beginPath(); ctx.arc(sx,sy,28,0,Math.PI*2); ctx.fill();
+        ctx.restore();
+    }
+
+    // City lights at night
+    function drawCityLights(p) {
+        if (p < 0.65) return;
+        const alpha = clamp((p-0.65)/0.15, 0, 1);
+        const groundY = H * 0.76;
+        ctx.save();
+        for (let l=0; l<70; l++) {
+            const lx = ((l*211.3 + (Date.now()/1000)*55) % W);
+            const ly = groundY + rng(8,32);
+            const blink = Math.sin(Date.now()/800 + l*1.3) * 0.2 + 0.8;
+            ctx.globalAlpha = alpha * blink * 0.6;
+            ctx.fillStyle = l%5===0 ? '#ff6040' : l%3===0 ? '#80e0ff' : '#ffe060';
             ctx.fillRect(lx, ly, 2, 2);
         }
+        ctx.restore();
+    }
 
-        /* ground objects */
-        GROUND.items.forEach(item => {
-            item.x -= GROUND.speed;
-            if (item.type === 'building') drawBuilding(item);
-            else drawMountain(item);
+    let frameTs = 0;
+    function frame(ts) {
+        if (!planeActive) return;
+        if (!startMs) startMs = ts;
+        const elapsed = ts - startMs;
+        const p = clamp(elapsed / TOTAL_MS, 0, 1);
+        const groundSpeed = p < 0.78 ? 0.8 : (willLand ? lerp(0.8, 0.2, (p-0.78)/0.22) : 0.35);
+
+        ctx.clearRect(0,0,W,H);
+
+        const sky = getSkyGradient(p);
+
+        // Sky background
+        const bgGrd = ctx.createLinearGradient(0,0,0,H*0.76);
+        bgGrd.addColorStop(0, sky.top);
+        bgGrd.addColorStop(0.5, sky.mid);
+        bgGrd.addColorStop(1, sky.bot);
+        ctx.fillStyle = bgGrd;
+        ctx.fillRect(0,0,W,H*0.76);
+
+        drawStars(sky.starsAlpha || 0);
+        drawMoon(sky.moonAlpha || 0, sky);
+        drawSun(sky);
+
+        // Clouds
+        clouds.forEach(c => {
+            c.x -= c.speed * groundSpeed;
+            if (c.x + c.size*1.5 < 0) { c.x = W + c.size; c.y = rng(H*.08,H*.42); c.size = rng(50,130); }
+            drawCloud(c.x, c.y, c.size, c.alpha, p);
         });
-        /* remove off-screen */
-        for (let i = GROUND.items.length - 1; i >= 0; i--) {
-            if (GROUND.items[i].x + (GROUND.items[i].w || 200) < -20) GROUND.items.splice(i, 1);
+
+        // Ground
+        const groundY = H * 0.76;
+        const gGrd = ctx.createLinearGradient(0,groundY,0,H);
+        if (p < 0.18) {
+            gGrd.addColorStop(0,'#0e1a3a'); gGrd.addColorStop(1,'#060e20');
+        } else if (p < 0.58) {
+            gGrd.addColorStop(0,'#0d1f14'); gGrd.addColorStop(1,'#060e0a');
+        } else if (p < 0.78) {
+            const t=(p-.58)/.20;
+            gGrd.addColorStop(0,`hsl(${lerp(140,220,t)},${lerp(20,15,t)}%,${lerp(14,10,t)}%)`);
+            gGrd.addColorStop(1,'#050810');
+        } else {
+            gGrd.addColorStop(0,'#0a1a3a'); gGrd.addColorStop(1,'#040c1e');
+        }
+        ctx.fillStyle = gGrd;
+        ctx.fillRect(0,groundY,W,H-groundY);
+
+        // Horizon glow
+        const hGrd = ctx.createLinearGradient(0,groundY-18,0,groundY+10);
+        if (p > 0.58 && p < 0.78) {
+            const t=(p-.58)/.2;
+            hGrd.addColorStop(0,`rgba(${lerp(26,220,t)},${lerp(79,80,t)},${lerp(214,30,t)},.5)`);
+        } else {
+            hGrd.addColorStop(0,'rgba(26,79,214,.35)');
+        }
+        hGrd.addColorStop(1,'transparent');
+        ctx.fillStyle = hGrd; ctx.fillRect(0,groundY-18,W,28);
+
+        drawCityLights(p);
+
+        // Ground objects
+        if (ts - lastSpawnTs > rng(1500,3500)) {
+            lastSpawnTs = ts;
+            spawnGround(p);
+        }
+        groundItems.forEach(it => { it.x -= groundSpeed; });
+        for (let i=groundItems.length-1; i>=0; i--) {
+            const it = groundItems[i];
+            if (it.x + (it.w||200) < -20) { groundItems.splice(i,1); continue; }
+            if (it.type==='building') drawBuilding(it,p);
+            else drawMountain(it);
         }
 
-        /* -- PLANE PATH (gentle sine wave) -- */
-        const baseY = H * 0.36;
-        const ampY  = H * 0.10;
-        const freq  = 0.28;
-        const px = W * 0.30;
-        const py = baseY + Math.sin(t * freq) * ampY;
-        const py2 = baseY + Math.sin((t + 0.12) * freq) * ampY;
-        const angle = Math.atan2(py2 - py, 12) * 0.6;
+        // Runway (only if landing, appears near end)
+        if (willLand) {
+            const rA = clamp((p-0.82)/0.08, 0, 1);
+            drawRunway(rA);
+        }
 
-        /* store trail */
-        plane.trail.push({ x: px, y: py });
-        if (plane.trail.length > 42) plane.trail.shift();
+        // Plane
+        const ps = getPlaneState(p);
+        trail.push({x:ps.x, y:ps.y});
+        if (trail.length > 40) trail.shift();
+        drawTrail(ps.trailAlpha);
+        drawPlane(ps.x, ps.y, ps.angle, ps.sc);
 
-        drawTrail();
-        drawPlane(px, py, angle);
+        // Landing smoke
+        if (willLand && p > 0.97) {
+            const smA = clamp((p-0.97)/0.03, 0, 1);
+            ctx.save(); ctx.globalAlpha = smA*0.5;
+            for (let i=0;i<6;i++) {
+                ctx.fillStyle='rgba(200,200,200,.5)';
+                ctx.beginPath();
+                ctx.arc(ps.x+rng(-20,20), ps.y+rng(5,20), rng(4,14), 0, Math.PI*2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
 
         planeRAF = requestAnimationFrame(frame);
     }
@@ -695,29 +820,19 @@ const PlaneScene = (function () {
             W = canvas.width  = window.innerWidth;
             H = canvas.height = window.innerHeight;
             planeActive = true;
-            plane.trail = [];
-            GROUND.items = [];
+            willLand = Math.random() < 0.5;
+            startMs = null; trail.length = 0; groundItems.length = 0; lastSpawnTs = 0;
             initClouds();
-            /* first ground objects */
-            for (let i = 0; i < 4; i++) {
-                const type = Math.random() < 0.5 ? 'building' : 'mountain';
-                const gY = H * 0.74;
-                if (type === 'building') {
-                    const w = rng(28,62), h = rng(40,130);
-                    GROUND.items.push({ type:'building', x: rng(W*0.1, W*0.95), y:gY-h, w, h, windows:Math.floor(rng(2,6)), color:`hsl(${rng(200,225)},${rng(18,35)}%,${rng(30,50)}%)` });
-                } else {
-                    const w = rng(90,200), h = rng(60,160);
-                    GROUND.items.push({ type:'mountain', x: rng(W*0.1, W*0.95), y:gY, w, h, color:`hsl(${rng(195,215)},${rng(15,28)}%,${rng(28,44)}%)` });
-                }
-            }
-            /* spawn loop */
-            setTimeout(spawnGround, 1800);
+            // Pre-populate ground objects
+            for (let i=0; i<5; i++) spawnGround(0);
+            groundItems.forEach((it,i) => { it.x = rng(W*0.05, W*0.9); });
             planeRAF = requestAnimationFrame(frame);
         },
         stop() {
             planeActive = false;
             if (planeRAF) { cancelAnimationFrame(planeRAF); planeRAF = null; }
-            if (canvas) { ctx && ctx.clearRect(0, 0, W, H); }
+            if (canvas && ctx) ctx.clearRect(0,0,W,H);
+            startMs = null;
         },
         resize() {
             if (!canvas || !planeActive) return;
@@ -731,90 +846,20 @@ const PlaneScene = (function () {
 /* Hook lock screen */
 const _ls = document.getElementById('lockScreen');
 if (_ls) {
-    let _planeStarted = false;
+    let _started = false;
     new MutationObserver(() => {
         if (_ls.classList.contains('active')) {
-            if (!_planeStarted) { _planeStarted = true; setTimeout(() => PlaneScene.start(), 3500); }
+            if (!_started) { _started = true; setTimeout(() => PlaneScene.start(), 300); }
         } else {
-            PlaneScene.stop(); _planeStarted = false;
+            PlaneScene.stop(); _started = false;
         }
     }).observe(_ls, { attributes: true, attributeFilter: ['class'] });
 }
 window.addEventListener('resize', () => PlaneScene.resize());
 
 /* ══════════════════════════════════════
-   3. WIDGET — Clima · Meta · Dica
+   3. WIDGET — Meta · Dica (sem clima)
 ══════════════════════════════════════ */
-const OW_KEY = '7dcc8dd07bbafc102b2844c88b1dc6b8'; // usa a mesma chave do ss.js
-
-/* -- Clima -- */
-const WEATHER_ICONS = {
-    '01':['☀️','Céu limpo'], '02':['🌤','Poucas nuvens'], '03':['⛅','Nublado parcial'],
-    '04':['☁️','Encoberto'], '09':['🌧','Chuva'], '10':['🌦','Chuva leve'],
-    '11':['⛈','Tempestade'], '13':['❄️','Neve'], '50':['🌫','Névoa'],
-};
-function weatherIconFor(code) {
-    const k = code.slice(0,2);
-    return WEATHER_ICONS[k] || ['🌡',''];
-}
-
-async function fetchWeather() {
-    const tempEl = document.getElementById('fwWeatherTemp');
-    const descEl = document.getElementById('fwWeatherDesc');
-    const emojiEl= document.getElementById('fwWeatherEmoji');
-    const extraEl= document.getElementById('fwWeatherExtra');
-    const cityEl = document.getElementById('fwCity');
-
-    /* Try Iguatu by name first */
-    const tryCity = async (q) => {
-        const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(q)}&units=metric&lang=pt_br&appid=${OW_KEY}`;
-        const r = await fetch(url); if (!r.ok) throw new Error(r.status); return r.json();
-    };
-    const tryCoords = async (lat, lon) => {
-        const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&lang=pt_br&appid=${OW_KEY}`;
-        const r = await fetch(url); if (!r.ok) throw new Error(r.status); return r.json();
-    };
-
-    let data = null;
-    try { data = await tryCity('Iguatu,CE,BR'); }
-    catch {
-        /* fallback: geolocation -> coords */
-        try {
-            const pos = await new Promise((res,rej) => navigator.geolocation
-                ? navigator.geolocation.getCurrentPosition(res, rej, { timeout:8000 })
-                : rej('no geo'));
-            data = await tryCoords(pos.coords.latitude, pos.coords.longitude);
-        } catch {
-            /* last resort: CEP 63500-000 (Iguatu) via geocode */
-            try {
-                const gc = await fetch(`https://api.openweathermap.org/geo/1.0/zip?zip=63500-000,BR&appid=${OW_KEY}`);
-                if (gc.ok) { const g = await gc.json(); data = await tryCoords(g.lat, g.lon); }
-            } catch { /* give up */ }
-        }
-    }
-
-    if (!data) {
-        if (descEl) descEl.textContent = 'Sem conexão com clima';
-        if (tempEl) tempEl.textContent = '--°';
-        return;
-    }
-
-    const temp = Math.round(data.main.temp);
-    const feels = Math.round(data.main.feels_like);
-    const humid = data.main.humidity;
-    const icon  = data.weather[0].icon;
-    const desc  = data.weather[0].description;
-    const city  = data.name;
-    const [emoji] = weatherIconFor(icon);
-
-    if (cityEl) cityEl.textContent = city;
-    if (emojiEl) emojiEl.textContent = emoji;
-    if (tempEl) tempEl.textContent = temp + '°';
-    if (descEl) descEl.textContent = desc.charAt(0).toUpperCase() + desc.slice(1);
-    if (extraEl) extraEl.textContent = `Sensação ${feels}° · Umidade ${humid}%`;
-}
-
-document.getElementById('fwWeatherRefresh')?.addEventListener('click', () => { fetchWeather(); });
 
 /* -- Meta do dia (localStorage) -- */
 const META_KEY = 'fw_meta_' + new Date().toDateString();
@@ -826,16 +871,16 @@ function saveAndRenderMeta() {
     document.getElementById('fwDeclaracoes').textContent = metaData.declaracoes;
 
     const total = metaData.cartazes + metaData.declaracoes;
-    const goal  = 20; // meta diária combinada
+    const goal  = 20;
     const pct   = Math.min(100, (total / goal) * 100);
     const bar   = document.getElementById('fwMetaBar');
     const hint  = document.getElementById('fwMetaHint');
     if (bar) bar.style.width = pct + '%';
     if (hint) {
-        if (total === 0) hint.textContent = 'Nenhuma atividade ainda hoje';
-        else if (pct < 50) hint.textContent = `${total} atividade${total>1?'s':''} · Bora continuar! 💪`;
-        else if (pct < 100) hint.textContent = `${total} atividade${total>1?'s':''} · Mais da metade! 🔥`;
-        else hint.textContent = `Meta atingida! 🎉 Total: ${total}`;
+        if (total === 0)     hint.textContent = 'Nenhuma atividade ainda hoje';
+        else if (pct < 50)   hint.textContent = `${total} atividade${total>1?'s':''} · Bora continuar! 💪`;
+        else if (pct < 100)  hint.textContent = `${total} atividade${total>1?'s':''} · Mais da metade! 🔥`;
+        else                 hint.textContent = `Meta atingida! 🎉 Total: ${total}`;
     }
 }
 saveAndRenderMeta();
@@ -843,11 +888,10 @@ saveAndRenderMeta();
 document.querySelectorAll('.fw-counter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         const k = btn.dataset.key;
-        if (btn.classList.contains('fw-counter-plus')) metaData[k] = Math.min(999, metaData[k] + 1);
-        else metaData[k] = Math.max(0, metaData[k] - 1);
-        /* pop animation */
-        const val = document.getElementById('fw' + k.charAt(0).toUpperCase() + k.slice(1));
-        if (val) { val.style.transform='scale(1.5)'; val.style.transition='transform .15s'; setTimeout(()=>{ val.style.transform=''; }, 180); }
+        if (btn.classList.contains('fw-counter-plus')) metaData[k] = Math.min(999, metaData[k]+1);
+        else metaData[k] = Math.max(0, metaData[k]-1);
+        const val = document.getElementById('fw'+k.charAt(0).toUpperCase()+k.slice(1));
+        if (val) { val.style.transform='scale(1.5)'; val.style.transition='transform .15s'; setTimeout(()=>{ val.style.transform=''; },180); }
         saveAndRenderMeta();
     });
 });
@@ -863,21 +907,25 @@ const TIPS = [
     'Organize os cartazes por seção do mercado para facilitar a reposição.',
     'Ao gerar declarações, revise o número da NF antes de confirmar.',
     'Um ambiente organizado aumenta a produtividade em até 20%.',
-    'Comunique ao admin se encontrar produto sem cadastro no sistema.',
     'Mantenha o navegador atualizado para evitar falhas no sistema.',
     'Intervalos curtos durante o trabalho ajudam a manter o foco.',
     'Dúvidas sobre permissões? Acesse o Suporte no menu principal.',
     'Cartazes gerados corretamente evitam reclamações na frente de caixa.',
+    'Comunique ao admin se encontrar produto sem cadastro no sistema.',
     'Salve seus relatórios com frequência para não perder progresso.',
-    'Um bom dia começa com organização. Separe as tarefas por prioridade.',
     'Verifique as promoções do dia antes de gerar os cartazes.',
+    'Pressione ESC para desbloquear a tela rapidamente quando precisar.',
 ];
 let tipIdx = Math.floor(Math.random() * TIPS.length);
 function showTip() {
     const el = document.getElementById('fwTipText');
     if (!el) return;
-    el.style.opacity = '0';
-    setTimeout(() => { el.textContent = TIPS[tipIdx]; el.style.opacity = '1'; }, 180);
+    el.style.opacity = '0'; el.style.transform = 'translateY(6px)';
+    el.style.transition = 'opacity .22s ease, transform .22s ease';
+    setTimeout(() => {
+        el.textContent = TIPS[tipIdx];
+        el.style.opacity = '1'; el.style.transform = 'translateY(0)';
+    }, 200);
 }
 showTip();
 document.getElementById('fwTipNext')?.addEventListener('click', () => {
@@ -897,13 +945,12 @@ function toggleWidget() {
     _panel?.setAttribute('aria-hidden', String(!_wOpen));
     if (_ico)  _ico.style.display  = _wOpen ? 'none' : '';
     if (_icoO) _icoO.style.display = _wOpen ? ''     : 'none';
-    if (_wOpen) fetchWeather();
 }
 _fab?.addEventListener('click', toggleWidget);
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && _wOpen) toggleWidget(); });
 
 /* ══════════════════════════════════════
-   4. PERGUNTAS MOTIVACIONAIS (welcome)
+   4. PERGUNTAS MOTIVACIONAIS
 ══════════════════════════════════════ */
 function getUserFirstName() {
     try {
@@ -928,11 +975,11 @@ function getPhrase(name) {
             ]
         },
         {
-            text: `O dia mal começou e já tem muito a fazer. Como está a energia?`,
+            text: `O dia mal começou e já tem muito pra fazer. Como está a energia?`,
             buttons: [
                 { emoji: '🔥', text: 'Alta demais' },
                 { emoji: '😐', text: 'Normal' },
-                { emoji: '🥱', text: 'Baixa ainda' },
+                { emoji: '🥱', text: 'Ainda baixa' },
             ]
         },
         {
@@ -943,6 +990,14 @@ function getPhrase(name) {
                 { emoji: '🗂️', text: 'Tá tudo no caos' },
             ]
         },
+        {
+            text: `${name}, missão aceita! O dia de hoje é uma folha em branco. Como vai ser?`,
+            buttons: [
+                { emoji: '🚀', text: 'Cheio de metas' },
+                { emoji: '🛤️', text: 'Um passo de cada vez' },
+                { emoji: '😅', text: 'Veremos...' },
+            ]
+        },
     ];
 
     const afternoon = [
@@ -951,7 +1006,7 @@ function getPhrase(name) {
             buttons: [
                 { emoji: '🍃', text: 'Tranquilo' },
                 { emoji: '😐', text: 'Normal' },
-                { emoji: '🌪️', text: 'Uma loucura' },
+                { emoji: '🌪️', text: 'Uma loucura!' },
             ]
         },
         {
@@ -959,42 +1014,61 @@ function getPhrase(name) {
             buttons: [
                 { emoji: '🛒', text: 'Black Friday!' },
                 { emoji: '🌧️', text: 'Segunda chuvosa' },
-                { emoji: '🤷', text: 'No meio' },
+                { emoji: '🤷', text: 'No meio-termo' },
             ]
         },
         {
             text: `Metade do expediente se foi. Como estão as atividades?`,
             buttons: [
-                { emoji: '✅', text: 'Produtivo' },
+                { emoji: '✅', text: 'Muito produtivo' },
                 { emoji: '😬', text: 'Poderia ser melhor' },
                 { emoji: '🚀', text: 'Voando!' },
+            ]
+        },
+        {
+            text: `Pausa rápida: você já tomou água hoje, ${name}?`,
+            buttons: [
+                { emoji: '💧', text: 'Já bastante!' },
+                { emoji: '😅', text: 'Mal lembrei disso' },
             ]
         },
     ];
 
     const evening = [
         {
-            text: `A reta final chegou! Como foi o dia hoje?`,
+            text: `A reta final chegou! Como foi o dia hoje, ${name}?`,
             buttons: [
-                { emoji: '💪', text: 'Ótimo' },
+                { emoji: '💪', text: 'Ótimo dia!' },
                 { emoji: '😮‍💨', text: 'Puxado mas ok' },
                 { emoji: '😅', text: 'Pesado demais' },
             ]
         },
         {
-            text: `Antes de fechar, ${name}: como estão as pendências?`,
+            text: `Antes de fechar: como estão as pendências?`,
             buttons: [
-                { emoji: '✅', text: 'Tudo certo' },
+                { emoji: '✅', text: 'Tudo resolvido' },
                 { emoji: '📋', text: 'Ainda tenho coisas' },
                 { emoji: '🙏', text: 'Que acabe logo' },
+            ]
+        },
+        {
+            text: `Quase na linha de chegada! Qual foi o destaque do dia?`,
+            buttons: [
+                { emoji: '🏷️', text: 'Os cartazes' },
+                { emoji: '🤝', text: 'Trabalho em equipe' },
+                { emoji: '💡', text: 'Uma solução criativa' },
             ]
         },
     ];
 
     const night = [
-        { text: `Olá, ${name}! Trabalhando tarde hoje?`, buttons: [
+        { text: `Olá, ${name}! Trabalhando fora do horário hoje?`, buttons: [
             { emoji: '🌙', text: 'Plantão noturno' },
-            { emoji: '😅', text: 'Urgência' },
+            { emoji: '⚡', text: 'Urgência do dia' },
+        ]},
+        { text: `${name}, a dedicação de estar aqui a esta hora diz muito sobre você!`, buttons: [
+            { emoji: '😤', text: 'Tinha que terminar' },
+            { emoji: '🌙', text: 'Sou coruja mesmo' },
         ]},
     ];
 
@@ -1007,36 +1081,40 @@ function getPhrase(name) {
     return pool[Math.floor(Math.random() * pool.length)];
 }
 
-/* Respostas motivacionais após clique */
 const FOLLOW_UPS = {
-    '⚡': ['Isso aí! Bora aproveitar esse pique! 🚀', 'Energia assim contagia a equipe toda! 💥'],
+    '⚡': ['Essa energia contagia a equipe toda! 💥', 'Bora aproveitar esse pique! 🚀'],
     '😴': ['Café na veia e logo passa! ☕', 'Devagar e sempre — o importante é chegar! 🐢'],
-    '☕': ['Café é o combustível do sistema! ☕🔥', 'Vai lá tomar esse café, merece!'],
+    '☕': ['Café é o combustível do sistema! ☕🔥', 'Vai tomar esse café — você merece!'],
     '🔥': ['Canaliza essa energia pra entrega! 💪', 'Com essa disposição o dia vai voar!'],
-    '😐': ['Normal é bom — constância é tudo. 👊', 'Um passo de cada vez, o resultado vem!'],
-    '🥱': ['Respira fundo. Começo devagar, final forte! 🌱', 'Isso passa — você consegue! 💪'],
-    '🏷️': ['Foco nos cartazes! Vai sair perfeito. 🎯', 'Cartazes bem feitos evitam dor de cabeça. ✅'],
-    '📄': ['Declarações primeiro, depois fica mais leve! 📋', 'Bora resolver isso logo! 💼'],
-    '🗂️': ['Calma — um de cada vez e organiza tudo! 🧹', 'Respira. Vamos por partes. ✅'],
-    '🍃': ['Aproveita pra adiantar os pendentes! ⏰', 'Calma é boa — aproveita enquanto dura!'],
-    '🌪️': ['Bora firme! Caos hoje, vitória depois! 🏆', 'Segura a onda! Você dá conta! 💪'],
+    '😐': ['Constância é tudo. Um passo de cada vez! 👊', 'Normal hoje, extraordinário amanhã!'],
+    '🥱': ['Começo devagar, final forte! 🌱', 'Isso passa — você consegue! 💪'],
+    '🏷️': ['Foco total nos cartazes! Vai sair perfeito. 🎯', 'Cartazes bem feitos evitam retrabalho. ✅'],
+    '📄': ['Declarações primeiro, depois fica mais leve! 📋', 'Bora resolver isso de vez! 💼'],
+    '🗂️': ['Calma — um de cada vez e sai tudo. 🧹', 'Respira. Ordem a partir do caos. ✅'],
+    '🚀': ['Com metas claras, o dia voa! 🎯', 'Hoje é dia de performance total! ⚡'],
+    '🛤️': ['Consistência bate intensidade. Vai com calma! 🌿', 'Um passo de cada vez chega longe! 👣'],
+    '😅': ['Às vezes o dia decide por nós. Boa sorte! 😄', 'A jornada começa com o primeiro passo!'],
+    '🍃': ['Aproveita pra adiantar os pendentes! ⏰', 'Calma não dura, aproveita!'],
+    '🌪️': ['Bora firme! Caos hoje, vitória depois! 🏆', 'Segura a onda — você dá conta! 💪'],
     '🛒': ['Black Friday mode ON! 🚀', 'Nessas horas a equipe brilha! ✨'],
-    '🌧️': ['Chuva esfria o movimento mas não o ânimo! ☔💙', 'Use o tempo calmo pra organizar! 📋'],
+    '🌧️': ['Use o tempo calmo pra organizar! 📋', 'Chuva esfria o movimento mas não o ânimo! ☔💙'],
     '🤷': ['Equilíbrio é bom! Segue em frente. 😊', 'No meio tem trabalho honesto! 👊'],
-    '✅': ['Que dia produtivo! 🎉', 'Isso é compromisso de verdade! 🏅'],
-    '😬': ['Amanhã compensa! Hoje já valeu. 💪', 'Toda luta tem seu valor. 🤝'],
-    '🚀': ['Voando mesmo! Arrasa! 🚀🔥', 'Continue assim, é inspirador! ✨'],
-    '💪': ['Mereceu o descanso! 🎊', 'Dia de guerreiro! Orgulho. 🏆'],
-    '😮‍💨': ['Puxado mas você deu conta — isso conta! 🙌', 'Descanso merecido hoje. 💙'],
-    '😅': ['Ainda bem que acabou! Amanhã é novo dia. 🌅', 'Você resistiu — isso é força! 💪'],
-    '📋': ['Termina logo pra descansar com a consciência limpa! 💪', 'Foco total até o fim! 🎯'],
-    '🙏': ['Quase lá! Segura mais um pouco! 🏁', 'A linha de chegada está perto! 🎯'],
+    '✅': ['Que dia produtivo! 🎉', 'Isso é comprometimento de verdade! 🏅'],
+    '😬': ['Amanhã compensa — hoje já valeu. 💪', 'Toda luta tem seu valor. 🤝'],
+    '💪': ['Mereceu o descanso hoje! 🎊', 'Dia de guerreiro! Orgulho. 🏆'],
+    '😮‍💨': ['Puxado mas você deu conta — isso conta! 🙌', 'Descanse bem. Amanhã é novo dia. 💙'],
+    '📋': ['Foco até o fim — consciência limpa no final! 💪', 'Termina forte! 🎯'],
+    '🙏': ['Quase lá! Mais um pouquinho! 🏁', 'A linha de chegada está próxima! 🎯'],
+    '🏷️': ['Os cartazes são o coração da área de vendas! ❤️', 'Detalhe faz a diferença no varejo! 🎯'],
+    '🤝': ['Time unido entrega mais e melhor! 🙌', 'Colaboração é o superpoder do varejo! 💪'],
+    '💡': ['Soluções criativas economizam tempo e dinheiro! ✨', 'Essa iniciativa é valiosa!'],
     '🌙': ['Plantão noturno merece reconhecimento! 🌟', 'Dedicação de outro nível! 💙'],
-    '😅': ['Urgências acontecem — você dá conta! 💪', 'Está aqui quando precisa. Isso é comprometimento! 🤝'],
+    '💧': ['Hidratado e focado — combo perfeito! 💧⚡', 'Seu corpo agradece. Continue assim!'],
+    '😅': ['Sem água não tem foco! Vai tomar já. 😄', 'Cuide do básico e o resto flui!'],
+    '😤': ['A determinação de terminar é admirável! 💪', 'Missão cumprida é satisfação garantida!'],
 };
 
 function setupQuickReactions() {
-    /* ss.js também chama setupQuickReactions — deixamos o original funcionar via override */
     const container = document.getElementById('quickReactions');
     if (!container) return;
     const name   = getUserFirstName();
@@ -1060,16 +1138,15 @@ function setupQuickReactions() {
 
         b.addEventListener('click', function () {
             if (this.classList.contains('selected')) return;
-            /* mark selected */
             this.classList.add('selected');
-            /* fade others */
+            // Fade out others
             wrap.querySelectorAll('.reaction-btn:not(.selected)').forEach(o => {
                 o.style.transition = 'opacity .3s,transform .3s';
                 o.style.opacity = '0'; o.style.transform = 'scale(.8)';
                 setTimeout(() => o.style.display = 'none', 300);
             });
-            /* show follow-up after brief delay */
-            const replies = FOLLOW_UPS[btn.emoji] || ['Obrigado pela resposta! 😊'];
+            // Show follow-up
+            const replies = FOLLOW_UPS[btn.emoji] || FOLLOW_UPS[btn.text] || ['Obrigado pela resposta! 😊'];
             const reply   = replies[Math.floor(Math.random() * replies.length)];
             setTimeout(() => {
                 const followDiv = document.createElement('p');
@@ -1091,9 +1168,6 @@ function setupQuickReactions() {
     container.appendChild(wrap);
 }
 
-/* Override do ss.js (chamado depois do DOMContentLoaded) */
-window._ssSetupQuickReactions = setupQuickReactions;
-
 /* ══════════════════════════════════════
    5. BOOT
 ══════════════════════════════════════ */
@@ -1102,12 +1176,31 @@ const ready = fn => document.readyState === 'loading'
 
 ready(() => {
     setTimeout(initCardFX, 500);
-    /* Override a função do ss.js */
-    if (typeof setupQuickReactions === 'function') {
-        /* já será chamado pelo initWelcomeAndUi do ss.js — mas redefine globalmente */
-    }
-    /* Garante que nossa versão rode */
     setTimeout(setupQuickReactions, 200);
+
+    // Populate shift card on lockscreen open
+    function updateShiftCard() {
+        const h = new Date().getHours();
+        const el = document.getElementById('lockShiftLabel');
+        const sub = document.getElementById('lockShiftSub');
+        if (!el) return;
+        let label, icon, tip;
+        if (h >= 6 && h < 12)       { label='☀️ Manhã';     tip='Abertura e organização'; }
+        else if (h >= 12 && h < 14) { label='🍽️ Almoço';    tip='Pausa do meio-dia'; }
+        else if (h >= 14 && h < 18) { label='🌤️ Tarde';     tip='Atendimento e reposição'; }
+        else if (h >= 18 && h < 22) { label='🌆 Noite';     tip='Fechamento e balanço'; }
+        else                        { label='🌙 Madrugada'; tip='Plantão fora do horário'; }
+        el.textContent = label;
+        if (sub) sub.textContent = tip;
+    }
+
+    // Run when lockscreen opens
+    const lockEl = document.getElementById('lockScreen');
+    if (lockEl) {
+        new MutationObserver(() => {
+            if (lockEl.classList.contains('active')) updateShiftCard();
+        }).observe(lockEl, { attributes:true, attributeFilter:['class'] });
+    }
 });
 
 })();
