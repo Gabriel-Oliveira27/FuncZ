@@ -1293,12 +1293,6 @@ body {
 [data-theme="dark"] .estilos-toggle-label { color: #cbd5e1; }
 [data-theme="dark"] .estilos-toggle-desc  { color: #64748b; }
 
-/* Sub descrição em negrito no cartaz */
-.poster-subtitle-bold {
-  font-weight: 900;
-  font-style: normal;
-}
-
 /* Switch */
 .switch {
   position: relative;
@@ -1617,6 +1611,12 @@ input:checked + .slider:before {
   margin-bottom: 0.25cm;
   font-style: italic;
   line-height: 1.1;
+}
+
+/* Modificador: sub descrição em negrito — deve vir APÓS .poster-subtitle */
+.poster-subtitle.poster-subtitle-bold {
+  font-weight: 900;
+  font-style: normal;
 }
 
 .poster-features {

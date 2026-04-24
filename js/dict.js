@@ -709,15 +709,21 @@ function _patchFormSubmit() {
     if (typeof products !== 'undefined') _lenAntes = products.length;
   }, true);
 
-  // Bubble: roda APÓS o handler original
+  // Bubble: roda APÓS o handler original — aplica capitalização conforme cap mode
   form.addEventListener('submit', function() {
     if (typeof products === 'undefined') return;
     if (products.length <= _lenAntes)   return; // validação falhou, nada foi adicionado
 
     var last = products[products.length - 1];
-    last.descricao    = _titleCase(last.descricao    || '');
-    last.subdescricao = _titleCase(last.subdescricao || '');
-    last.features     = (last.features || []).map(function(f) { return _titleCase(f); });
+
+    // Usa a capitalização definida pelo usuário no painel de estilos
+    var _cap = (typeof window.DICT_BOX !== 'undefined' && typeof window.DICT_BOX.capitalizar === 'function')
+      ? window.DICT_BOX.capitalizar
+      : _titleCase;
+
+    last.descricao    = _cap(last.descricao    || '');
+    last.subdescricao = _cap(last.subdescricao || '');
+    last.features     = (last.features || []).map(function(f) { return _cap(f); });
 
     if (typeof salvarCartazesLocalStorage === 'function') salvarCartazesLocalStorage();
     if (typeof renderProducts            === 'function') renderProducts();

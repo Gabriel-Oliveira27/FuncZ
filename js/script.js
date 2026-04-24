@@ -1846,12 +1846,30 @@ window.fecharPainelEstilos = function () {
 };
 
 window.estilosSetCap = function (modo) {
-  // Usa a API do dict-box.js se disponível
+  // Salva via DICT_BOX se disponível
   if (typeof window.DICT_BOX !== 'undefined' && typeof window.DICT_BOX.setCapMode === 'function') {
     window.DICT_BOX.setCapMode(modo);
   } else {
     try { localStorage.setItem('cartazes-cap-mode', modo); } catch {}
   }
+  // Reaplica nos campos já preenchidos para feedback imediato
+  const cap = (str) => {
+    if (!str) return str;
+    if (modo === 'upper') return str.toUpperCase();
+    // title case simples — usa _titleCase do dict.js se disponível
+    if (typeof _titleCase === 'function') return _titleCase(str);
+    const lowers = new Set(['de','da','do','das','dos','e','a','o','em','no','na','ao','por','para','com','um','uma']);
+    return str.split(/\s+/).filter(Boolean).map(function(w, i) {
+      const up = w.toUpperCase(), lo = w.toLowerCase();
+      if (/\d/.test(w)) return up;
+      if (i > 0 && lowers.has(lo)) return lo;
+      return lo.charAt(0).toUpperCase() + lo.slice(1);
+    }).join(' ');
+  };
+  ['descricao','subdescricao','feature-1','feature-2','feature-3'].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el && el.value.trim()) el.value = cap(el.value);
+  });
   _sincEstilosCapBtns();
   _mostrarBadgeEstilos();
 };
