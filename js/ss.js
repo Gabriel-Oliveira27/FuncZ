@@ -390,46 +390,32 @@ const LockPanelRotator = {
 
   async buildItems() {
     // returns array of { render: async ()=>HTMLElement|string, durationMs }
+    const motivationalQuotes = [
+      { text: 'O sucesso é a soma de pequenos esforços repetidos dia após dia.', author: 'Robert Collier' },
+      { text: 'A única maneira de fazer um ótimo trabalho é amar o que você faz.', author: 'Steve Jobs' },
+      { text: 'Cada dia é uma nova oportunidade de fazer algo incrível.', author: '' },
+      { text: 'Qualidade nunca é acidente. É sempre resultado de esforço inteligente.', author: 'John Ruskin' },
+      { text: 'O trabalho em equipe divide o trabalho e multiplica o sucesso.', author: '' },
+      { text: 'Disciplina é a ponte entre objetivos e conquistas.', author: 'Jim Rohn' },
+      { text: 'Fazer bem o simples é a chave para o extraordinário.', author: '' },
+      { text: 'Organização não é sobre perfeição. É sobre eficiência e paz de espírito.', author: '' },
+    ];
+
     this.items = [
       {
-        // Product count: 60s
+        // Motivational quote: 35s
         render: async () => {
           const panel = document.createElement('div');
-          panel.style.textAlign = 'center';
-          panel.style.padding = '8px';
-          // force color fixed for lockscreen (so theme doesn't change)
-          panel.style.color = '#111';
+          panel.style.cssText = 'text-align:center;padding:10px 6px;color:#fff';
+          const q = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
           panel.innerHTML = `
-            <div style="font-weight:700;margin-bottom:6px">Produtos cadastrados</div>
-            <div id="lockProductCount" style="font-size:1.6rem; font-weight:700">---</div>
-            <div id="lockProductNote" style="font-size:0.85rem;opacity:0.9;margin-top:6px">Contando... (pode demorar alguns segundos)</div>
+            <div style="font-size:1.4rem;margin-bottom:10px;opacity:.9">💭</div>
+            <div style="font-size:.88rem;font-style:italic;line-height:1.65;font-weight:300;opacity:.92">"${escapeHtml(q.text)}"</div>
+            ${q.author ? `<div style="font-size:.72rem;opacity:.6;margin-top:8px;font-weight:500">— ${escapeHtml(q.author)}</div>` : ''}
           `;
-
-          // Fire off count (don't block render)
-          (async () => {
-            const el = panel.querySelector('#lockProductCount');
-            const note = panel.querySelector('#lockProductNote');
-            if (el) el.textContent = '---';
-            if (note) note.textContent = 'Contando... (pode demorar alguns segundos)';
-            const result = await fetchProductCountFromGAS();
-            this.lastProductCountResult = result;
-            if (el) {
-              if (result && result.count != null) el.textContent = String(result.count);
-              else el.textContent = 'Erro';
-            }
-            // update note with final friendly message
-            if (note) {
-              if (result && result.count != null) {
-                note.textContent = 'São muitos, mas se ainda houver algum faltando, comunique ao desenvolvedor para adicionar.';
-              } else {
-                note.textContent = `Não foi possível contar os produtos: ${result && result.reason ? result.reason : 'erro'}`;
-              }
-            }
-          })();
-
           return panel;
         },
-        durationMs: 60000
+        durationMs: 35000
       },
 
       {
@@ -480,16 +466,26 @@ const LockPanelRotator = {
       },
 
       {
-        // API / system info: 30s
+        // Daily tip: 30s
         render: async () => {
+          const tips = [
+            { icon: '💡', text: 'Confira sempre a data antes de imprimir. Erros de data geram retrabalho desnecessário.' },
+            { icon: '🎯', text: 'Organize cartazes por seção do mercado para agilizar a reposição nas gôndolas.' },
+            { icon: '📋', text: 'Ao gerar declarações, revise o número da NF antes de confirmar o envio.' },
+            { icon: '⚡', text: 'Atalho útil: pressione ESC para desbloquear a tela rapidamente.' },
+            { icon: '🔒', text: 'Lembre-se de bloquear a tela ao se afastar do computador por segurança.' },
+            { icon: '🌐', text: 'Mantenha o navegador atualizado para evitar falhas de compatibilidade.' },
+            { icon: '📞', text: 'Dúvidas sobre permissões? Use o suporte no menu principal.' },
+            { icon: '✅', text: 'Finalize as tarefas do dia antes de sair para não acumular pendências.' },
+          ];
+          const tip = tips[Math.floor(Math.random() * tips.length)];
           const p = document.createElement('div');
-          p.style.padding = '8px';
-          p.style.textAlign = 'center';
-          p.style.color = '#111';
-          const lastReason = this.lastProductCountResult && this.lastProductCountResult.reason ? escapeHtml(this.lastProductCountResult.reason) : '—';
-          p.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Informações do Sistema</div>
-                         <div style="font-size:0.95rem">OpenWeather: ${OPENWEATHER_KEY ? 'configurada' : 'não configurada'}</div>
-                         <div style="font-size:0.85rem;opacity:0.85;margin-top:6px">Última contagem: ${lastReason}</div>`;
+          p.style.cssText = 'padding:10px 6px;text-align:center;color:#fff';
+          p.innerHTML = `
+            <div style="font-size:1.35rem;margin-bottom:10px">${tip.icon}</div>
+            <div style="font-weight:700;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;opacity:.6;margin-bottom:8px">Dica do sistema</div>
+            <div style="font-size:.88rem;line-height:1.6;opacity:.9">${escapeHtml(tip.text)}</div>
+          `;
           return p;
         },
         durationMs: 30000
