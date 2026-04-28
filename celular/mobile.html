@@ -8,17 +8,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="mobile.css">
+    <link rel="stylesheet" href="mobile-send.css">
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════════════
-     DRAWER OVERLAY
-══════════════════════════════════════════════════ -->
+<!-- DRAWER OVERLAY -->
 <div id="drawer-overlay" class="drawer-overlay"></div>
 
-<!-- ══════════════════════════════════════════════════
-     SIDE DRAWER
-══════════════════════════════════════════════════ -->
+<!-- SIDE DRAWER -->
 <nav id="side-drawer" class="side-drawer">
     <div class="drawer-header">
         <img src="../image/zenirlogo.png" alt="Logo" width="40" height="40">
@@ -27,7 +24,6 @@
             <span class="drawer-subtitle">Sistema Mobile</span>
         </div>
     </div>
-
     <ul class="drawer-menu">
         <li>
             <a href="../pages/selectsetor.html" class="drawer-item">
@@ -58,13 +54,10 @@
             </button>
         </li>
     </ul>
-
-    <div class="drawer-footer">Sistema de Cartazes · v2.0</div>
+    <div class="drawer-footer">Sistema de Cartazes · v3.0</div>
 </nav>
 
-<!-- ══════════════════════════════════════════════════
-     HEADER
-══════════════════════════════════════════════════ -->
+<!-- HEADER -->
 <header class="mobile-header">
     <button id="btn-hamburger" class="header-btn" aria-label="Menu">
         <i class="fa-solid fa-bars"></i>
@@ -78,9 +71,7 @@
     </button>
 </header>
 
-<!-- ══════════════════════════════════════════════════
-     CONTEÚDO PRINCIPAL
-══════════════════════════════════════════════════ -->
+<!-- CONTEÚDO PRINCIPAL -->
 <main class="mobile-content">
 
     <!-- ─── ABA: CRIAR CARTAZ ─── -->
@@ -134,20 +125,25 @@
                     <select id="metodo">
                         <option value="">Selecione...</option>
                         <option value="1x">1x — à vista</option>
-                        <option value="3x">3x — sem juros</option>
-                        <option value="5x">5x — sem juros</option>
-                        <option value="10x">10x — sem juros</option>
+                        <option value="3x">3x</option>
+                        <option value="5x">5x</option>
+                        <option value="10x">10x</option>
                         <option value="12x">12x — com juros</option>
                     </select>
                 </div>
 
-                <!-- Valor à vista -->
-                <div class="form-group" id="grupo-avista">
-                    <label for="avista">Valor à vista *</label>
-                    <div class="input-currency">
-                        <span class="currency-prefix">R$</span>
-                        <input type="text" id="avista" placeholder="0,00" inputmode="decimal">
-                    </div>
+                <!-- Toggle: Habilitar taxa (para 1x/3x/5x/10x) -->
+                <div class="form-group toggle-group" id="grupo-habilitar-taxa" style="display:none">
+                    <label class="toggle-label" for="chk-habilitar-taxa">
+                        <div class="toggle-info">
+                            <span class="toggle-name" id="taxa-toggle-name">Aplicar taxa de juros</span>
+                            <span class="toggle-desc">Calcula a parcela usando fator de juros</span>
+                        </div>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="chk-habilitar-taxa">
+                            <span class="toggle-knob"></span>
+                        </div>
+                    </label>
                 </div>
 
                 <!-- Taxa de juros (condicional) -->
@@ -161,9 +157,18 @@
                     </select>
                 </div>
 
+                <!-- Valor à vista -->
+                <div class="form-group" id="grupo-avista">
+                    <label for="avista">Valor à vista *</label>
+                    <div class="input-currency">
+                        <span class="currency-prefix">R$</span>
+                        <input type="text" id="avista" placeholder="0,00" inputmode="decimal">
+                    </div>
+                </div>
+
                 <!-- Valor da parcela -->
                 <div class="form-group" id="form-group-parcela" style="display:none">
-                    <label for="parcela" id="parcela-label">Valor da parcela</label>
+                    <label for="parcela">Valor da parcela</label>
                     <div class="input-currency">
                         <span class="currency-prefix">R$</span>
                         <input type="text" id="parcela" placeholder="0,00" inputmode="decimal">
@@ -175,7 +180,7 @@
                     </div>
                 </div>
 
-                <!-- Toggle: Sem juros! (para 3x/5x/10x) -->
+                <!-- Toggle: Sem juros! -->
                 <div class="form-group toggle-group" id="grupo-sem-juros" style="display:none">
                     <label class="toggle-label" for="chk-sem-juros">
                         <div class="toggle-info">
@@ -189,6 +194,26 @@
                     </label>
                 </div>
 
+                <!-- Toggle: Campanha -->
+                <div class="form-group toggle-group" id="grupo-campanha-toggle" style="display:none">
+                    <label class="toggle-label" for="chk-campanha">
+                        <div class="toggle-info">
+                            <span class="toggle-name">Adicionar campanha</span>
+                            <span class="toggle-desc">Ex: LIQUIDA VERÃO 2025</span>
+                        </div>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="chk-campanha">
+                            <span class="toggle-knob"></span>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Campo campanha (condicional) -->
+                <div class="form-group" id="campo-campanha-input" style="display:none">
+                    <label for="campanha">Nome da campanha</label>
+                    <input type="text" id="campanha" placeholder="Ex: LIQUIDA VERÃO 2025" maxlength="40" autocomplete="off">
+                </div>
+
                 <!-- Campos extras condicionais -->
                 <div id="extra-campos" style="display:none">
                     <div class="form-group" id="campo-motivo" style="display:none">
@@ -196,38 +221,14 @@
                         <input type="text" id="motivo" placeholder="Ex: BLACK FRIDAY 2024">
                     </div>
                     <div class="form-group" id="campo-validade" style="display:none">
-                        <label for="validade">Validade da oferta</label>
+                        <label for="validade">Válido até</label>
                         <input type="date" id="validade">
+                        <label for="validade-inicio" style="margin-top:8px;">A partir de (opcional)</label>
+                        <input type="date" id="validade-inicio">
                     </div>
                     <div class="form-group" id="campo-autorizacao" style="display:none">
                         <label for="autorizacao">Autorização</label>
                         <input type="text" id="autorizacao" placeholder="Ex: REJANE/ALLAN KARDEC">
-                    </div>
-                </div>
-
-                <!-- Seção: Garantia Estendida (colapsável) -->
-                <div class="form-group">
-                    <button type="button" class="btn-collapse" id="btn-garantia-toggle">
-                        <i class="fa-solid fa-shield-halved"></i>
-                        <span>Garantia Estendida</span>
-                        <i class="fa-solid fa-chevron-down collapse-arrow" id="garantia-arrow"></i>
-                    </button>
-                    <div id="garantia-fields" class="collapse-body" style="display:none">
-                        <div class="features-grid" style="margin-top:12px">
-                            <div class="input-currency">
-                                <span class="currency-prefix">R$</span>
-                                <input type="text" id="garantia12" placeholder="G.E. 12m" inputmode="decimal">
-                            </div>
-                            <div class="input-currency">
-                                <span class="currency-prefix">R$</span>
-                                <input type="text" id="garantia24" placeholder="G.E. 24m" inputmode="decimal" disabled>
-                            </div>
-                            <div class="input-currency">
-                                <span class="currency-prefix">R$</span>
-                                <input type="text" id="garantia36" placeholder="G.E. 36m" inputmode="decimal" disabled>
-                            </div>
-                        </div>
-                        <span class="field-hint">Preencha G.E. 12m primeiro para habilitar os demais</span>
                     </div>
                 </div>
 
@@ -339,9 +340,7 @@
 
 </main>
 
-<!-- ══════════════════════════════════════════════════
-     BOTTOM NAVIGATION — CÍRCULOS
-══════════════════════════════════════════════════ -->
+<!-- BOTTOM NAV -->
 <nav class="bottom-nav" id="bottom-nav">
     <button class="tab-item active" data-tab="criar-cartaz" data-index="0">
         <i class="fa-solid fa-file-invoice nav-icon"></i>
@@ -358,9 +357,7 @@
     </button>
 </nav>
 
-<!-- ══════════════════════════════════════════════════
-     SEARCH OVERLAY — 3 FASES
-══════════════════════════════════════════════════ -->
+<!-- SEARCH OVERLAY (busca por código) -->
 <div id="search-overlay" class="search-overlay">
     <div class="search-overlay-card">
         <div id="sov-icon-wrap" class="sov-icon-wrap loading">
@@ -372,14 +369,57 @@
     </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════
-     TOAST CONTAINER
-══════════════════════════════════════════════════ -->
+<!-- ════════════════════════════════════════════════
+     SEND OVERLAY — Animação de envio moderna
+════════════════════════════════════════════════ -->
+<div id="send-overlay" class="send-overlay">
+    <div class="send-card">
+
+        <!-- Steps indicator -->
+        <div class="send-steps">
+            <div class="send-step">
+                <div class="send-step-dot active" id="sdot-1">
+                    <i class="fa-solid fa-box-open"></i>
+                </div>
+                <span class="send-step-lbl">Preparar</span>
+            </div>
+            <div class="send-step-line" id="sline-1"></div>
+            <div class="send-step">
+                <div class="send-step-dot" id="sdot-2">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <span class="send-step-lbl">Enviar</span>
+            </div>
+            <div class="send-step-line" id="sline-2"></div>
+            <div class="send-step">
+                <div class="send-step-dot" id="sdot-3">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <span class="send-step-lbl">Concluído</span>
+            </div>
+        </div>
+
+        <!-- Icon central -->
+        <div id="send-icon-wrap" class="send-icon-wrap preparing">
+            <div class="send-upload-pulse"><i class="fa-solid fa-box-open"></i></div>
+        </div>
+
+        <!-- Textos -->
+        <div class="send-texts">
+            <div id="send-title" class="send-title">Preparando envio</div>
+            <div id="send-sub" class="send-sub">Aguarde...</div>
+            <div id="send-detail" class="send-detail"></div>
+        </div>
+
+        <!-- Ações (sucesso/erro) -->
+        <div id="send-actions" class="send-actions"></div>
+    </div>
+</div>
+
+<!-- TOAST CONTAINER -->
 <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
-<!-- ══════════════════════════════════════════════════
-     MODAL: BUSCA DE PRODUTO
-══════════════════════════════════════════════════ -->
+<!-- MODAL: BUSCA DE PRODUTO -->
 <div id="modal-busca" class="modal-overlay" style="display:none" role="dialog" aria-modal="true">
     <div class="modal-sheet">
         <div class="modal-handle"></div>
@@ -408,9 +448,7 @@
     </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════
-     MODAL: JSON VIEWER
-══════════════════════════════════════════════════ -->
+<!-- MODAL: JSON VIEWER -->
 <div id="modal-json-viewer" class="modal-overlay" style="display:none" role="dialog" aria-modal="true">
     <div class="modal-sheet json-modal-sheet">
         <div class="modal-handle"></div>
@@ -427,9 +465,7 @@
     </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════
-     MODAL: COMO FUNCIONA
-══════════════════════════════════════════════════ -->
+<!-- MODAL: COMO FUNCIONA -->
 <div id="modal-help" class="modal-overlay" style="display:none" role="dialog" aria-modal="true">
     <div class="modal-dialog">
         <div class="modal-header">
@@ -464,28 +500,6 @@
                 <i class="fa-solid fa-check"></i> Entendi!
             </button>
         </div>
-    </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════
-     CONSOLE OVERLAY (envio JSON)
-══════════════════════════════════════════════════ -->
-<div id="console-overlay" class="console-overlay" style="display:none">
-    <div class="console-container">
-        <div class="console-header">
-            <div class="console-dot red"></div>
-            <div class="console-dot yellow"></div>
-            <div class="console-dot green"></div>
-            <div class="console-title">terminal ~ /mobile</div>
-        </div>
-        <div class="console-body" id="console-body">
-            <div class="console-line">
-                <span class="console-prompt">›</span>
-                <span class="console-text">Iniciando envio...</span>
-                <span class="console-cursor"></span>
-            </div>
-        </div>
-        <div class="console-actions" id="console-actions" style="display:none"></div>
     </div>
 </div>
 

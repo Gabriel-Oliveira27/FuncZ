@@ -1,0 +1,229 @@
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE-SEND.CSS — Send overlay + novos toggles v4.0
+   Adicionar ao final do mobile.css (ou importar separado)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════
+   SEND OVERLAY — Animação de envio
+════════════════════════════════════════════════════ */
+.send-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.72);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    z-index: 9995;
+    display: flex; align-items: center; justify-content: center;
+    padding: 28px;
+    opacity: 0; pointer-events: none;
+    transition: opacity .32s var(--ease);
+}
+.send-overlay.active { opacity: 1; pointer-events: all; }
+
+.send-card {
+    background: var(--surface);
+    border-radius: var(--r-xl);
+    padding: 32px 28px 28px;
+    width: min(360px, 94vw);
+    box-shadow: var(--sh-xl);
+    border: 1px solid var(--border);
+    display: flex; flex-direction: column; align-items: center; gap: 24px;
+    transform: scale(.88) translateY(16px);
+    transition: transform .38s var(--ease-spring);
+}
+.send-overlay.active .send-card { transform: scale(1) translateY(0); }
+
+/* ── Steps ── */
+.send-steps {
+    display: flex; align-items: center; gap: 0;
+    width: 100%; justify-content: center;
+}
+.send-step {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.send-step-dot {
+    width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    background: var(--surface-3); color: var(--text-muted);
+    border: 2px solid var(--border-2);
+    transition: all .4s var(--ease-spring);
+    position: relative;
+}
+.send-step-dot.active {
+    background: var(--primary-light); color: var(--primary);
+    border-color: var(--primary);
+    animation: sdotPulse 1.6s ease-in-out infinite;
+}
+.send-step-dot.done {
+    background: var(--success); color: #fff;
+    border-color: var(--success);
+    animation: sdotPop .35s var(--ease-spring);
+}
+.send-step-dot.done i { display: none; }
+.send-step-dot.done::after {
+    content: '✓';
+    font-size: 15px; font-weight: 700;
+}
+.send-step-dot.error {
+    background: var(--danger-bg); color: var(--danger);
+    border-color: var(--danger);
+    animation: sdotShake .4s ease;
+}
+
+.send-step-lbl {
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .06em;
+    color: var(--text-muted);
+    transition: color .3s;
+}
+.send-step-dot.active ~ * .send-step-lbl { color: var(--primary); }
+.send-step-dot.done ~ .send-step-lbl    { color: var(--success); }
+
+.send-step-line {
+    flex: 1; height: 2px;
+    background: var(--border-2);
+    margin: 0 4px;
+    margin-bottom: 22px; /* alinha com o centro dos dots */
+    transition: background .4s ease .1s;
+    max-width: 48px;
+}
+.send-step-line.done { background: var(--success); }
+
+@keyframes sdotPulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb),.35); }
+    50%      { box-shadow: 0 0 0 7px rgba(var(--primary-rgb),0); }
+}
+@keyframes sdotPop {
+    0%   { transform: scale(.6); }
+    60%  { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+@keyframes sdotShake {
+    0%,100% { transform: translateX(0); }
+    25%     { transform: translateX(-5px); }
+    75%     { transform: translateX(5px); }
+}
+
+/* ── Icon central ── */
+.send-icon-wrap {
+    width: 88px; height: 88px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 34px;
+    transition: background .4s, color .4s;
+}
+
+.send-icon-wrap.preparing {
+    background: var(--primary-light); color: var(--primary);
+}
+.send-icon-wrap.sending {
+    background: var(--info-bg); color: var(--info);
+}
+.send-icon-wrap.success {
+    background: var(--success-bg); color: var(--success);
+    animation: siPop .5s var(--ease-spring);
+}
+.send-icon-wrap.error {
+    background: var(--danger-bg); color: var(--danger);
+    animation: siShake .5s ease;
+}
+
+@keyframes siPop {
+    0%   { transform: scale(.5); opacity: 0; }
+    60%  { transform: scale(1.12); }
+    100% { transform: scale(1); opacity: 1; }
+}
+@keyframes siShake {
+    0%,100% { transform: translateX(0); }
+    20%,60% { transform: translateX(-8px); }
+    40%,80% { transform: translateX(8px); }
+}
+
+/* Preparing: caixa pulsante */
+.send-upload-pulse {
+    width: 88px; height: 88px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+}
+.send-upload-pulse::before {
+    content: '';
+    position: absolute; inset: -8px;
+    border-radius: 50%;
+    border: 2px solid var(--primary);
+    opacity: .3;
+    animation: siRipple 1.8s linear infinite;
+}
+.send-upload-pulse::after {
+    content: '';
+    position: absolute; inset: -16px;
+    border-radius: 50%;
+    border: 2px solid var(--primary);
+    opacity: .15;
+    animation: siRipple 1.8s linear .6s infinite;
+}
+@keyframes siRipple {
+    from { transform: scale(.7); opacity: .4; }
+    to   { transform: scale(1.4); opacity: 0; }
+}
+
+/* Sending: ícone com anel giratório */
+.send-upload-anim {
+    width: 88px; height: 88px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+}
+.send-upload-ring {
+    position: absolute; inset: -4px; border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: var(--info);
+    border-right-color: var(--info);
+    animation: siSpin .9s linear infinite;
+}
+@keyframes siSpin { to { transform: rotate(360deg); } }
+
+/* Ícone dentro do anim wrapper fica animado verticalmente */
+.send-upload-anim i {
+    animation: siFloat 1.2s ease-in-out infinite;
+}
+@keyframes siFloat {
+    0%,100% { transform: translateY(0); }
+    50%     { transform: translateY(-6px); }
+}
+
+/* ── Textos ── */
+.send-texts { text-align: center; width: 100%; }
+
+.send-title {
+    font-size: 18px; font-weight: 800; color: var(--text);
+    margin-bottom: 6px; letter-spacing: -.02em;
+    transition: color .3s;
+}
+.send-sub {
+    font-size: 13px; color: var(--text-sub); line-height: 1.5;
+}
+.send-detail {
+    margin-top: 10px; padding: 8px 14px;
+    background: var(--success-bg); border-radius: var(--r-md);
+    font-size: 12px; font-weight: 600; color: var(--success);
+    opacity: 0; max-height: 0; overflow: hidden;
+    transition: opacity .3s, max-height .3s;
+}
+.send-detail.visible { opacity: 1; max-height: 60px; }
+
+/* ── Ações ── */
+.send-actions {
+    display: flex; flex-direction: column; gap: 8px;
+    width: 100%;
+    opacity: 0; transform: translateY(8px);
+    pointer-events: none;
+    transition: opacity .3s, transform .3s;
+}
+.send-actions.visible {
+    opacity: 1; transform: translateY(0);
+    pointer-events: all;
+}
+
+/* ════════════════════════════════════════════════════
+   NOVOS TOGGLES — campanha e taxa
+════════════════════════════════════════════════════ */
+
+/* Toggle group com borda colorida quando ativo */
+.toggle-group.highlight { border-color: var(--primary); }
