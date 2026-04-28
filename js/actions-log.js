@@ -285,7 +285,13 @@
         }
       </style>
       
-      <h3>🔐 Dev Access</h3>
+      <h3>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" width="22" height="22" style="vertical-align:middle;margin-right:8px;margin-top:-3px">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        Dev Access
+      </h3>
       <p>Digite o código de acesso</p>
       
       <input 
@@ -353,7 +359,7 @@
 
     if (!config) {
       _shake(codeInput);
-      _showToast('❌ Código inválido', 'error');
+      _showToast('Código inválido', 'error');
       codeInput.value = '';
       return;
     }
@@ -381,13 +387,13 @@
 
     if (!secret) {
       _shake(secretInput);
-      _showToast('⚠️ Digite a palavra secreta', 'warning');
+      _showToast('Digite a palavra secreta para continuar', 'warning');
       return;
     }
 
     if (!config.secrets.includes(secret)) {
       _shake(secretInput);
-      _showToast('❌ Palavra secreta incorreta', 'error');
+      _showToast('Palavra secreta incorreta', 'error');
       secretInput.value = '';
       return;
     }
@@ -859,7 +865,7 @@
     const panel = document.getElementById('_profilePanel');
     if (panel) panel.remove();
     _closeDevPanel();
-    _showToast('⚠️ Operação cancelada', 'warning');
+    _showToast('Operação cancelada', 'warning');
   };
 
   // Criar sessão e animar retorno ao login normal
@@ -1013,7 +1019,7 @@
         </div>
         <h3 style="font-size:20px;font-weight:700;color:#60a5fa;margin-bottom:10px;">Como trocar de senha?</h3>
         <p style="font-size:14px;color:#94a3b8;margin-bottom:24px;line-height:1.6;">
-          Entre em contato com o desenvolvedor<br>pelos canais abaixo:
+          Para redefinir sua senha, contate o gerente da filial. Usuários com permissão <strong style="color:#93c5fd">gerente</strong> ou superior podem alterar senhas no sistema.
         </p>
         <div class="fp-contact-item">
           <div class="fp-contact-icon" style="background:rgba(96,165,250,0.12)">
@@ -1022,19 +1028,22 @@
             </svg>
           </div>
           <div style="text-align:left;">
-            <div class="fp-contact-label">Ramal Interno</div>
+            <div class="fp-contact-label">Ramal Interno (TI)</div>
             <div class="fp-contact-value">302</div>
           </div>
         </div>
-        <div class="fp-contact-item">
-          <div class="fp-contact-icon" style="background:rgba(37,211,102,0.12)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#25d366" stroke-width="2">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        <div class="fp-contact-item" style="background:rgba(16,185,129,0.07);border-color:rgba(16,185,129,0.25)">
+          <div class="fp-contact-icon" style="background:rgba(16,185,129,0.15)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
             </svg>
           </div>
           <div style="text-align:left;">
-            <div class="fp-contact-label">WhatsApp</div>
-            <div class="fp-contact-value">(88) 98856-8911</div>
+            <div class="fp-contact-label">Solicite ao</div>
+            <div class="fp-contact-value" style="color:#34d399">Gerente da filial</div>
           </div>
         </div>
         <button class="fp-close-btn" onclick="document.getElementById('_forgotPopup').remove()">Entendido</button>
@@ -1183,48 +1192,71 @@
       <style>
         .cep-header {
           text-align: center;
-          margin-bottom: 32px;
+          margin-bottom: 28px;
         }
-        
-        .cep-header h3 {
-          font-size: 22px;
-          font-weight: 700;
+        .cep-header-icon {
+          width: 64px; height: 64px;
+          margin: 0 auto 18px;
+          padding: 16px;
+          background: linear-gradient(135deg, rgba(96,165,250,0.2) 0%, rgba(59,130,246,0.15) 100%);
+          border-radius: 50%;
           color: #60a5fa;
+        }
+        .cep-header-icon svg { width: 100%; height: 100%; }
+        .cep-header h3 {
+          font-size: 21px;
+          font-weight: 700;
+          color: #e2e8f0;
           margin-bottom: 8px;
         }
-        
         .cep-header p {
-          font-size: 14px;
-          color: #94a3b8;
+          font-size: 13px;
+          color: #64748b;
+          line-height: 1.55;
         }
-        
+        .cep-gps-failed {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 14px;
+          background: rgba(239,68,68,0.08);
+          border: 1px solid rgba(239,68,68,0.2);
+          border-radius: 10px;
+          margin-bottom: 20px;
+          font-size: 12px;
+          color: #fca5a5;
+        }
+        .cep-gps-failed svg { flex-shrink:0; width:16px; height:16px; }
         .cep-input-wrapper {
           position: relative;
-          margin-bottom: 16px;
+          margin-bottom: 14px;
         }
-        
         .cep-input-wrapper input {
           width: 100%;
           padding: 14px 16px;
           border: 2px solid #334155;
           border-radius: 12px;
-          font-size: 16px;
+          font-size: 18px;
+          font-weight: 600;
           background: #0f172a;
           color: #e2e8f0;
           text-align: center;
-          letter-spacing: 1px;
+          letter-spacing: 2px;
+          font-family: 'Courier New', monospace;
+          transition: border-color 0.2s ease, box-shadow 0.2s ease;
+          box-sizing: border-box;
         }
-        
         .cep-input-wrapper input:focus {
           outline: none;
           border-color: #60a5fa;
-          box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+          box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.12);
         }
-        
         .cep-input-wrapper input::placeholder {
-          color: #475569;
+          color: #334155;
+          letter-spacing: 1px;
+          font-size: 15px;
+          font-weight: 400;
         }
-        
         .cep-btn {
           width: 100%;
           padding: 14px;
@@ -1235,31 +1267,55 @@
           cursor: pointer;
           transition: all 0.2s ease;
           margin-bottom: 10px;
+          font-family: inherit;
+          box-sizing: border-box;
         }
-        
         .cep-btn.primary {
           background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
           color: white;
+          box-shadow: 0 4px 16px rgba(96,165,250,0.25);
         }
-        
         .cep-btn.primary:hover {
           transform: translateY(-2px);
           box-shadow: 0 6px 24px rgba(96, 165, 250, 0.4);
         }
-        
         .cep-btn.secondary {
-          background: #334155;
-          color: #e2e8f0;
+          background: transparent;
+          border: 2px solid #334155;
+          color: #64748b;
         }
-        
         .cep-btn.secondary:hover {
-          background: #475569;
+          background: #1e293b;
+          border-color: #475569;
+          color: #94a3b8;
+        }
+        .cep-hint-text {
+          font-size: 11px;
+          color: #475569;
+          text-align: center;
+          margin-bottom: 16px;
+          line-height: 1.5;
         }
       </style>
       
       <div class="cep-header">
-        <h3>📍 Digite seu CEP</h3>
-        <p>Informe seu CEP para continuar</p>
+        <div class="cep-header-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+        </div>
+        <h3>Confirme sua localização</h3>
+        <p>Informe seu CEP para identificarmos sua cidade de acesso</p>
+      </div>
+
+      <div class="cep-gps-failed">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="15" y1="9" x2="9" y2="15"></line>
+          <line x1="9" y1="9" x2="15" y2="15"></line>
+        </svg>
+        Localização automática (GPS) indisponível
       </div>
       
       <div class="cep-input-wrapper">
@@ -1269,10 +1325,19 @@
           placeholder="00000-000" 
           maxlength="9"
           autocomplete="off"
+          inputmode="numeric"
         />
       </div>
       
-      <button class="cep-btn primary" onclick="window._searchCEP()">Buscar</button>
+      <p class="cep-hint-text">Usamos apenas a cidade do CEP — nenhum dado pessoal é armazenado</p>
+      
+      <button class="cep-btn primary" onclick="window._searchCEP()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="vertical-align:middle;margin-right:6px;margin-top:-2px">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        Buscar cidade
+      </button>
       <button class="cep-btn secondary" onclick="window._closeCEPPanel()">Cancelar</button>
     `;
 
@@ -1627,8 +1692,7 @@
           text-transform:uppercase; letter-spacing:.8px; margin-bottom:12px;
         }
         #_mockPanel h3 { font-size:21px; font-weight:700; color:#e2e8f0; margin-bottom:4px; }
-        #_mockPanel .mk-sub { font-size:13px; color:#64748b; }
-        .mk-option {
+        #_mockPanel .mk-sub { font-size:13px; color:#64748b; }        .mk-option {
           display:flex; align-items:center; gap:16px;
           width:100%; padding:17px 18px; margin-bottom:10px;
           background:#0f172a; border:2px solid #1e293b; border-radius:14px;
@@ -1665,7 +1729,12 @@
           </svg>
           Mock Mode
         </div>
-        <h3>🧪 Funções de Teste</h3>
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#e2e8f0" stroke-width="2" width="18" height="18" style="vertical-align:middle;margin-right:6px;margin-top:-3px">
+            <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"></path>
+          </svg>
+          Funções de Teste
+        </h3>
         <p class="mk-sub">Escolha uma função para testar de forma independente</p>
       </div>
 
@@ -1725,20 +1794,20 @@
   // MOCK: GPS
   function _mockPegarLocal() {
     _isMock = true;
-    _showToast('🧪 Mock: Testando GPS...', 'warning');
+    _showToast('Mock ativo — testando GPS...', 'warning');
     _getLocation();
   }
 
   // MOCK: CEP direto
   function _mockBuscarCEP() {
-    _showToast('🧪 Mock: Testando busca por CEP...', 'warning');
+    _showToast('Mock ativo — testando busca por CEP...', 'warning');
     _askForCEP();
   }
 
   // MOCK: Bloqueio de local
   // MOCK: Bloqueio de local — simula o fluxo real: GPS tenta → banner vermelho → CEP
   function _mockBloqueioLocal() {
-    _showToast('🧪 Mock: Simulando permissão de localização negada...', 'warning');
+    _showToast('Mock ativo — simulando GPS bloqueado pelo navegador...', 'warning');
 
     // Passo 1: mostrar tela "buscando localização"
     _showLocationSearching();
@@ -1797,8 +1866,8 @@
           '</svg>' +
         '</div>' +
         '<div id="_mdbText">' +
-          '<div id="_mdbTitle">Localização bloqueada pelo navegador \uD83D\uDD12</div>' +
-          '<div id="_mdbSub">Clique no <strong style="color:#fff">cadeado \uD83D\uDD12</strong> na barra de endere\u00E7o para permitir \u2014 ou informe seu CEP abaixo</div>' +
+          '<div id="_mdbTitle">Localização bloqueada pelo navegador</div>' +
+          '<div id="_mdbSub">Clique no <strong style="color:#fff">ícone de cadeado</strong> na barra de endere\u00E7o para permitir \u2014 ou informe seu CEP abaixo</div>' +
         '</div>' +
       '</div>';
 

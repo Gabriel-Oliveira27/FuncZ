@@ -122,8 +122,9 @@ body::before {
 /* ===== ALERTA DE ERRO ===== */
 .error-alert {
   display: none;
-  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-  border: 1px solid #fca5a5;
+  background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+  border: 1.5px solid #fca5a5;
+  border-left: 4px solid var(--error);
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 24px;
@@ -161,7 +162,7 @@ body::before {
 .error-message {
   font-size: 13px;
   color: #b91c1c;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 /* ===== FORMULÁRIO ===== */
@@ -418,6 +419,71 @@ body::before {
   max-width: 420px;
 }
 
+/* Step indicator row */
+.cep-step-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 28px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.cep-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cep-step-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cep-step-icon-wrap svg {
+  width: 18px;
+  height: 18px;
+}
+
+.cep-step-failed .cep-step-icon-wrap {
+  background: #fee2e2;
+  color: var(--error);
+}
+
+.cep-step-failed span {
+  color: var(--error);
+}
+
+.cep-step-active .cep-step-icon-wrap {
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  color: var(--primary);
+}
+
+.cep-step-active span {
+  color: var(--primary);
+}
+
+.cep-step-arrow {
+  color: #94a3b8;
+}
+
+.cep-step-arrow svg {
+  width: 16px;
+  height: 16px;
+}
+
 .modal-header {
   text-align: center;
   margin-bottom: 32px;
@@ -623,26 +689,33 @@ body::before {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 16px 20px;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  animation: slideInRight 0.3s ease;
+  padding: 14px 18px;
+  border-radius: 14px;
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.12),
+    0 10px 40px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255,255,255,0.15);
+  animation: slideInRight 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
   overflow: hidden;
+  border: 1px solid transparent;
 }
 
 .toast.success {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  border-color: rgba(255,255,255,0.15);
   color: white;
 }
 
 .toast.error {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  border-color: rgba(255,255,255,0.15);
   color: white;
 }
 
 .toast.warning {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+  border-color: rgba(255,255,255,0.15);
   color: white;
 }
 

@@ -45,10 +45,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Mensagens exibidas ao trocar de worker
   const WORKER_MSGS = [
     null, // Worker 1 não exibe mensagem de troca
-    { title: 'Servidor ocupado...', sub: 'Redirecionando para um servidor alternativo. Aguarde!', icon: '⚡' },
-    { title: 'Ainda estamos tentando!',  sub: 'Sentimos o transtorno — estamos com uma pequena instabilidade. Já já resolvemos!', icon: '🔄' },
-    { title: 'Última tentativa...',      sub: 'Estamos na reserva final. Segura aí, quase lá!', icon: '🚀' },
-    { title: 'Usando servidor reserva...', sub: 'Acionando o servidor de contingência. Pode demorar um pouco mais — aguarde!', icon: '🛡️' },
+    { title: 'Servidor ocupado...', sub: 'Redirecionando para um servidor alternativo. Aguarde!', icon: 'zap' },
+    { title: 'Ainda estamos tentando!',  sub: 'Sentimos o transtorno — estamos com uma pequena instabilidade. Já já resolvemos!', icon: 'refresh' },
+    { title: 'Última tentativa...',      sub: 'Estamos na reserva final. Segura aí, quase lá!', icon: 'send' },
+    { title: 'Usando servidor reserva...', sub: 'Acionando o servidor de contingência. Pode demorar um pouco mais — aguarde!', icon: 'shield' },
   ];
 
   /* ===== VERIFICAÇÃO DE SESSÃO EXISTENTE ===== */
@@ -149,7 +149,10 @@ document.addEventListener('DOMContentLoaded', () => {
           to { transform: rotate(360deg); }
         }
         #_wIconEmoji {
-          font-size: 26px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: currentColor;
           line-height: 1;
           transition: all 0.3s ease;
           animation: _wPop 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
@@ -262,7 +265,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <div id="_workerCard">
         <div id="_wIconWrap">
-          <span id="_wIconEmoji">🔐</span>
+          <span id="_wIconEmoji">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </span>
         </div>
 
         <div id="_wTitle">Aguarde um instante...</div>
@@ -291,7 +299,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const msg = WORKER_MSGS[index];
     const isRender = index === 4;
 
-    const emojis   = ['🔐', '⚡', '🔄', '🚀', '🛡️'];
+    const emojis   = {
+      lock:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`,
+      zap:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>`,
+      refresh: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>`,
+      send:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`,
+      shield:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>`,
+    };
+    const iconKeys = ['lock', 'zap', 'refresh', 'send', 'shield'];
     const cores    = [
       'rgba(59,130,246,0.1)',
       'rgba(245,158,11,0.12)',
@@ -334,7 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       iconEmoji.style.animation = 'none';
       void iconEmoji.offsetWidth;
-      iconEmoji.textContent = emojis[index];
+      iconEmoji.innerHTML = emojis[iconKeys[index]];
       iconEmoji.style.animation = '_wPop 0.4s cubic-bezier(0.175,0.885,0.32,1.275)';
 
       if (msg) {
@@ -496,7 +511,6 @@ document.addEventListener('DOMContentLoaded', () => {
           background: rgba(239,68,68,0.1);
           border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
-          font-size: 30px;
           animation: etPulse 2.5s ease infinite;
         }
         .et-title { font-size: 19px; font-weight: 800; color: #f1f5f9; margin-bottom: 10px; }
@@ -518,6 +532,14 @@ document.addEventListener('DOMContentLoaded', () => {
         .et-contact-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
         .et-contact-label { font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
         .et-contact-value { font-size: 15px; font-weight: 700; color: #e2e8f0; }
+        .et-manager-box {
+          display: flex; align-items: flex-start; gap: 10px;
+          padding: 14px 16px;
+          background: rgba(96,165,250,0.07);
+          border: 1px solid rgba(96,165,250,0.18);
+          border-radius: 12px; margin: 4px 0 0 0; text-align: left;
+        }
+        .et-manager-box p { font-size: 13px; color: #94a3b8; line-height: 1.6; margin: 0; }
         .et-btn-retry {
           width: 100%; padding: 14px; border: none; border-radius: 14px;
           background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
@@ -530,7 +552,13 @@ document.addEventListener('DOMContentLoaded', () => {
       </style>
 
       <div id="_erroTotalCard">
-        <div class="et-icon">😵</div>
+        <div class="et-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5" width="34" height="34">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
         <div class="et-badge">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <circle cx="12" cy="12" r="10"></circle>
@@ -541,23 +569,17 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="et-title">Login temporariamente indisponível</div>
         <div class="et-desc">
-          Tentamos em todos os 5 servidores disponíveis<br>
-          (4 Cloudflare + 1 Render) e nenhum respondeu.<br><br>
-          <strong style="color:#94a3b8">Entre em contato com o desenvolvedor:</strong>
+          Todos os servidores de autenticação estão inacessíveis no momento.<br>
+          Isso pode ser uma instabilidade temporária de rede.
         </div>
-        <div class="et-contact">
-          <div class="et-contact-icon" style="background:rgba(96,165,250,0.1)">📞</div>
-          <div>
-            <div class="et-contact-label">Ramal Interno</div>
-            <div class="et-contact-value">302</div>
-          </div>
-        </div>
-        <div class="et-contact">
-          <div class="et-contact-icon" style="background:rgba(37,211,102,0.1)">💬</div>
-          <div>
-            <div class="et-contact-label">WhatsApp</div>
-            <div class="et-contact-value">(88) 98856-8911</div>
-          </div>
+        <div class="et-manager-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" width="18" height="18" style="flex-shrink:0;margin-top:1px">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          <p>Informe ao seu <strong style="color:#93c5fd">gerente</strong> ou aguarde alguns minutos e tente novamente.</p>
         </div>
         <button class="et-btn-retry" onclick="
           document.getElementById('_erroTotalPopup').remove();
@@ -628,14 +650,21 @@ document.addEventListener('DOMContentLoaded', () => {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:100%;height:100%"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
         </div>
         <h3 style="font-size:19px;font-weight:700;color:#003da5;margin-bottom:8px;">Como trocar de senha?</h3>
-        <p style="font-size:13px;color:#64748b;margin-bottom:22px;line-height:1.6;">Entre em contato com o desenvolvedor pelos canais abaixo:</p>
+        <p style="font-size:13px;color:#64748b;margin-bottom:22px;line-height:1.6;">Para redefinir sua senha, solicite ao gerente da sua filial. Usuários com permissão <strong style="color:#003da5">gerente</strong> ou superior podem alterar senhas diretamente no sistema.</p>
         <div class="mfp-contact">
           <div class="mfp-icon-wrap" style="background:#dbeafe"><svg viewBox="0 0 24 24" fill="none" stroke="#003da5" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.58 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></div>
-          <div style="text-align:left"><div class="mfp-label">Ramal Interno</div><div class="mfp-value">302</div></div>
+          <div style="text-align:left"><div class="mfp-label">Ramal Interno (TI)</div><div class="mfp-value">302</div></div>
         </div>
-        <div class="mfp-contact">
-          <div class="mfp-icon-wrap" style="background:#dcfce7"><svg viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
-          <div style="text-align:left"><div class="mfp-label">WhatsApp</div><div class="mfp-value">(88) 98856-8911</div></div>
+        <div class="mfp-contact" style="background:#f0fdf4;border-color:#bbf7d0;">
+          <div class="mfp-icon-wrap" style="background:#dcfce7">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </div>
+          <div style="text-align:left"><div class="mfp-label">Solicite ao</div><div class="mfp-value" style="color:#15803d">Gerente da filial</div></div>
         </div>
         <button class="mfp-close" onclick="document.getElementById('_mainForgotPopup').remove()">Entendido</button>
       </div>
@@ -749,18 +778,18 @@ document.addEventListener('DOMContentLoaded', () => {
         <style>
           @keyframes locDeniedIn{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
           @keyframes locDeniedOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-20px)}}
-          @keyframes locDeniedPulse{0%,100%{box-shadow:0 8px 32px rgba(185,28,28,0.45)}50%{box-shadow:0 8px 44px rgba(220,38,38,0.7)}}
-          #_locDeniedInner{display:flex;align-items:center;gap:12px;padding:12px 18px;background:linear-gradient(135deg,#7f1d1d 0%,#b91c1c 100%);border-radius:14px;max-width:420px;animation:locDeniedIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275) forwards,locDeniedPulse 2s ease 0.6s infinite}
+          @keyframes locDeniedPulse{0%,100%{box-shadow:0 8px 32px rgba(185,28,28,0.45),0 0 0 1px rgba(255,255,255,0.08)}50%{box-shadow:0 8px 44px rgba(220,38,38,0.7),0 0 0 2px rgba(255,120,120,0.15)}}
+          #_locDeniedInner{display:flex;align-items:center;gap:12px;padding:13px 18px;background:linear-gradient(135deg,#7f1d1d 0%,#b91c1c 100%);border-radius:14px;max-width:420px;animation:locDeniedIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275) forwards,locDeniedPulse 2s ease 0.6s infinite;border:1px solid rgba(255,255,255,0.1)}
           #_locDeniedIconWrap{width:36px;height:36px;background:rgba(0,0,0,0.22);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
           #_locDeniedIconWrap svg{width:18px;height:18px}
           #_locDeniedTitle{font-size:13px;font-weight:700;color:#fff;margin-bottom:2px}
-          #_locDeniedSub{font-size:12px;color:#fca5a5}
+          #_locDeniedSub{font-size:12px;color:#fca5a5;line-height:1.4}
         </style>
         <div id="_locDeniedInner">
           <div id="_locDeniedIconWrap"><svg viewBox="0 0 24 24" fill="none" stroke="#fca5a5" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
           <div>
-            <div id="_locDeniedTitle">Localização bloqueada 🔒</div>
-            <div id="_locDeniedSub">Clique no <strong style="color:#fff">cadeado 🔒</strong> para permitir — ou informe seu CEP abaixo</div>
+            <div id="_locDeniedTitle">Permissão de localização bloqueada</div>
+            <div id="_locDeniedSub">Clique no <strong style="color:#fff">ícone de cadeado</strong> na barra de endereço e permita — ou informe seu CEP abaixo</div>
           </div>
         </div>
       `;
@@ -869,27 +898,27 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem(`loginAttempts_${currentUser}`, JSON.stringify(attemptsData));
 
         if (result.motivo === 'localincorreto' || result.motivo === 'local-nao-permitido') {
-          mostrarErro('Localização não permitida para este usuário');
+          mostrarErro('Sua localização atual não está autorizada para este usuário. Verifique se você está na rede correta ou contate o gerente da filial.');
           showToast('Acesso negado: localização não autorizada', 'error');
         } else if (result.motivo === 'senhaincorreta') {
-          mostrarErro('Senha incorreta');
-          showToast('Senha inválida. Tente novamente.', 'error');
+          mostrarErro('Senha incorreta. Verifique se o CAPS LOCK está ativado e tente novamente. Após 5 tentativas incorretas, o acesso será bloqueado temporariamente.');
+          showToast('Senha inválida — verifique o CAPS LOCK', 'error');
         } else if (result.motivo === 'usuarionaoexiste') {
-          mostrarErro('Usuário não encontrado');
+          mostrarErro('Usuário não encontrado no sistema. Verifique se digitou o nome de usuário corretamente ou solicite o cadastro ao gerente.');
           showToast('Usuário não cadastrado no sistema', 'error');
         } else {
-          mostrarErro(result.error || 'Credenciais inválidas');
+          mostrarErro(result.error || 'Não foi possível autenticar. Tente novamente ou contate o suporte interno.');
           showToast('Não foi possível autenticar', 'error');
         }
 
-        if (attemptsData.count >= 5) showToast('5 tentativas excedidas. Aguarde 30 segundos.', 'warning', 5000);
+        if (attemptsData.count >= 5) showToast('Acesso bloqueado por 30 segundos após 5 tentativas incorretas.', 'warning', 5000);
       }
 
     } catch (error) {
       removerOverlayWorker();
       if (!document.getElementById('_erroTotalPopup')) {
-        mostrarErro('Falha na conexão com o servidor');
-        showToast('Erro de rede. Verifique sua conexão.', 'error');
+        mostrarErro('Não foi possível conectar aos servidores de autenticação. Verifique sua conexão com a internet e tente novamente.');
+        showToast('Erro de rede — verifique sua conexão', 'error');
       }
     } finally {
       loginBtn.classList.remove('loading');
