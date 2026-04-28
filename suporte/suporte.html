@@ -120,12 +120,29 @@
             </div>
 
             <div class="chatbot-container">
+                <!-- Chat Topbar -->
+                <div class="chat-topbar">
+                    <div class="chat-topbar-avatar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                    </div>
+                    <div class="chat-topbar-info">
+                        <h3>Assistente de Suporte</h3>
+                        <p>
+                            <span class="online-dot"></span>
+                            Online agora
+                        </p>
+                    </div>
+                </div>
+
                 <div class="chat-messages" id="chatMessages">
                     <!-- Mensagens do chatbot aparecerão aqui -->
                 </div>
                 <div class="chat-input-container">
-                    <input type="text" class="chat-input" id="chatInput" placeholder="Digite sua resposta...">
-                    <button class="send-btn" id="sendBtn">
+                    <input type="text" class="chat-input" id="chatInput" placeholder="Digite sua mensagem...">
+                    <button class="send-btn" id="sendBtn" aria-label="Enviar">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="22" y1="2" x2="11" y2="13"></line>
                             <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
@@ -260,8 +277,7 @@
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-content">
-            <p>&copy; 2026 Gabriel Oliveira</p>
-            <p>Todos os direitos reservados</p>
+            <p>&copy; 2026 Gabriel Oliveira &mdash; Todos os direitos reservados</p>
         </div>
     </footer>
 
