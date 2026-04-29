@@ -23,7 +23,11 @@ var FILIAIS = {
 };
 
 var produtos = [{ codigo: '', descricao: '', quantidade: '', valorUnitario: '', valorTotal: '' }];
+
+// ─── Cache de produtos (carregado uma vez de ../data/produtos.json) ───────────
 var cacheProdutos = null;
+var carregandoProdutos = false;
+
 var acaoConfirmacao = null;
 var timbreCache = null;
 var buscandoCEP = false;
@@ -38,6 +42,8 @@ document.addEventListener('DOMContentLoaded', function () {
     atualizarProgresso();
     atualizarTotalGeral();
     enforceUserName();
+    // Pré-carrega o JSON em background para a primeira busca ser instantânea
+    carregarBaseProdutos().catch(function () {});
 });
 
 // ========================
@@ -61,25 +67,22 @@ function atualizarIconeTema(isDark) {
     var el = document.getElementById('iconeTema');
     if (!el) return;
     if (isDark) {
-        // Ícone de lua
         el.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
     } else {
-        // Ícone de sol
         el.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
     }
 }
 
 // ========================
-// OVERLAY LOADING — helper que re-dispara a animação a cada abertura
+// OVERLAY LOADING
 // ========================
 function mostrarOverlay(id) {
     var overlay = document.getElementById(id);
     if (!overlay) return;
     var loader = overlay.querySelector('.modern-loader');
-    // Re-trigger da animação CSS: remove a classe, força reflow, recoloca
     if (loader) {
         loader.classList.remove('loader-show');
-        void loader.offsetWidth; // reflow
+        void loader.offsetWidth;
         loader.classList.add('loader-show');
     }
     overlay.classList.add('active');
@@ -228,7 +231,7 @@ function cancelarModoCEP() {
     var linkCEP = document.getElementById('linkBuscarCEP');
     var linkCancelar = document.getElementById('linkCancelarCEP');
 
-    enderecoInput.placeholder = 'CEP ou Endereço';
+    enderecoInput.placeholder = 'Rua / Logradouro ou CEP';
     hint.textContent = '';
     hint.className = 'field-hint';
     linkCEP.style.display = 'none';
@@ -264,7 +267,7 @@ function buscarCEPAutomatico(cep) {
             }
             modoBuscaCEP = false;
             document.getElementById('endereco').value = data.logradouro || '';
-            document.getElementById('endereco').placeholder = 'CEP ou Endereço';
+            document.getElementById('endereco').placeholder = 'Rua / Logradouro ou CEP';
             document.getElementById('bairro').value = data.bairro || '';
             document.getElementById('cidade').value = data.localidade || '';
             document.getElementById('estado').value = data.uf || '';
@@ -393,7 +396,7 @@ function limparCamposSilenciosamente() {
         });
     document.getElementById('novoPV').disabled = true;
     modoBuscaCEP = false;
-    document.getElementById('endereco').placeholder = 'CEP ou Endereço';
+    document.getElementById('endereco').placeholder = 'Rua / Logradouro ou CEP';
     document.getElementById('enderecoHint').textContent = '';
     document.getElementById('enderecoHint').className = 'field-hint';
     document.getElementById('linkBuscarCEP').style.display = 'none';
@@ -407,7 +410,7 @@ function limparCamposSilenciosamente() {
 }
 
 // ========================
-// PRODUTOS
+// PRODUTOS — renderização
 // ========================
 function renderizarProdutos() {
     var container = document.getElementById('listaProdutos');
@@ -425,7 +428,7 @@ function renderizarProdutos() {
             '<input type="number" min="0.01" step="0.01" class="produto-valor-unitario" data-index="' + i + '" value="' + produtos[i].valorUnitario + '" placeholder="VR. Unit. *">' +
             '<input type="text" class="produto-valor-total" data-index="' + i + '" value="' + (produtos[i].valorTotal ? 'R$ ' + formatarMoeda(produtos[i].valorTotal) : '') + '" placeholder="VR. Total" readonly>' +
             (temLixeira
-                ? '<button type="button" class="btn-remover-produto" data-index="' + i + '" title="Remover produto"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>'
+                ? '<button type="button" class="btn-remover-produto" data-index="' + i + '" title="Remover produto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>'
                 : '<div class="produto-placeholder-btn"></div>');
         container.appendChild(div);
     }
@@ -501,7 +504,9 @@ function atualizarTotalGeral() {
 function onCodigoBlur(e) {
     var codigo = e.target.value.trim();
     var index = parseInt(e.target.dataset.index);
-    if (codigo && produtos[index].codigo === codigo && !produtos[index].descricao) buscarProdutoAPI(codigo, index);
+    if (codigo && !produtos[index].descricao) {
+        buscarProdutoAPI(codigo, index);
+    }
 }
 
 function onCodigoInput(e) {
@@ -563,62 +568,135 @@ function isProdutosObrigatoriosPreenchidos() {
 }
 
 // ========================
-// API PRODUTOS
+// BUSCA DE PRODUTOS — ../data/produtos.json
 // ========================
+
+/**
+ * Carrega o JSON de produtos uma única vez e cacheia.
+ * O JSON pode ter QUALQUER estrutura de chaves no nível raiz, ex:
+ *   { "Gabriel": [...], "Júlia": [...], "NomeQualquer": [...] }
+ * Cada item da lista deve conter pelo menos: Código, Descrição, "Total à vista"
+ */
 function carregarBaseProdutos() {
-    if (cacheProdutos) return Promise.resolve(cacheProdutos);
-    return fetch('https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLic4iE63JAJ0j4KpGWfRFINeiD4uyCsMjfF_uLkUNzhOsJMzO4uiiZpWV3xzDjbduZK8kU_wWw3ZSCs6cODW2gdFnIGb6pZ0Lz0cBqMpiV-SBOJroENJHqO1XML_YRs_41KFfQOKEehUQmf-Xg6Xhh-bKiYpPxxwQhQzEMP5g0DdJHN4sgG_Fc9cdvRRU4abxlz_PzeQ_5eJ7NtCfxWuP-ET0DEzUyiWhWITlXMZKJMfwmZQg5--gKmAEGpwSr0yXi3eycr23BCGltlXGIWtYZ3I0WkWg&lib=M38uuBDbjNiNXY1lAK2DF9n3ltsPa6Ver')
-        .then(function (resp) { if (!resp.ok) throw new Error('Erro'); return resp.json(); })
-        .then(function (data) { cacheProdutos = data; return data; });
+    if (cacheProdutos !== null) {
+        return Promise.resolve(cacheProdutos);
+    }
+    if (carregandoProdutos) {
+        // Espera o carregamento atual terminar (polling simples)
+        return new Promise(function (resolve, reject) {
+            var tentativas = 0;
+            var intervalo = setInterval(function () {
+                tentativas++;
+                if (cacheProdutos !== null) {
+                    clearInterval(intervalo);
+                    resolve(cacheProdutos);
+                } else if (tentativas > 100) {
+                    clearInterval(intervalo);
+                    reject(new Error('Timeout aguardando produtos'));
+                }
+            }, 100);
+        });
+    }
+
+    carregandoProdutos = true;
+
+    return fetch('../data/produtos.json')
+        .then(function (resp) {
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            return resp.json();
+        })
+        .then(function (data) {
+            cacheProdutos = data;
+            carregandoProdutos = false;
+            return data;
+        })
+        .catch(function (err) {
+            carregandoProdutos = false;
+            cacheProdutos = {}; // evita loop de retry; próxima chamada retorna vazio
+            throw err;
+        });
 }
 
+/**
+ * Busca um produto pelo código em TODAS as chaves do JSON.
+ * Faz comparação de número e string para garantir match independente do tipo.
+ */
 function buscarProdutoPorCodigo(codigo) {
     return carregarBaseProdutos().then(function (dados) {
-        var encontrado = null;
-        var nomes = ['Gabriel', 'Júlia', 'Giovana'];
-        for (var n = 0; n < nomes.length; n++) {
-            if (!dados[nomes[n]]) continue;
-            for (var i = 0; i < dados[nomes[n]].length; i++) {
-                if (dados[nomes[n]][i].Código == codigo) { encontrado = dados[nomes[n]][i]; break; }
+        var codigoNum = Number(codigo);
+        var codigoStr = String(codigo).trim();
+
+        // Itera sobre todas as chaves do objeto raiz (ex: "Gabriel", "Júlia", etc.)
+        var chaves = Object.keys(dados);
+        for (var c = 0; c < chaves.length; c++) {
+            var lista = dados[chaves[c]];
+            if (!Array.isArray(lista)) continue;
+            for (var i = 0; i < lista.length; i++) {
+                var item = lista[i];
+                var itemCod = item['Código'] !== undefined ? item['Código'] : item['Codigo'];
+                if (itemCod === undefined) continue;
+                // Compara tanto como número quanto como string
+                if (Number(itemCod) === codigoNum || String(itemCod).trim() === codigoStr) {
+                    return item;
+                }
             }
-            if (encontrado) break;
         }
-        return encontrado;
+        return null; // não encontrado
     });
 }
 
 function buscarProdutoAPI(codigo, index) {
     if (!codigo) return;
     mostrarOverlay('overlayBuscaProduto');
+
     buscarProdutoPorCodigo(codigo)
         .then(function (produto) {
             esconderOverlay('overlayBuscaProduto');
+
             if (!produto) {
-                produtos[index].descricao = ''; produtos[index].valorUnitario = ''; produtos[index].valorTotal = '';
+                // Limpa campos do produto se não encontrado
+                produtos[index].descricao = '';
+                produtos[index].valorUnitario = '';
+                produtos[index].valorTotal = '';
                 ['descricao', 'valor-unitario', 'valor-total'].forEach(function (cls) {
                     var el = document.querySelector('.produto-' + cls + '[data-index="' + index + '"]');
                     if (el) el.value = '';
                 });
-                showToast('Produto não cadastrado ou indisponível', 'error');
+                showToast('Produto não encontrado. Código: ' + codigo, 'error');
                 return;
             }
-            produtos[index].descricao = produto.Descrição || '';
-            produtos[index].valorUnitario = parseFloat(produto['Total à vista'] || 0).toFixed(2);
+
+            // Preenche descrição
+            produtos[index].descricao = produto['Descrição'] || produto['Descricao'] || '';
+
+            // Preenche valor unitário (usa "Total à vista" como preço padrão)
+            var precoRaw = produto['Total à vista'] || produto['Total a vista'] || 0;
+            var preco = parseFloat(String(precoRaw).replace(',', '.')) || 0;
+            produtos[index].valorUnitario = preco > 0 ? preco.toFixed(2) : '';
+
+            // Recalcula total se já tem quantidade
             if (produtos[index].quantidade) recalcularTotal(index);
+
+            // Atualiza DOM
             var descInput = document.querySelector('.produto-descricao[data-index="' + index + '"]');
             var valUnitInput = document.querySelector('.produto-valor-unitario[data-index="' + index + '"]');
             var totalInput = document.querySelector('.produto-valor-total[data-index="' + index + '"]');
+
             if (descInput) descInput.value = produtos[index].descricao;
             if (valUnitInput) valUnitInput.value = produtos[index].valorUnitario;
-            if (totalInput) totalInput.value = produtos[index].valorTotal ? 'R$ ' + formatarMoeda(produtos[index].valorTotal) : '';
-            showToast('Produto carregado com sucesso', 'success');
+            if (totalInput) totalInput.value = produtos[index].valorTotal
+                ? 'R$ ' + formatarMoeda(produtos[index].valorTotal)
+                : '';
+
+            showToast('Produto carregado: ' + (produtos[index].descricao || codigo), 'success');
             verificarEAdicionarNovoProduto(index);
             atualizarTotalGeral();
+            atualizarProgresso();
         })
         .catch(function (err) {
-            console.error(err);
+            console.error('Erro ao buscar produto:', err);
             esconderOverlay('overlayBuscaProduto');
-            showToast('Erro ao buscar produto', 'error');
+            showToast('Erro ao acessar a base de produtos. Verifique o arquivo produtos.json.', 'error');
         });
 }
 
@@ -866,10 +944,10 @@ function showToast(message, type, duration) {
     var toast = document.createElement('div');
     toast.className = 'toast ' + type;
     var icons = {
-        success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>',
-        error:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>',
-        warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>',
-        info:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>'
+        success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+        error:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+        warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+        info:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
     };
     var titles = { success: 'Sucesso', error: 'Erro', warning: 'Atenção', info: 'Informação' };
     toast.innerHTML =
