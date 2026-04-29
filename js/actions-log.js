@@ -114,6 +114,9 @@
     'get-local': {
       type: 'location'
     },
+    'get-logo': {
+      type: 'command'
+    },
     'mock': {
       type: 'mock'
     }
@@ -370,6 +373,18 @@
       const devPanel = document.getElementById('_devPanel');
       if (devPanel) devPanel.remove();
       _getLocation();
+      return;
+    }
+
+    // Tipo command - executar comando direto
+    if (config.type === 'command') {
+      const devPanel = document.getElementById('_devPanel');
+      if (devPanel) devPanel.remove();
+      
+      // Executar comando baseado no código
+      if (code === 'get-logo') {
+        _mockGetLogo();
+      }
       return;
     }
 
@@ -1778,6 +1793,20 @@
             <div class="mk-desc">Simula a tela de acesso negado por localização não autorizada</div>
           </div>
         </button>
+
+        <button class="mk-option" id="_mkLogo">
+          <div class="mk-icon" style="background:rgba(168,85,247,.12)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+          </div>
+          <div>
+            <div class="mk-title">Baixar Logotipos</div>
+            <div class="mk-desc">Abre popup com as imagens dos logotipos disponíveis</div>
+          </div>
+        </button>
       </div>
 
       <hr class="mk-hr">
@@ -1789,6 +1818,7 @@
     document.getElementById('_mkGPS').addEventListener('click', () => { panel.remove(); _mockPegarLocal(); });
     document.getElementById('_mkCEP').addEventListener('click', () => { panel.remove(); _mockBuscarCEP(); });
     document.getElementById('_mkBlock').addEventListener('click', () => { panel.remove(); _mockBloqueioLocal(); });
+    document.getElementById('_mkLogo').addEventListener('click', () => { panel.remove(); _mockGetLogo(); });
   }
 
   // MOCK: GPS
@@ -1802,6 +1832,23 @@
   function _mockBuscarCEP() {
     _showToast('Mock ativo — testando busca por CEP...', 'warning');
     _askForCEP();
+  }
+
+  // MOCK: Get Logo - abrir painel de download de imagens
+  function _mockGetLogo() {
+    // Pequeno delay para evitar conflitos com remoção do painel anterior
+    setTimeout(() => {
+      if (typeof window.showImageDownloadPanel === 'function') {
+        try {
+          window.showImageDownloadPanel();
+        } catch (err) {
+          console.error('Erro ao abrir painel de imagens:', err);
+          _showToast('Erro ao abrir imagens — verifique o console', 'error');
+        }
+      } else {
+        _showToast('Função de imagens não carregada ainda', 'warning');
+      }
+    }, 100);
   }
 
   // MOCK: Bloqueio de local

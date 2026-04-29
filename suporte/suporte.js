@@ -183,6 +183,7 @@ const INTENTS = {
   email:    ['email', 'e-mail', 'correio'],
   ramal:    ['ramal', 'telefone', 'ligar', 'ligacao'],
   whatsapp: ['whatsapp', 'wpp', 'zap', 'urgente', 'urgência'],
+  images:   ['logo', 'imagem', 'imagens', 'zenir', 'marca', 'branding'],
   reset:    ['tentar novamente', 'recomecar', 'recomeçar', 'reiniciar', 'resetar', 'novo']
 };
 
@@ -214,6 +215,9 @@ function processUserResponse(lower, original) {
       break;
     case 'whatsapp':
       showTypingThen(() => showContactInfo('whatsapp'));
+      break;
+    case 'images':
+      showImageOptions();
       break;
     case 'reset':
       chatState = { stage: 'initial', awaitingResponse: false, isTyping: false };
@@ -292,6 +296,54 @@ function showOdooSupport() {
       addBotMessage(`Para este tipo de sistema, entre em contato com o setor de **T.I.:**\n\n📞 **Ramais da T.I.:**\n• Lívia — 221\n• Vinícius — 205\n• Karolinne — 230\n• Gustavo — 318\n• Gabriel — 302\n• Weslle — 295\n• Enzio — 301\n• Pablo — 208\n\n**Horário:** Seg–Sex 07h–19h · Sáb 08h–14h`);
       chatState.awaitingResponse = true;
     }, 800);
+  });
+}
+
+function showImageOptions() {
+  showTypingThen(() => {
+    addBotMessage('Claro! Tenho as **imagens da marca Zenir** disponíveis para você baixar.');
+    setTimeout(() => {
+      addBotMessage('Escolha qual imagem você gostaria de baixar:');
+      setTimeout(() => {
+        // Criar mensagem HTML com opções de download
+        const chatMessages = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message bot-message';
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        contentDiv.innerHTML = `
+          <div class="image-download-message">
+            <div class="image-download-options">
+              <button class="chat-image-btn" onclick="downloadImageFromChat('./image/logo.png', 'logo.png')">
+                📥 Logo Simples (logo.png)
+              </button>
+              <button class="chat-image-btn" onclick="downloadImageFromChat('./image/zenirlogo.png', 'zenirlogo.png')">
+                📥 Logo Zenir (zenirlogo.png)
+              </button>
+              <button class="chat-image-btn" onclick="downloadImageFromChat('./image/logocompleta.png', 'logocompleta.png')">
+                📥 Logo Completa (logocompleta.png)
+              </button>
+            </div>
+            <button class="chat-image-popup-btn" onclick="window.showImageDownloadPopup()">
+              🖼️ Ver todas as imagens
+            </button>
+          </div>
+        `;
+        
+        messageDiv.appendChild(contentDiv);
+        chatMessages.appendChild(messageDiv);
+        
+        // Adicionar avatar
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'message-avatar bot-avatar';
+        avatarDiv.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>';
+        messageDiv.insertBefore(avatarDiv, contentDiv);
+        
+        scrollToBottom();
+        chatState.awaitingResponse = true;
+      }, 800);
+    }, 700);
   });
 }
 
