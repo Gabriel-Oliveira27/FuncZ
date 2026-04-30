@@ -1556,6 +1556,7 @@ function renderProducts() {
                             <option value="a5-loja53" ${product.layoutPersonalizado === 'a5-loja53' ? 'selected' : ''}>A5 - Config</option>
                             <option value="a5-loja53-novo" ${product.layoutPersonalizado === 'a5-loja53-novo' ? 'selected' : ''}>A5 - Loja 53 (novo)</option>
                             <option value="juazeiro2-a6" ${product.layoutPersonalizado === 'juazeiro2-a6' ? 'selected' : ''}>Juazeiro II - A6</option>
+                            <option value="a6-paisagem" ${product.layoutPersonalizado === 'a6-paisagem' ? 'selected' : ''}>A6 - Paisagem</option>
                         </select>
                         <button class="btn-delete" style="margin-top: 0;" onclick="deleteProduct(${product.id})">
                             <i class="fa-solid fa-trash"></i> Remover
@@ -1772,6 +1773,8 @@ function generatePosterHTML(product, isPreview = false) {
     posterHTML = `<div class="poster-wrapper-a5loja53novo">${posterHTML}</div>`;
   } else if (product.layoutPersonalizado === 'juazeiro2-a6') {
     posterHTML = `<div class="poster-wrapper-juazeiro2-a6">${posterHTML}</div>`;
+  } else if (product.layoutPersonalizado === 'a6-paisagem') {
+    posterHTML = `<div class="poster-wrapper-a6paisagem">${posterHTML}</div>`;
   }
 
   return posterHTML;
@@ -2181,11 +2184,12 @@ document
         const ehA5Loja53 = products[i].layoutPersonalizado === 'a5-loja53';
         const ehA5Loja53Novo = products[i].layoutPersonalizado === 'a5-loja53-novo';
         const ehJuazeiro2A6 = products[i].layoutPersonalizado === 'juazeiro2-a6';
+        const ehA6Paisagem = products[i].layoutPersonalizado === 'a6-paisagem';
 
         // Verificar se é modelo cameba
         const ehCameba = clone.querySelector('.poster-cameba') !== null;
 
-        if (ehA5Loja53 || ehA5Loja53Novo || ehJuazeiro2A6) {
+        if (ehA5Loja53 || ehA5Loja53Novo || ehJuazeiro2A6 || ehA6Paisagem) {
           // A5 Config / A5 Loja 53 (novo) / Juazeiro II - A6: o wrapper cuida de todo posicionamento
           clone.style.cssText =
             "position:absolute;left:-99999px;top:0;width:210mm;height:297mm;background:#fff;margin:0;padding:0;box-sizing:border-box;overflow:hidden;";

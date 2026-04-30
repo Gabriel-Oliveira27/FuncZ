@@ -1978,6 +1978,66 @@ input:checked + .slider:before {
   height: 297mm;
 }
 
+/* ------------------------------------------------------------------
+   LAYOUT A6 - PAISAGEM
+   Base: A5 - Config (scale 0.5238) → reduz 20% → scale 0.419
+         Rotaciona 90° CW → paisagem A6 (≈124×88mm) numa folha A4
+         Conteúdo a 2 cm do topo, centralizado horizontalmente.
+
+   Ponto-chave: o poster fica em left:0; top:0 e toda a movimentação
+   visual é feita DENTRO do transform com translate(), mantendo o
+   layout-box inteiramente dentro do wrapper (0→210mm × 0→297mm).
+   Isso evita blank no html2canvas/PDF.
+
+   Matemática: transform: translate(tx,ty) rotate(90°) scale(0.419)
+   com transform-origin: top left → ponto (x,y) chega à tela em:
+     screen_x = tx  −  0.419·y
+     screen_y = ty  +  0.419·x
+
+   Dimensões visuais do poster:
+     largura = 297 × 0.419 = 124.4 mm
+     altura  = 210 × 0.419 =  88.0 mm
+
+   Para 2 cm do topo  →  ty = 20 mm
+   Centralizado na folha A4 (210 mm):
+     tx = 105 + (124.4 / 2) = 167 mm
+
+   Área visível final: x [42.6 mm → 167 mm], y [20 mm → 108 mm] ✓
+   ------------------------------------------------------------------ */
+.poster-wrapper-a6paisagem {
+  position: relative;
+  width: 210mm;
+  height: 297mm;
+  background: #fff;
+  overflow: hidden;
+}
+.poster-wrapper-a6paisagem > .poster,
+.poster-wrapper-a6paisagem > .poster.poster-carne {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 210mm;
+  height: 297mm;
+  transform: translate(167mm, 5mm) rotate(90deg) scale(0.419);
+  transform-origin: top left;
+}
+
+/* Preview miniatura — wrapper recebe scale(0.28); poster mantém o transform completo */
+.product-preview .poster-wrapper-a6paisagem {
+  transform: scale(0.28);
+  transform-origin: top left;
+  width: 210mm;
+  height: 297mm;
+  transition: transform 0.3s ease;
+  overflow: hidden;
+}
+.product-preview .poster-wrapper-a6paisagem > .poster,
+.product-preview .poster-wrapper-a6paisagem > .poster.poster-carne {
+  /* !important sobrescreve a regra global .product-preview .poster { scale(0.28) } */
+  transform: translate(167mm, 20mm) rotate(90deg) scale(0.419) !important;
+  transform-origin: top left;
+}
+
 /* Tabela do rodapé - centralizada na folha (posição unificada carnê) */
 /* top: calculado para ~1cm abaixo do fim visual da parcela por nº de dígitos */
 .poster-footer-table {
@@ -2216,6 +2276,39 @@ input:checked + .slider:before {
   .poster-wrapper-a5loja53novo
   > .poster-carne.poster-zoom-3 {
   transform: scale(0.9048) !important;
+  transform-origin: top left;
+}
+
+/* PREVIEW ZOOM - A6 Paisagem: zoom no wrapper, poster mantém translate+rotate+scale */
+.product-preview .poster-wrapper-a6paisagem.poster-zoom-1 {
+  transform: scale(0.42) !important;
+}
+.product-preview .poster-wrapper-a6paisagem.poster-zoom-2 {
+  transform: scale(0.373) !important;
+}
+.product-preview .poster-wrapper-a6paisagem.poster-zoom-3 {
+  transform: scale(0.35) !important;
+}
+/* Poster dentro do wrapper A6 Paisagem nunca recebe zoom do preview */
+.product-preview
+  .poster-wrapper-a6paisagem
+  > .poster.poster-zoom-1,
+.product-preview
+  .poster-wrapper-a6paisagem
+  > .poster.poster-zoom-2,
+.product-preview
+  .poster-wrapper-a6paisagem
+  > .poster.poster-zoom-3,
+.product-preview
+  .poster-wrapper-a6paisagem
+  > .poster-carne.poster-zoom-1,
+.product-preview
+  .poster-wrapper-a6paisagem
+  > .poster-carne.poster-zoom-2,
+.product-preview
+  .poster-wrapper-a6paisagem
+  > .poster-carne.poster-zoom-3 {
+  transform: translate(167mm, 20mm) rotate(90deg) scale(0.419) !important;
   transform-origin: top left;
 }
 

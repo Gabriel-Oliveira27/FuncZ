@@ -1,9 +1,10 @@
 'use strict';
 // ════════════════════════════════════════════════════════════════════════
-//  PRIMEIROS-PASSOS.JS — Tour guiado "Primeiros Passos"
-//  Substitui o botão "Campos obrigatórios" por "Primeiros passos".
-//  6 etapas interativas ensinam o usuário a criar o primeiro cartaz.
-//  Adicione <script src="../js/primeiros-passos.js"></script> no HTML.
+//  PRIMEIROS-PASSOS.JS v2 — Tour guiado UX-friendly
+//  • Tooltip compacta, nunca sai da viewport
+//  • Scroll bloqueado durante a tour
+//  • Botões de nav sempre visíveis
+//  • Spotlight suave com transição
 // ════════════════════════════════════════════════════════════════════════
 
 (function PrimeirosPassos() {
@@ -17,189 +18,166 @@
     s.id = 'pp-styles';
     s.textContent = `
 
-/* ── Spotlight ring — o hero da tour ── */
-#pp-spotlight {
-  position: fixed;
-  border-radius: 12px;
-  /* a enorme box-shadow escurece tudo fora do ring */
-  box-shadow: 0 0 0 9999px rgba(0,0,0,.72), 0 0 0 3px #3b82f6, 0 0 24px rgba(59,130,246,.4);
-  z-index: 10500;
+/* ── Backdrop escuro com recorte (spotlight via clip-path no pseudo) ── */
+#pp-backdrop {
+  display: none;
+  position: fixed; inset: 0; z-index: 10490;
   pointer-events: none;
-  transition: all .45s cubic-bezier(.16,1,.3,1);
+}
+#pp-backdrop.active { display: block; }
+
+/* ── Overlay de sombra ao redor do spotlight ── */
+#pp-shadow-top, #pp-shadow-bottom, #pp-shadow-left, #pp-shadow-right {
+  position: fixed; z-index: 10491;
+  background: rgba(0,0,0,.68);
+  transition: all .38s cubic-bezier(.16,1,.3,1);
+  pointer-events: all; /* bloqueia cliques fora */
+}
+
+/* ── Borda iluminada do spotlight ── */
+#pp-spotlight-ring {
+  position: fixed; z-index: 10492;
+  border-radius: 10px;
+  border: 2.5px solid #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.22), 0 0 24px rgba(59,130,246,.35);
+  transition: all .38s cubic-bezier(.16,1,.3,1);
+  pointer-events: none;
   opacity: 0;
 }
-#pp-spotlight.visible { opacity: 1; }
+#pp-spotlight-ring.visible { opacity: 1; }
 
-/* ── Tooltip ── */
+/* ── Tooltip fixa — compacta e sempre dentro da viewport ── */
 #pp-tooltip {
   position: fixed;
-  z-index: 10501;
-  width: 340px;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.25);
-  border: 1px solid rgba(59,130,246,.15);
+  z-index: 10500;
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 8px 40px rgba(0,0,0,.22), 0 2px 8px rgba(0,0,0,.1);
+  border: 1px solid rgba(59,130,246,.18);
   overflow: hidden;
-  transition: opacity .3s ease, transform .3s ease;
+  transition: opacity .28s ease, transform .28s ease;
   opacity: 0; pointer-events: none;
+  /* Garante que nunca sai da tela */
+  max-height: calc(100vh - 32px);
+  display: flex; flex-direction: column;
 }
-#pp-tooltip.visible { opacity: 1; pointer-events: all; }
-
+#pp-tooltip.visible {
+  opacity: 1; pointer-events: all;
+}
 [data-theme="dark"] #pp-tooltip {
   background: #1e293b;
-  border-color: rgba(59,130,246,.25);
-  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  border-color: rgba(59,130,246,.28);
 }
 
 /* Header da tooltip */
-.pp-tt-header {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  padding: 14px 18px 12px;
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 10px;
+.pp-hdr {
+  background: linear-gradient(135deg,#2563eb,#1d4ed8);
+  padding: 12px 14px 10px;
+  display: flex; align-items: flex-start; gap: 8px;
+  flex-shrink: 0;
 }
-.pp-tt-step-badge {
-  background: rgba(255,255,255,.2);
-  border: 1px solid rgba(255,255,255,.25);
-  border-radius: 20px;
-  padding: 2px 10px;
-  font-size: 11px; font-weight: 700;
-  color: white; white-space: nowrap;
+.pp-hdr-badge {
+  background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.25);
+  border-radius: 20px; padding: 2px 9px;
+  font-size: 10px; font-weight: 700; color: #fff; white-space: nowrap;
+  flex-shrink: 0; margin-top: 1px;
 }
-.pp-tt-title {
-  font-size: 14px; font-weight: 700; color: white;
+.pp-hdr-title {
+  font-size: 13px; font-weight: 700; color: #fff;
   flex: 1; line-height: 1.3;
 }
-.pp-tt-close {
-  background: rgba(255,255,255,.15);
-  border: none; border-radius: 6px;
-  width: 26px; height: 26px;
-  display: flex; align-items: center; justify-content: center;
-  color: white; cursor: pointer; font-size: 14px;
+.pp-hdr-close {
+  background: rgba(255,255,255,.15); border: none; border-radius: 5px;
+  width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
+  color: #fff; cursor: pointer; font-size: 13px; line-height: 1;
   transition: background .15s; flex-shrink: 0;
 }
-.pp-tt-close:hover { background: rgba(255,255,255,.3); }
+.pp-hdr-close:hover { background: rgba(255,255,255,.3); }
 
-/* Progressbar */
-.pp-progress-bar {
-  height: 3px; background: rgba(255,255,255,.2);
-  position: relative;
-}
-.pp-progress-fill {
-  height: 100%; background: rgba(255,255,255,.85);
-  border-radius: 0 2px 2px 0;
-  transition: width .4s ease;
-}
+/* Progress */
+.pp-progress { height: 3px; background: rgba(255,255,255,.2); flex-shrink: 0; }
+.pp-progress-fill { height: 100%; background: rgba(255,255,255,.85); border-radius: 0 2px 2px 0; transition: width .35s ease; }
 
-/* Corpo */
-.pp-tt-body { padding: 18px; }
-.pp-tt-desc {
-  font-size: 13.5px; color: #374151; line-height: 1.6;
-  margin-bottom: 0;
+/* Body — scrollável se necessário, mas conteúdo mantido curto */
+.pp-body {
+  padding: 14px; overflow-y: auto; flex: 1;
+  scrollbar-width: thin;
 }
-[data-theme="dark"] .pp-tt-desc { color: #cbd5e1; }
+.pp-desc {
+  font-size: 12.5px; color: #374151; line-height: 1.6;
+}
+[data-theme="dark"] .pp-desc { color: #cbd5e1; }
 
-/* Sub-hints (conteúdo dinâmico da etapa 3) */
-.pp-hint-box {
-  margin-top: 12px;
-  padding: 11px 14px;
-  border-radius: 10px;
-  font-size: 12.5px; line-height: 1.5; color: #374151;
+/* Hint */
+.pp-hint {
+  margin-top: 10px; padding: 9px 12px;
+  border-radius: 8px; font-size: 11.5px; line-height: 1.5;
   border-left: 3px solid;
-  transition: all .25s ease;
-  animation: ppHintIn .25s ease;
+  animation: ppHintIn .22s ease;
 }
-@keyframes ppHintIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.pp-hint-box.info    { background: #eff6ff; border-color: #3b82f6; }
-.pp-hint-box.success { background: #f0fdf4; border-color: #10b981; }
-.pp-hint-box.warning { background: #fffbeb; border-color: #f59e0b; }
-[data-theme="dark"] .pp-hint-box.info    { background: #1e3a5f; color: #bfdbfe; }
-[data-theme="dark"] .pp-hint-box.success { background: #0d2b1e; color: #86efac; }
-[data-theme="dark"] .pp-hint-box.warning { background: #1c1a0d; color: #fef08a; }
+@keyframes ppHintIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+.pp-hint.info    { background:#eff6ff; border-color:#3b82f6; color:#1e40af; }
+.pp-hint.success { background:#f0fdf4; border-color:#10b981; color:#065f46; }
+.pp-hint.warning { background:#fffbeb; border-color:#f59e0b; color:#78350f; }
+[data-theme="dark"] .pp-hint.info    { background:#1e3a5f; color:#bfdbfe; }
+[data-theme="dark"] .pp-hint.success { background:#0d2b1e; color:#86efac; }
+[data-theme="dark"] .pp-hint.warning { background:#1c1a0d; color:#fef08a; }
 
-.pp-hint-box strong { font-weight: 700; }
-.pp-hint-box i { margin-right: 5px; }
-
-/* Footer: nav */
-.pp-tt-footer {
-  padding: 12px 18px;
+/* Footer — SEMPRE visível, não vai além da tela */
+.pp-footer {
+  padding: 10px 14px;
   display: flex; justify-content: space-between; align-items: center;
-  border-top: 1px solid #f3f4f6; gap: 8px;
+  border-top: 1px solid #f1f5f9; gap: 8px;
+  background: #fff; flex-shrink: 0;
 }
-[data-theme="dark"] .pp-tt-footer { border-top-color: #334155; }
+[data-theme="dark"] .pp-footer { border-top-color: #334155; background: #1e293b; }
 
 .pp-btn-skip {
-  background: none; border: none;
-  font-size: 12px; color: #9ca3af;
-  cursor: pointer; padding: 4px 8px; border-radius: 6px;
-  transition: color .15s;
+  background: none; border: none; font-size: 11px; color: #9ca3af;
+  cursor: pointer; padding: 3px 6px; border-radius: 5px; transition: color .15s; white-space: nowrap;
 }
 .pp-btn-skip:hover { color: #6b7280; }
 
-.pp-nav-btns { display: flex; gap: 8px; }
+.pp-nav { display: flex; gap: 6px; }
 
 .pp-btn-back {
-  padding: 8px 14px;
-  background: white; border: 1.5px solid #e5e7eb;
-  border-radius: 8px; font-size: 13px; font-weight: 600;
-  color: #374151; cursor: pointer; transition: all .15s;
-  display: flex; align-items: center; gap: 5px;
+  padding: 7px 12px; background: #fff;
+  border: 1.5px solid #e5e7eb; border-radius: 7px;
+  font-size: 12px; font-weight: 600; color: #374151;
+  cursor: pointer; transition: all .15s; white-space: nowrap;
+  display: flex; align-items: center; gap: 4px;
 }
 .pp-btn-back:hover { border-color: #d1d5db; background: #f9fafb; }
-[data-theme="dark"] .pp-btn-back { background: #273449; border-color: #334155; color: #cbd5e1; }
+[data-theme="dark"] .pp-btn-back { background:#273449; border-color:#334155; color:#cbd5e1; }
 
 .pp-btn-next {
-  padding: 8px 18px;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  border: none; border-radius: 8px;
-  font-size: 13px; font-weight: 700; color: white;
-  cursor: pointer; transition: all .18s;
-  box-shadow: 0 3px 10px rgba(37,99,235,.25);
-  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px;
+  background: linear-gradient(135deg,#2563eb,#1d4ed8);
+  border: none; border-radius: 7px;
+  font-size: 12px; font-weight: 700; color: #fff;
+  cursor: pointer; transition: all .18s; white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(37,99,235,.25);
+  display: flex; align-items: center; gap: 5px;
 }
-.pp-btn-next:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(37,99,235,.35); }
+.pp-btn-next:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(37,99,235,.35); }
 .pp-btn-next.finish {
-  background: linear-gradient(135deg, #10b981, #059669);
-  box-shadow: 0 3px 10px rgba(16,185,129,.25);
+  background: linear-gradient(135deg,#10b981,#059669);
+  box-shadow: 0 2px 8px rgba(16,185,129,.25);
 }
-.pp-btn-next.finish:hover { box-shadow: 0 5px 16px rgba(16,185,129,.35); }
+.pp-btn-next.finish:hover { box-shadow: 0 4px 14px rgba(16,185,129,.35); }
 
-/* Seta da tooltip */
-#pp-arrow {
-  position: fixed; z-index: 10502;
-  width: 14px; height: 14px;
-  background: white; border-radius: 2px;
-  transform: rotate(45deg);
-  transition: all .45s cubic-bezier(.16,1,.3,1);
-  box-shadow: -2px -2px 4px rgba(0,0,0,.07);
-  pointer-events: none; opacity: 0;
-}
-#pp-arrow.visible { opacity: 1; }
-[data-theme="dark"] #pp-arrow { background: #1e293b; }
-
-/* Highlight pulsante aplicado ao elemento alvo */
-.pp-target-highlight {
-  position: relative; z-index: 10499 !important;
-  animation: ppTargetGlow 2s ease-in-out infinite;
-}
-@keyframes ppTargetGlow {
-  0%,100% { outline: 3px solid transparent; outline-offset: 3px; }
-  50%     { outline: 3px solid rgba(59,130,246,.6); outline-offset: 5px; }
-}
-
-/* Indicador de etapa no botão da sidebar */
+/* Dot na sidebar */
 #btn-primeiros-passos .pp-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: #10b981; margin-left: auto;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #10b981; margin-left: auto; flex-shrink: 0;
   animation: ppDotPulse 2s ease-in-out infinite;
 }
-@keyframes ppDotPulse {
-  0%,100% { opacity: 1; transform: scale(1); }
-  50%     { opacity: .5; transform: scale(.7); }
-}
+@keyframes ppDotPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.7)} }
+
+/* Highlight no alvo */
+.pp-target-glow { outline: 3px solid rgba(59,130,246,.7) !important; outline-offset: 4px !important; }
 `;
     document.head.appendChild(s);
   }
@@ -207,24 +185,29 @@
   // ════════════════════════════════════════════════════════════════════
   // 2. DOM
   // ════════════════════════════════════════════════════════════════════
-  let _spotlight, _tooltip, _arrow;
+  let _backdrop, _shadowT, _shadowB, _shadowL, _shadowR, _ring, _tooltip;
+  let _prevTarget = null;
 
   function _buildDOM() {
-    if (document.getElementById('pp-spotlight')) return;
+    if (document.getElementById('pp-backdrop')) return;
 
-    _spotlight = document.createElement('div');
-    _spotlight.id = 'pp-spotlight';
-    document.body.appendChild(_spotlight);
+    _backdrop = _el('div', 'pp-backdrop'); document.body.appendChild(_backdrop);
+    _shadowT  = _el('div', 'pp-shadow-top');    document.body.appendChild(_shadowT);
+    _shadowB  = _el('div', 'pp-shadow-bottom'); document.body.appendChild(_shadowB);
+    _shadowL  = _el('div', 'pp-shadow-left');   document.body.appendChild(_shadowL);
+    _shadowR  = _el('div', 'pp-shadow-right');  document.body.appendChild(_shadowR);
+    _ring     = _el('div', 'pp-spotlight-ring'); document.body.appendChild(_ring);
 
-    _arrow = document.createElement('div');
-    _arrow.id = 'pp-arrow';
-    document.body.appendChild(_arrow);
-
-    _tooltip = document.createElement('div');
-    _tooltip.id = 'pp-tooltip';
+    _tooltip = _el('div', 'pp-tooltip');
     _tooltip.setAttribute('role', 'dialog');
-    _tooltip.setAttribute('aria-modal', 'false');
+    _tooltip.setAttribute('aria-label', 'Guia primeiros passos');
     document.body.appendChild(_tooltip);
+  }
+
+  function _el(tag, id) {
+    const e = document.createElement(tag);
+    e.id = id;
+    return e;
   }
 
   // ════════════════════════════════════════════════════════════════════
@@ -232,122 +215,183 @@
   // ════════════════════════════════════════════════════════════════════
   let _step    = 0;
   let _running = false;
-  let _prevTarget = null;
-
-  const TOTAL_STEPS = 6;
+  const TOTAL  = 6;
+  const PAD    = 10; // padding do spotlight
 
   // ════════════════════════════════════════════════════════════════════
-  // 4. POSICIONAMENTO DO SPOTLIGHT + TOOLTIP
+  // 4. SPOTLIGHT — 4 painéis de sombra + anel
   // ════════════════════════════════════════════════════════════════════
-  function _spotTarget(el, opts = {}) {
-    if (!el) return;
-    // Scroll para o elemento ficar visível
-    el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  function _spotlight(rect) {
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const { left: x, top: y, width: w, height: h } = rect;
+    const lx = Math.max(0, x - PAD), ty = Math.max(0, y - PAD);
+    const rx = Math.min(vw, x + w + PAD), by = Math.min(vh, y + h + PAD);
 
-    // Remove highlight do alvo anterior
-    if (_prevTarget && _prevTarget !== el) {
-      _prevTarget.classList.remove('pp-target-highlight');
+    Object.assign(_shadowT.style, { left:'0', top:'0', width:'100%', height:`${ty}px` });
+    Object.assign(_shadowB.style, { left:'0', top:`${by}px`, width:'100%', height:`${vh - by}px` });
+    Object.assign(_shadowL.style, { left:'0', top:`${ty}px`, width:`${lx}px`, height:`${by - ty}px` });
+    Object.assign(_shadowR.style, { left:`${rx}px`, top:`${ty}px`, width:`${vw - rx}px`, height:`${by - ty}px` });
+
+    Object.assign(_ring.style, {
+      left: `${lx}px`, top: `${ty}px`,
+      width: `${rx - lx}px`, height: `${by - ty}px`,
+    });
+    _ring.classList.add('visible');
+    _backdrop.classList.add('active');
+  }
+
+  function _clearSpotlight() {
+    _ring.classList.remove('visible');
+    _backdrop.classList.remove('active');
+    // Limpa sombras
+    ['top','bottom','left','right'].forEach(k => {
+      const el = document.getElementById(`pp-shadow-${k}`);
+      if (el) el.style.cssText = '';
+    });
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // 5. POSIÇÃO DA TOOLTIP — sempre dentro da viewport
+  // ════════════════════════════════════════════════════════════════════
+  const TT_W   = 320;
+  const TT_H   = 260; // estimativa máxima
+  const MARGIN = 14;
+
+  function _placeTooltip(spotRect, prefer) {
+    const vw = window.innerWidth, vh = window.innerHeight;
+
+    let tx, ty;
+
+    // Tenta a posição preferida e verifica se cabe
+    const fits = {
+      right:  spotRect.right  + TT_W + MARGIN < vw,
+      left:   spotRect.left   - TT_W - MARGIN > 0,
+      bottom: spotRect.bottom + TT_H + MARGIN < vh,
+      top:    spotRect.top    - TT_H - MARGIN > 0,
+    };
+
+    const order = [prefer, 'right', 'left', 'bottom', 'top'].filter(Boolean);
+    let chosen = order.find(d => fits[d]) || 'bottom';
+
+    switch (chosen) {
+      case 'right':
+        tx = spotRect.right + MARGIN;
+        ty = spotRect.top + spotRect.height / 2 - TT_H / 2;
+        break;
+      case 'left':
+        tx = spotRect.left - TT_W - MARGIN;
+        ty = spotRect.top + spotRect.height / 2 - TT_H / 2;
+        break;
+      case 'bottom':
+        tx = spotRect.left + spotRect.width / 2 - TT_W / 2;
+        ty = spotRect.bottom + MARGIN;
+        break;
+      case 'top':
+      default:
+        tx = spotRect.left + spotRect.width / 2 - TT_W / 2;
+        ty = spotRect.top - TT_H - MARGIN;
+        break;
     }
-    el.classList.add('pp-target-highlight');
+
+    // Clamp dentro da viewport com margens
+    tx = Math.max(MARGIN, Math.min(vw - TT_W - MARGIN, tx));
+    ty = Math.max(MARGIN, Math.min(vh - TT_H - MARGIN, ty));
+
+    Object.assign(_tooltip.style, {
+      left:  `${tx}px`,
+      top:   `${ty}px`,
+      width: `${TT_W}px`,
+    });
+    _tooltip.classList.add('visible');
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // 6. APONTAR PARA UM ELEMENTO
+  // ════════════════════════════════════════════════════════════════════
+  function _focus(el, prefer) {
+    if (!el) return;
+
+    if (_prevTarget) _prevTarget.classList.remove('pp-target-glow');
+    el.classList.add('pp-target-glow');
     _prevTarget = el;
 
-    const PAD = opts.pad ?? 10;
-
-    // Atraso pequeno para o scroll assentar
-    setTimeout(() => {
-      const r = el.getBoundingClientRect();
-      _spotlight.style.left   = `${r.left - PAD}px`;
-      _spotlight.style.top    = `${r.top  - PAD}px`;
-      _spotlight.style.width  = `${r.width  + PAD * 2}px`;
-      _spotlight.style.height = `${r.height + PAD * 2}px`;
-      _spotlight.classList.add('visible');
-      _positionTooltip(r, opts);
-    }, 120);
-  }
-
-  function _spotRect(rect, opts = {}) {
-    // spotlight sobre uma área arbitrária (não um elemento)
-    if (_prevTarget) { _prevTarget.classList.remove('pp-target-highlight'); _prevTarget = null; }
-    const PAD = opts.pad ?? 10;
-    _spotlight.style.left   = `${rect.left - PAD}px`;
-    _spotlight.style.top    = `${rect.top  - PAD}px`;
-    _spotlight.style.width  = `${rect.width  + PAD * 2}px`;
-    _spotlight.style.height = `${rect.height + PAD * 2}px`;
-    _spotlight.classList.add('visible');
-    _positionTooltip(rect, opts);
-  }
-
-  function _positionTooltip(targetRect, opts = {}) {
-    const TT_W = 340, TT_H = 300; // max estimado
-    const vw = window.innerWidth, vh = window.innerHeight;
-    const prefer = opts.prefer || 'right'; // right | left | bottom | top
-
-    let tx, ty, arrowX, arrowY;
-    const MARGIN = 18;
-
-    if (prefer === 'right' && targetRect.right + TT_W + MARGIN < vw) {
-      tx = targetRect.right + MARGIN;
-      ty = Math.max(MARGIN, Math.min(vh - TT_H - MARGIN, targetRect.top + targetRect.height / 2 - TT_H / 2));
-      arrowX = tx - 8; arrowY = ty + TT_H / 2 - 7;
-    } else if (prefer === 'left' && targetRect.left - TT_W - MARGIN > 0) {
-      tx = targetRect.left - TT_W - MARGIN;
-      ty = Math.max(MARGIN, Math.min(vh - TT_H - MARGIN, targetRect.top + targetRect.height / 2 - TT_H / 2));
-      arrowX = tx + TT_W - 6; arrowY = ty + TT_H / 2 - 7;
-    } else if (prefer === 'bottom' || targetRect.bottom + TT_H + MARGIN < vh) {
-      tx = Math.max(MARGIN, Math.min(vw - TT_W - MARGIN, targetRect.left + targetRect.width / 2 - TT_W / 2));
-      ty = targetRect.bottom + MARGIN;
-      arrowX = tx + TT_W / 2 - 7; arrowY = ty - 8;
-    } else {
-      // topo
-      tx = Math.max(MARGIN, Math.min(vw - TT_W - MARGIN, targetRect.left + targetRect.width / 2 - TT_W / 2));
-      ty = targetRect.top - TT_H - MARGIN;
-      if (ty < MARGIN) ty = MARGIN;
-      arrowX = tx + TT_W / 2 - 7; arrowY = ty + TT_H - 6;
+    // Scroll suave para o elemento (sem mover o wrapper principal)
+    const rect = el.getBoundingClientRect();
+    const vh   = window.innerHeight;
+    if (rect.bottom > vh - 80 || rect.top < 80) {
+      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
     }
 
-    _tooltip.style.left = `${tx}px`;
-    _tooltip.style.top  = `${ty}px`;
-    _tooltip.style.width = `${TT_W}px`;
-    _arrow.style.left = `${arrowX}px`;
-    _arrow.style.top  = `${arrowY}px`;
-
-    _tooltip.classList.add('visible');
-    _arrow.classList.add('visible');
+    setTimeout(() => {
+      const r = el.getBoundingClientRect();
+      _spotlight(r);
+      _placeTooltip(r, prefer || 'right');
+    }, rect.bottom > vh - 80 || rect.top < 80 ? 350 : 60);
   }
 
-  function _hideSpot() {
-    _spotlight.classList.remove('visible');
-    _arrow.classList.remove('visible');
-    _tooltip.classList.remove('visible');
-    if (_prevTarget) { _prevTarget.classList.remove('pp-target-highlight'); _prevTarget = null; }
+  function _focusGroup(els, prefer) {
+    // Spotlight sobre um grupo de elementos (bounding box combinada)
+    if (!els.length) return;
+    if (_prevTarget) _prevTarget.classList.remove('pp-target-glow');
+    _prevTarget = null;
+
+    els.forEach(e => e.classList.add('pp-target-glow'));
+
+    setTimeout(() => {
+      const rects = els.map(e => e.getBoundingClientRect());
+      const combined = {
+        left:   Math.min(...rects.map(r => r.left)),
+        top:    Math.min(...rects.map(r => r.top)),
+        right:  Math.max(...rects.map(r => r.right)),
+        bottom: Math.max(...rects.map(r => r.bottom)),
+      };
+      combined.width  = combined.right  - combined.left;
+      combined.height = combined.bottom - combined.top;
+
+      const vh = window.innerHeight;
+      if (combined.bottom > vh - 80 || combined.top < 80) {
+        els[0].scrollIntoView({ block: 'center', behavior: 'smooth' });
+        setTimeout(() => {
+          const r2 = els.map(e => e.getBoundingClientRect());
+          const c2 = { left:Math.min(...r2.map(r=>r.left)), top:Math.min(...r2.map(r=>r.top)), right:Math.max(...r2.map(r=>r.right)), bottom:Math.max(...r2.map(r=>r.bottom)) };
+          c2.width=c2.right-c2.left; c2.height=c2.bottom-c2.top;
+          _spotlight(c2); _placeTooltip(c2, prefer||'right');
+        }, 350);
+      } else {
+        _spotlight(combined); _placeTooltip(combined, prefer||'right');
+      }
+    }, 60);
+
+    // limpar glow do grupo ao sair
+    _prevTarget = { classList: { remove: () => els.forEach(e => e.classList.remove('pp-target-glow')) } };
   }
 
   // ════════════════════════════════════════════════════════════════════
-  // 5. RENDER DA TOOLTIP
+  // 7. RENDER DA TOOLTIP
   // ════════════════════════════════════════════════════════════════════
-  function _render(title, desc, opts = {}) {
-    const pct = Math.round((_step / TOTAL_STEPS) * 100);
-    const isLast = _step === TOTAL_STEPS - 1;
+  function _render(title, desc, { hint, hintType } = {}) {
+    const pct    = Math.round((_step / TOTAL) * 100);
+    const isLast = _step === TOTAL - 1;
 
     _tooltip.innerHTML = `
-      <div class="pp-tt-header">
-        <span class="pp-tt-step-badge">Etapa ${_step + 1} / ${TOTAL_STEPS}</span>
-        <span class="pp-tt-title">${title}</span>
-        <button class="pp-tt-close" onclick="window._PP.stop()" title="Sair do guia">×</button>
+      <div class="pp-hdr">
+        <span class="pp-hdr-badge">${_step + 1} / ${TOTAL}</span>
+        <span class="pp-hdr-title">${title}</span>
+        <button class="pp-hdr-close" onclick="window._PP.stop()" title="Fechar guia">×</button>
       </div>
-      <div class="pp-progress-bar">
+      <div class="pp-progress">
         <div class="pp-progress-fill" style="width:${pct}%"></div>
       </div>
-      <div class="pp-tt-body">
-        <div class="pp-tt-desc">${desc}</div>
-        ${opts.hint ? `<div class="pp-hint-box ${opts.hintType || 'info'}" id="pp-hint">${opts.hint}</div>` : '<div id="pp-hint" style="display:none"></div>'}
+      <div class="pp-body">
+        <div class="pp-desc">${desc}</div>
+        ${hint ? `<div class="pp-hint ${hintType||'info'}" id="pp-hint">${hint}</div>` : '<div id="pp-hint" style="display:none"></div>'}
       </div>
-      <div class="pp-tt-footer">
-        <button class="pp-btn-skip" onclick="window._PP.stop()">Sair do guia</button>
-        <div class="pp-nav-btns">
+      <div class="pp-footer">
+        <button class="pp-btn-skip" onclick="window._PP.stop()">Sair</button>
+        <div class="pp-nav">
           ${_step > 0 ? `<button class="pp-btn-back" onclick="window._PP.prev()"><i class="fa-solid fa-arrow-left"></i> Voltar</button>` : ''}
-          <button class="pp-btn-next ${isLast ? 'finish' : ''}" onclick="window._PP.next()">
-            ${isLast ? '<i class="fa-solid fa-check"></i> Concluir' : 'Próxima etapa <i class="fa-solid fa-arrow-right"></i>'}
+          <button class="pp-btn-next ${isLast?'finish':''}" onclick="window._PP.next()">
+            ${isLast ? '<i class="fa-solid fa-check"></i> Concluir' : 'Próximo <i class="fa-solid fa-arrow-right"></i>'}
           </button>
         </div>
       </div>`;
@@ -356,302 +400,246 @@
   function _updateHint(html, type) {
     const el = document.getElementById('pp-hint');
     if (!el) return;
-    el.className = `pp-hint-box ${type || 'info'}`;
-    el.innerHTML = html;
-    el.style.display = '';
+    el.className = `pp-hint ${type||'info'}`;
+    el.innerHTML = html; el.style.display = '';
     el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
   }
 
   // ════════════════════════════════════════════════════════════════════
-  // 6. DEFINIÇÃO DAS ETAPAS
+  // 8. BLOQUEAR SCROLL — só o main-content, não a sidebar
   // ════════════════════════════════════════════════════════════════════
+  let _scrollTargets = [];
 
-  // ── Etapa 0: Código ──────────────────────────────────────────────────
-  function _step0() {
-    // Garante que a aba "gerar" está ativa
-    const navGerar = document.querySelector('[data-view="gerar"]');
-    navGerar?.click();
-
-    setTimeout(() => {
-      const el = document.getElementById('codigo');
-      if (el) el.focus();
-
-      _render(
-        '<i class="fa-solid fa-barcode"></i> Código do produto',
-        `Digite o código do produto que deseja criar o cartaz.<br><br>
-         <strong>Exemplos:</strong> <code>2047</code>, <code>110056</code>, <code>22005</code><br><br>
-         Ao digitar, pressione <kbd>Enter</kbd> ou clique na <strong>🔍 lupa</strong> para buscar automaticamente na base de dados.`,
-        { hint: '<i class="fa-solid fa-lightbulb"></i> Deixe o campo <strong>em branco</strong> e clique na lupa para ver <strong>todos os produtos</strong> disponíveis.', hintType: 'info' }
-      );
-
-      _spotTarget(el, { pad: 8, prefer: 'right' });
-
-      // Monitorar digitação no código para dar feedback em tempo real
-      const handler = () => {
-        const v = (el.value || '').trim();
-        if (v.length >= 3) {
-          _updateHint(`<i class="fa-solid fa-check" style="color:#10b981"></i> Código <strong>${v}</strong> digitado — agora pressione <kbd>Enter</kbd> ou clique na lupa para buscar!`, 'success');
-        } else {
-          _updateHint('<i class="fa-solid fa-lightbulb"></i> Deixe em branco e clique na lupa para ver todos os produtos disponíveis.', 'info');
-        }
-      };
-      el.addEventListener('input', handler);
-      el._ppHandler = handler;
-    }, 350);
+  function _lockScroll() {
+    // Bloqueia scroll no container principal, mas deixa sidebar scrollável para a tour
+    _scrollTargets = [
+      document.querySelector('.main-content'),
+      document.querySelector('body'),
+    ].filter(Boolean);
+    _scrollTargets.forEach(el => {
+      el._ppOverflow = el.style.overflow;
+      el.style.overflow = 'hidden';
+    });
   }
 
-  // ── Etapa 1: Descrição e Sub descrição ──────────────────────────────
-  function _step1() {
-    const descEl = document.getElementById('descricao');
-    const subEl  = document.getElementById('subdescricao');
+  function _unlockScroll() {
+    _scrollTargets.forEach(el => {
+      el.style.overflow = el._ppOverflow || '';
+      delete el._ppOverflow;
+    });
+    _scrollTargets = [];
+  }
 
+  // ════════════════════════════════════════════════════════════════════
+  // 9. ETAPAS
+  // ════════════════════════════════════════════════════════════════════
+  function _step0() {
+    document.querySelector('[data-view="gerar"]')?.click();
+    setTimeout(() => {
+      const el = document.getElementById('codigo');
+      _render(
+        '<i class="fa-solid fa-barcode"></i> Código do produto',
+        `Digite o código do produto que deseja criar o cartaz.<br>
+         Ex: <strong>2047</strong>, <strong>110056</strong>, <strong>22005</strong><br><br>
+         Pressione <kbd>Enter</kbd> ou clique na <strong>🔍 lupa</strong> para buscar.`,
+        { hint: '<i class="fa-solid fa-lightbulb"></i> Deixe em branco e clique na lupa para ver todos os produtos.', hintType: 'info' }
+      );
+      if (el) {
+        _focus(el, 'right');
+        el.focus();
+        const h = () => {
+          const v = (el.value || '').trim();
+          _updateHint(v.length >= 3
+            ? `<i class="fa-solid fa-check" style="color:#10b981"></i> Código <strong>${v}</strong> digitado — pressione Enter ou clique na lupa!`
+            : '<i class="fa-solid fa-lightbulb"></i> Deixe em branco para ver todos os produtos disponíveis.', v.length >= 3 ? 'success' : 'info');
+        };
+        el.addEventListener('input', h); el._ppH = h;
+      }
+    }, 300);
+  }
+
+  function _step1() {
+    const d = document.getElementById('descricao');
+    const s = document.getElementById('subdescricao');
     _render(
       '<i class="fa-solid fa-tag"></i> Descrição e sub descrição',
-      `O sistema preenche automaticamente ao buscar o produto. Verifique:<br><br>
-       <strong>Descrição:</strong> nome principal do produto (ex: <em>TV TOSHIBA 75POL.</em>)<br>
-       <strong>Sub descrição:</strong> marca ou complemento (ex: <em>Philco, Samsung…</em>)<br><br>
-       Você pode editar livremente. <strong>Máximo 38 caracteres</strong> na descrição.`,
-      { hint: '<i class="fa-solid fa-pencil"></i> Se a busca não encontrou o produto, preencha manualmente os dois campos antes de continuar.', hintType: 'warning' }
+      `O sistema preenche automaticamente ao buscar.<br>
+       <strong>Descrição:</strong> nome principal (máx. 38 car.)<br>
+       <strong>Sub descrição:</strong> marca ou complemento<br><br>
+       Você pode editar livremente.`,
+      { hint: '<i class="fa-solid fa-pencil"></i> Se não encontrou o produto, preencha manualmente antes de continuar.', hintType: 'warning' }
     );
-
-    // Spotlight cobrindo os dois campos
-    if (descEl && subEl) {
-      descEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
-      setTimeout(() => {
-        const r1 = descEl.getBoundingClientRect();
-        const r2 = subEl.getBoundingClientRect();
-        const combined = {
-          left:   Math.min(r1.left, r2.left),
-          top:    r1.top,
-          right:  Math.max(r1.right, r2.right),
-          bottom: r2.bottom,
-          width:  Math.max(r1.right, r2.right) - Math.min(r1.left, r2.left),
-          height: r2.bottom - r1.top,
-        };
-        _spotRect(combined, { prefer: 'right' });
-        descEl.focus();
-      }, 200);
+    if (d && s) {
+      _focusGroup([d, s], 'right');
+      d.focus();
     }
   }
 
-  // ── Etapa 2: Parcelamento + campos condicionais ──────────────────────
   function _step2() {
-    const metodoEl = document.getElementById('metodo');
-
+    const m = document.getElementById('metodo');
     _render(
       '<i class="fa-solid fa-credit-card"></i> Parcelamento e valores',
-      `Escolha o <strong>parcelamento</strong> e veja os campos se adaptarem.<br><br>
-       O <strong>valor à vista</strong> é obrigatório. A <strong>parcela</strong> é calculada automaticamente para 12x.<br><br>
-       Para parcelamentos <strong>1x / 3x / 5x / 10x</strong>, botões extras aparecem — explore-os:`,
-      { hint: '<i class="fa-solid fa-hand-pointer"></i> Selecione um parcelamento no campo abaixo para ver as opções disponíveis.', hintType: 'info' }
+      `Escolha o <strong>parcelamento</strong> — os campos se adaptam.<br><br>
+       Para <strong>1x / 3x / 5x / 10x</strong> surgem botões extras:`,
+      { hint: '<i class="fa-solid fa-hand-pointer"></i> Selecione um parcelamento para ver as opções disponíveis.', hintType: 'info' }
     );
-
-    _spotTarget(metodoEl, { pad: 8, prefer: 'right' });
-
-    // Monitorar mudança no metodo para explicar cada opção
-    const handler = () => {
-      const m = metodoEl.value;
-      if (!m) return;
-
-      const metodosTaxaOpc = ['1x','3x','5x','10x'];
-      if (m === '12x') {
-        _updateHint(`<i class="fa-solid fa-circle-info" style="color:#3b82f6"></i>
-          <strong>12x com juros</strong> — escolha a taxa (Carnê ou Cartão) e a parcela é calculada automaticamente com o fator de multiplicação.`, 'info');
-      } else if (metodosTaxaOpc.includes(m)) {
-        _updateHint(`<i class="fa-solid fa-sliders" style="color:#f59e0b"></i>
-          <strong>${m} — parcelamento especial!</strong><br>
-          <ul style="margin:6px 0 0 14px;padding:0;font-size:12px;line-height:1.6;">
-            <li><strong>Aplicar taxa</strong>: usa o fator de juros na parcela</li>
-            <li><strong>Sem juros!</strong>: exibe "Sem juros!" no cartaz (sem taxa)</li>
-            <li><strong>Campanha</strong>: adiciona texto de promoção (ex: BLACK FRIDAY)</li>
-          </ul>`, 'warning');
-
-        // Expand spotlight para cobrir os campos extras que aparecem
-        setTimeout(() => {
-          const campos = ['checkbox-taxa-1x','checkbox-sem-juros','checkbox-campanha']
-            .map(id => document.getElementById(id))
-            .filter(Boolean);
-          if (campos.length) {
-            const metodoRect = metodoEl.getBoundingClientRect();
-            const last = campos[campos.length - 1].getBoundingClientRect();
-            _spotRect({ left: metodoRect.left, top: metodoRect.top, right: metodoRect.right, bottom: last.bottom,
-              width: metodoRect.right - metodoRect.left, height: last.bottom - metodoRect.top }, { prefer: 'right' });
-          }
-        }, 400);
-      }
-    };
-    metodoEl.addEventListener('change', handler);
-    metodoEl._ppHandler2 = handler;
+    if (m) {
+      _focus(m, 'right');
+      const h = () => {
+        const v = m.value;
+        if (!v) return;
+        if (v === '12x') {
+          _updateHint('<i class="fa-solid fa-circle-info" style="color:#3b82f6"></i> <strong>12x com juros</strong> — escolha a taxa (Carnê ou Cartão) e a parcela é calculada automaticamente.', 'info');
+        } else {
+          _updateHint(`<i class="fa-solid fa-sliders" style="color:#f59e0b"></i> <strong>${v} — opções especiais:</strong><br>
+            • <strong>Aplicar taxa</strong>: usa fator de juros<br>
+            • <strong>Sem juros!</strong>: exibe texto no cartaz<br>
+            • <strong>Campanha</strong>: adiciona texto promocional`, 'warning');
+        }
+      };
+      m.addEventListener('change', h); m._ppH2 = h;
+    }
   }
 
-  // ── Etapa 3: Modelo ──────────────────────────────────────────────────
   function _step3() {
-    const switchEl = document.getElementById('switch-modelo');
-
+    const sw = document.getElementById('switch-modelo');
     _render(
       '<i class="fa-solid fa-store"></i> Modelo do cartaz',
-      `O <strong>Modelo</strong> define o layout geral do cartaz.<br><br>
-       <strong>Padrão</strong> — cartaz completo em folha A4, para a maioria das lojas.<br><br>
-       <strong>Cameba</strong> — layout modificado onde o preço e a tabela ficam deslocados para baixo, adequado para o modelo físico da loja Cameba.<br><br>
+      `<strong>Padrão</strong> — layout completo em A4, para a maioria das lojas.<br><br>
+       <strong>Cameba</strong> — layout com preço e tabela deslocados para baixo, específico para esse modelo de papel.<br><br>
        ⚠️ Não é possível misturar modelos no mesmo PDF.`,
-      { hint: '<i class="fa-solid fa-info-circle"></i> Apenas mude para <strong>Cameba</strong> se você for imprimir especificamente nesse modelo de papel/impressora.', hintType: 'warning' }
+      { hint: '<i class="fa-solid fa-info-circle"></i> Só mude para Cameba se for imprimir nesse modelo específico.', hintType: 'warning' }
     );
-
-    if (switchEl) _spotTarget(switchEl.closest('.checkbox-wrapper-35') || switchEl, { pad: 12, prefer: 'right' });
+    if (sw) _focus(sw.closest('.checkbox-wrapper-35') || sw, 'right');
   }
 
-  // ── Etapa 4: Estilos ─────────────────────────────────────────────────
   function _step4() {
-    const btnEstilos = document.getElementById('btn-estilos-gear');
-
+    const btn = document.getElementById('btn-estilos-gear');
     _render(
       '<i class="fa-solid fa-palette"></i> Configurações de estilo',
-      `O botão <strong>⚙ Estilos</strong> abre um painel lateral com opções visuais:<br><br>
-       <strong>CAIXA ALTA</strong> — todo o texto em maiúsculas (padrão)<br>
-       <strong>Primeira Letra</strong> — capitaliza cada palavra<br><br>
-       <strong>Negrito na sub descrição</strong> — deixa a marca em destaque no cartaz<br>
-       <strong>Validade centralizada</strong> — move a data de validade para o centro inferior`,
-      { hint: '<i class="fa-solid fa-hand-pointer"></i> Clique no botão destacado para abrir o painel de estilos e explorar as opções!', hintType: 'info' }
+      `O botão <strong>⚙ Estilos</strong> abre um painel com opções visuais:<br><br>
+       • <strong>CAIXA ALTA</strong> ou <strong>Primeira Letra</strong><br>
+       • <strong>Negrito</strong> na sub descrição<br>
+       • <strong>Validade centralizada</strong>`,
+      { hint: '<i class="fa-solid fa-hand-pointer"></i> Clique no botão destacado para explorar o painel de estilos.', hintType: 'info' }
     );
-
-    if (btnEstilos) _spotTarget(btnEstilos, { pad: 10, prefer: 'right' });
+    if (btn) _focus(btn, 'right');
   }
 
-  // ── Etapa 5: Previews e gerar PDF ────────────────────────────────────
   function _step5() {
-    // Navega para a aba de produtos para mostrar o preview
-    const navProdutos = document.querySelector('[data-view="produtos"]');
-    navProdutos?.click();
-
+    document.querySelector('[data-view="produtos"]')?.click();
     setTimeout(() => {
-      const header = document.querySelector('.products-header') || document.getElementById('view-produtos');
-
+      const hdr = document.querySelector('.products-header') || document.getElementById('view-produtos');
       _render(
         '<i class="fa-solid fa-images"></i> Prévia e geração do PDF',
-        `Após adicionar os cartazes, eles aparecem nesta tela com uma <strong>miniatura (prévia)</strong>.<br><br>
-         Cada cartaz tem opções extras:<br>
-         <ul style="margin:8px 0 0 16px;padding:0;font-size:13px;line-height:1.7;">
-           <li><strong>Mover validade</strong> — centraliza a data no cartaz</li>
-           <li><strong>Sub descrição em negrito</strong></li>
-           <li><strong>Layout personalizado</strong> — A5 (loja 53), A6 (Juazeiro II)…</li>
-           <li><strong>Editar cartaz</strong> — ajusta qualquer campo depois de adicionar</li>
-         </ul>
-         Quando estiver pronto, clique em <strong>"Gerar PDF de todos os cartazes"</strong>.`,
-        { hint: '<i class="fa-solid fa-star" style="color:#f59e0b"></i> Você está pronto! Volte à aba <strong>Gerar Cartaz</strong> e crie seu primeiro cartaz.', hintType: 'success' }
+        `Os cartazes aparecem com <strong>miniaturas</strong> para revisão.<br><br>
+         Cada cartaz tem:<br>
+         • Mover validade · Negrito na sub desc.<br>
+         • Layout personalizado (A5, A6…)<br>
+         • Editar cartaz após adicionar<br><br>
+         Clique em <strong>"Gerar PDF"</strong> quando estiver pronto.`,
+        { hint: '<i class="fa-solid fa-star" style="color:#f59e0b"></i> Pronto! Volte à aba <strong>Gerar Cartaz</strong> e crie seu primeiro cartaz.', hintType: 'success' }
       );
-
-      if (header) {
-        _spotTarget(header, { pad: 12, prefer: 'bottom' });
-      }
+      if (hdr) _focus(hdr, 'bottom');
     }, 400);
   }
 
   // ════════════════════════════════════════════════════════════════════
-  // 7. MAPA DE ETAPAS
+  // 10. MAPA + NAVEGAÇÃO
   // ════════════════════════════════════════════════════════════════════
   const STEPS = [_step0, _step1, _step2, _step3, _step4, _step5];
 
-  function _goto(n) {
-    if (n < 0 || n >= STEPS.length) return;
-    // Limpar handlers da etapa anterior
-    _cleanHandlers();
-    _step = n;
-    STEPS[n]?.();
+  function _cleanHandlers() {
+    const c = document.getElementById('codigo');
+    if (c?._ppH) { c.removeEventListener('input', c._ppH); c._ppH = null; }
+    const m = document.getElementById('metodo');
+    if (m?._ppH2) { m.removeEventListener('change', m._ppH2); m._ppH2 = null; }
+    if (_prevTarget) { _prevTarget.classList.remove('pp-target-glow'); _prevTarget = null; }
   }
 
-  function _cleanHandlers() {
-    const cod = document.getElementById('codigo');
-    if (cod?._ppHandler) { cod.removeEventListener('input', cod._ppHandler); cod._ppHandler = null; }
-    const met = document.getElementById('metodo');
-    if (met?._ppHandler2) { met.removeEventListener('change', met?._ppHandler2); met._ppHandler2 = null; }
+  function _goto(n) {
+    if (n < 0 || n >= STEPS.length) return;
+    _cleanHandlers();
+    _tooltip.classList.remove('visible');
+    _step = n;
+    setTimeout(() => STEPS[n]?.(), 60);
   }
 
   // ════════════════════════════════════════════════════════════════════
-  // 8. API PÚBLICA
+  // 11. API PÚBLICA
   // ════════════════════════════════════════════════════════════════════
   function start() {
     if (_running) return;
     _running = true;
+    _lockScroll();
     _goto(0);
   }
 
   function stop() {
     _running = false;
     _cleanHandlers();
-    _hideSpot();
-    // Garante tooltip e spotlight sumidos
+    _unlockScroll();
+    _clearSpotlight();
     _tooltip.classList.remove('visible');
-    _arrow.classList.remove('visible');
-    _spotlight.classList.remove('visible');
-    if (_prevTarget) { _prevTarget.classList.remove('pp-target-highlight'); _prevTarget = null; }
     if (typeof showToast === 'function')
-      showToast('info', 'Guia encerrado', 'Você pode iniciar novamente clicando em "Primeiros passos" na barra lateral.', 3000);
+      showToast('info', 'Guia encerrado', 'Clique em "Primeiros passos" para iniciar novamente.', 3000);
   }
 
   function next() {
-    if (_step < STEPS.length - 1) { _goto(_step + 1); }
-    else { stop(); }
+    if (_step < STEPS.length - 1) _goto(_step + 1);
+    else { stop(); if (typeof showToast==='function') showToast('success','Guia concluído!','Agora você já sabe criar seus cartazes.',3500); }
   }
 
-  function prev() {
-    if (_step > 0) _goto(_step - 1);
-  }
+  function prev() { if (_step > 0) _goto(_step - 1); }
 
   window._PP = { start, stop, next, prev };
 
   // ════════════════════════════════════════════════════════════════════
-  // 9. BOTÃO NA SIDEBAR — substitui btn-campos-obrigatorios
+  // 12. BOTÃO NA SIDEBAR
   // ════════════════════════════════════════════════════════════════════
   function _injectButton() {
-    const oldBtn = document.getElementById('btn-campos-obrigatorios');
-    if (!oldBtn) return;
-
+    const old = document.getElementById('btn-campos-obrigatorios');
+    if (!old) return;
     const btn = document.createElement('button');
-    btn.id        = 'btn-primeiros-passos';
+    btn.id = 'btn-primeiros-passos';
     btn.className = 'nav-item';
     btn.setAttribute('aria-label', 'Iniciar guia de primeiros passos');
     btn.innerHTML = `
       <i class="fa-solid fa-graduation-cap"></i>
       <span>Primeiros passos</span>
       <span class="pp-dot" title="Guia disponível"></span>`;
-
     btn.addEventListener('click', () => {
-      // Navega para a aba gerar antes de iniciar
-      const navGerar = document.querySelector('[data-view="gerar"]');
-      navGerar?.click();
+      document.querySelector('[data-view="gerar"]')?.click();
       setTimeout(start, 200);
     });
-
-    oldBtn.replaceWith(btn);
+    old.replaceWith(btn);
   }
 
   // ════════════════════════════════════════════════════════════════════
-  // 10. BOOT
+  // 13. BOOT
   // ════════════════════════════════════════════════════════════════════
   function _boot() {
     _css();
     _buildDOM();
     _injectButton();
 
-    // Fechar com Escape
+    // ESC para fechar
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape' && _running) stop();
     });
 
-    // Reposicionar spotlight ao redimensionar
+    // Reposicionar ao redimensionar
     window.addEventListener('resize', () => {
-      if (_running && _prevTarget) {
-        _spotTarget(_prevTarget, { pad: 10 });
+      if (_running && _prevTarget?.getBoundingClientRect) {
+        const r = _prevTarget.getBoundingClientRect();
+        _spotlight(r); _placeTooltip(r, 'right');
       }
     });
 
-    console.log('✅ primeiros-passos.js carregado — tour guiado de 6 etapas ativo.');
+    console.log('✅ primeiros-passos.js v2 — tour de 6 etapas, tooltip compacta, scroll bloqueado.');
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', _boot);
-  } else {
-    _boot();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _boot);
+  else _boot();
 
 }());
