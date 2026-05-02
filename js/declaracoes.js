@@ -22,9 +22,10 @@ var FILIAIS = {
     '75': 'Jucás-CE', '76': 'Trairi-CE', '77': 'Camocim-CE'
 };
 
+
 var produtos = [{ codigo: '', descricao: '', quantidade: '', valorUnitario: '', valorTotal: '' }];
 
-// ─── Cache de produtos (carregado uma vez de ../data/produtos.json) ───────────
+// Cache de produtos (carregado uma vez de ../data/produtos.json)
 var cacheProdutos = null;
 var carregandoProdutos = false;
 
@@ -42,12 +43,11 @@ document.addEventListener('DOMContentLoaded', function () {
     atualizarProgresso();
     atualizarTotalGeral();
     enforceUserName();
-    // Pré-carrega o JSON em background para a primeira busca ser instantânea
     carregarBaseProdutos().catch(function () {});
 });
 
 // ========================
-// TEMA ESCURO
+// TEMA
 // ========================
 function inicializarTema() {
     var tema = localStorage.getItem('theme');
@@ -74,27 +74,23 @@ function atualizarIconeTema(isDark) {
 }
 
 // ========================
-// OVERLAY LOADING
+// OVERLAYS
 // ========================
 function mostrarOverlay(id) {
     var overlay = document.getElementById(id);
     if (!overlay) return;
-    var loader = overlay.querySelector('.modern-loader');
-    if (loader) {
-        loader.classList.remove('loader-show');
-        void loader.offsetWidth;
-        loader.classList.add('loader-show');
-    }
+    var card = overlay.querySelector('.loader-card');
+    if (card) { card.style.animation = 'none'; void card.offsetWidth; card.style.animation = ''; }
     overlay.classList.add('active');
 }
 
 function esconderOverlay(id) {
-    var overlay = document.getElementById(id);
-    if (overlay) overlay.classList.remove('active');
+    var el = document.getElementById(id);
+    if (el) el.classList.remove('active');
 }
 
 // ========================
-// ENFORCE USERNAME
+// USERNAME
 // ========================
 function enforceUserName() {
     var applyName = function () {
@@ -104,8 +100,7 @@ function enforceUserName() {
             var session = JSON.parse(raw);
             if (!session.fullName) return false;
             var firstName = session.fullName.trim().split(/\s+/)[0];
-            var el = document.getElementById('userName') || document.getElementById('user') ||
-                document.querySelector('.user-name') || document.querySelector('[data-user-name]');
+            var el = document.getElementById('userName');
             if (!el) return false;
             if (el.textContent !== firstName) el.textContent = firstName;
             return true;
@@ -114,19 +109,29 @@ function enforceUserName() {
     applyName();
     setTimeout(applyName, 300);
     setTimeout(applyName, 800);
-    var observer = new MutationObserver(function () { applyName(); });
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
 }
 
 // ========================
-// INICIALIZAR EVENTOS
+// EVENTOS
 // ========================
 function inicializarEventos() {
-    document.getElementById('btnVoltar').addEventListener('click', function () {
+    // Tema
+    document.getElementById('btnTema').addEventListener('click', toggleTema);
+
+    // Home: voltar para selectsetor
+    document.getElementById('btnHome').addEventListener('click', function () {
         window.location.href = 'selectsetor.html';
     });
-    document.getElementById('btnTema').addEventListener('click', toggleTema);
+
+    // Dashboard: abrir formulário
     document.getElementById('btnAbrirFormulario').addEventListener('click', abrirFormulario);
+
+    // Dashboard: gerar em branco (direto, sem formulário)
+    document.getElementById('btnGerarEmBranco').addEventListener('click', function () {
+        gerarPDF(true);
+    });
+
+    // Header: ações do formulário
     document.getElementById('btnFecharHeader').addEventListener('click', tentarFecharFormulario);
     document.getElementById('btnGerarPDFHeader').addEventListener('click', verificarEGerarPDF);
     document.getElementById('btnLimparHeader').addEventListener('click', function () {
@@ -134,6 +139,7 @@ function inicializarEventos() {
         mostrarModalConfirmacao('Limpar todos os campos?', 'Tem certeza que deseja limpar todos os campos? Esta ação não pode ser desfeita.');
     });
 
+    // Campos obrigatórios — progresso
     document.getElementById('nomeCliente').addEventListener('blur', capitalizarNome);
     document.getElementById('nomeCliente').addEventListener('input', atualizarProgresso);
     document.getElementById('cpf').addEventListener('input', function (e) { aplicarMascaraCPF(e); atualizarProgresso(); });
@@ -144,28 +150,22 @@ function inicializarEventos() {
     document.getElementById('estado').addEventListener('input', function (e) { e.target.value = e.target.value.toUpperCase(); });
     document.getElementById('outraCompra').addEventListener('change', handleOutraCompra);
 
+    // Endereço / CEP
     var enderecoInput = document.getElementById('endereco');
     enderecoInput.addEventListener('input', onEnderecoInput);
-    enderecoInput.addEventListener('blur', function () {
-        if (modoBuscaCEP) tentarBuscarCEPAuto();
-    });
+    enderecoInput.addEventListener('blur', function () { if (modoBuscaCEP) tentarBuscarCEPAuto(); });
     enderecoInput.addEventListener('keypress', function (e) {
         if (e.key === 'Enter' && modoBuscaCEP) { e.preventDefault(); tentarBuscarCEPAuto(); }
     });
+    document.getElementById('linkBuscarCEP').addEventListener('click', function (e) { e.preventDefault(); ativarModoCEP(); });
 
-    document.getElementById('linkBuscarCEP').addEventListener('click', function (e) {
-        e.preventDefault();
-        ativarModoCEP();
-    });
-
+    // Modal
     document.getElementById('btnCancelar').addEventListener('click', fecharModalConfirmacao);
     document.getElementById('btnConfirmar').addEventListener('click', executarAcaoConfirmada);
     document.getElementById('modalConfirmacao').addEventListener('click', function (e) {
         if (e.target.id === 'modalConfirmacao') fecharModalConfirmacao();
     });
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') fecharModalConfirmacao();
-    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') fecharModalConfirmacao(); });
 }
 
 // ========================
@@ -175,67 +175,86 @@ function onEnderecoInput(e) {
     var valor = e.target.value;
     var hint = document.getElementById('enderecoHint');
     var linkCEP = document.getElementById('linkBuscarCEP');
+    var lc = document.getElementById('linkCancelarCEP');
 
-    if (modoBuscaCEP) {
-        var apenasDigitos = valor.replace(/\D/g, '');
-        if (apenasDigitos.length > 5) {
-            e.target.value = apenasDigitos.substring(0, 5) + '-' + apenasDigitos.substring(5, 8);
+    // Detecta automaticamente se o input é numérico (possível CEP)
+    var soDig = valor.replace(/\D/g, '');
+    var ehCEP = valor.length > 0 && /^[\d\-]*$/.test(valor) && soDig.length <= 8;
+
+    if (ehCEP) {
+        // Formata automaticamente como CEP: 00000-000
+        var formatted = soDig.length > 5
+            ? soDig.substring(0, 5) + '-' + soDig.substring(5, 8)
+            : soDig;
+
+        if (e.target.value !== formatted) {
+            var cursor = e.target.selectionStart;
+            e.target.value = formatted;
+            // Mantém cursor após o hífen ao inserir o 6º dígito
+            if (soDig.length === 6 && cursor === 6) {
+                e.target.setSelectionRange(7, 7);
+            }
         }
-        var digits = e.target.value.replace(/\D/g, '');
-        if (digits.length === 8) {
-            hint.textContent = 'CEP completo! Pressione Enter ou saia do campo para buscar.';
-            hint.className = 'field-hint hint-info';
-        } else {
-            hint.textContent = 'Digite o CEP (com ou sem hífen)';
+
+        // Ativa o modo CEP silenciosamente (sem precisar clicar em link)
+        modoBuscaCEP = true;
+        if (linkCEP) linkCEP.style.display = 'none';
+        if (lc) lc.style.display = 'none';
+
+        if (soDig.length === 8) {
+            hint.textContent = 'CEP completo — pressione Enter para buscar o endereço.';
+            hint.className = 'field-hint hint-inf';
+        } else if (soDig.length >= 5) {
+            hint.textContent = 'Continue digitando os 3 últimos dígitos do CEP...';
+            hint.className = 'field-hint';
+        } else if (soDig.length >= 1) {
+            hint.textContent = 'Parece um CEP — continue digitando (8 dígitos).';
             hint.className = 'field-hint';
         }
+    } else if (valor.length === 0) {
+        // Campo vazio: reset completo
+        modoBuscaCEP = false;
+        if (linkCEP) linkCEP.style.display = 'none';
+        if (lc) lc.style.display = 'none';
+        hint.textContent = '';
+        hint.className = 'field-hint';
     } else {
-        var soDigitos = valor.replace(/\D/g, '');
-        if (valor.length >= 4 && !/^\d{5}-?\d{0,3}$/.test(valor.trim())) {
-            linkCEP.style.display = 'inline';
-            hint.textContent = '';
-            hint.className = 'field-hint';
-        } else if (soDigitos.length > 0 && soDigitos.length < 8) {
-            linkCEP.style.display = 'none';
-            hint.textContent = '';
-        } else {
-            linkCEP.style.display = 'none';
-        }
+        // Contém letras: é endereço textual normal
+        modoBuscaCEP = false;
+        if (linkCEP) linkCEP.style.display = 'none';
+        if (lc) lc.style.display = 'none';
+        hint.textContent = '';
+        hint.className = 'field-hint';
     }
+
     atualizarProgresso();
 }
 
 function ativarModoCEP() {
     modoBuscaCEP = true;
     var enderecoInput = document.getElementById('endereco');
-    var hint = document.getElementById('enderecoHint');
-    var linkCEP = document.getElementById('linkBuscarCEP');
-
     enderecoInput.value = '';
     enderecoInput.placeholder = 'Digite o CEP (ex: 63500-000)';
-    hint.textContent = 'Digite o CEP com ou sem hífen e pressione Enter ou saia do campo.';
-    hint.className = 'field-hint hint-info';
-    linkCEP.style.display = 'none';
-
-    var linkCancelar = document.getElementById('linkCancelarCEP');
-    if (linkCancelar) linkCancelar.style.display = 'inline';
-
+    var hint = document.getElementById('enderecoHint');
+    hint.textContent = 'Digite o CEP e pressione Enter ou saia do campo.';
+    hint.className = 'field-hint hint-inf';
+    document.getElementById('linkBuscarCEP').style.display = 'none';
+    var lc = document.getElementById('linkCancelarCEP');
+    if (lc) lc.style.display = 'inline';
     enderecoInput.focus();
-    showToast('Modo CEP ativado! Digite o CEP e pressione Enter.', 'info', 3000);
+    showToast('Modo CEP ativado! Digite e pressione Enter.', 'info', 3000);
 }
 
 function cancelarModoCEP() {
     modoBuscaCEP = false;
     var enderecoInput = document.getElementById('endereco');
-    var hint = document.getElementById('enderecoHint');
-    var linkCEP = document.getElementById('linkBuscarCEP');
-    var linkCancelar = document.getElementById('linkCancelarCEP');
-
     enderecoInput.placeholder = 'Rua / Logradouro ou CEP';
+    var hint = document.getElementById('enderecoHint');
     hint.textContent = '';
     hint.className = 'field-hint';
-    linkCEP.style.display = 'none';
-    if (linkCancelar) linkCancelar.style.display = 'none';
+    document.getElementById('linkBuscarCEP').style.display = 'none';
+    var lc = document.getElementById('linkCancelarCEP');
+    if (lc) lc.style.display = 'none';
     enderecoInput.focus();
 }
 
@@ -250,18 +269,18 @@ function buscarCEPAutomatico(cep) {
     buscandoCEP = true;
     var loader = document.getElementById('enderecoLoader');
     var hint = document.getElementById('enderecoHint');
-    loader.classList.add('active');
+    if (loader) loader.classList.add('active');
     hint.textContent = 'Buscando endereço...';
-    hint.className = 'field-hint hint-loading';
+    hint.className = 'field-hint';
 
     fetch('https://viacep.com.br/ws/' + cep + '/json/')
-        .then(function (resp) { return resp.json(); })
+        .then(function (r) { return r.json(); })
         .then(function (data) {
-            loader.classList.remove('active');
+            if (loader) loader.classList.remove('active');
             buscandoCEP = false;
             if (data.erro) {
                 hint.textContent = 'CEP inválido ou inexistente.';
-                hint.className = 'field-hint hint-error';
+                hint.className = 'field-hint hint-err';
                 showToast('CEP inválido ou inexistente', 'error');
                 return;
             }
@@ -271,21 +290,21 @@ function buscarCEPAutomatico(cep) {
             document.getElementById('bairro').value = data.bairro || '';
             document.getElementById('cidade').value = data.localidade || '';
             document.getElementById('estado').value = data.uf || '';
-            hint.textContent = 'Endereço encontrado! Verifique e complete o número.';
-            hint.className = 'field-hint hint-success';
+            hint.textContent = 'Endereço preenchido! Complete o número e o bairro se necessário.';
+            hint.className = 'field-hint hint-ok';
             document.getElementById('linkBuscarCEP').style.display = 'none';
-            var linkCancelar = document.getElementById('linkCancelarCEP');
-            if (linkCancelar) linkCancelar.style.display = 'none';
-            showToast('Endereço preenchido automaticamente!', 'success');
+            var lc = document.getElementById('linkCancelarCEP');
+            if (lc) lc.style.display = 'none';
+            showToast('Endereço encontrado com sucesso via CEP!', 'success');
             atualizarProgresso();
             document.getElementById('numero').focus();
             setTimeout(function () { hint.textContent = ''; hint.className = 'field-hint'; }, 4000);
         })
         .catch(function () {
-            loader.classList.remove('active');
+            if (loader) loader.classList.remove('active');
             buscandoCEP = false;
             hint.textContent = 'Erro ao buscar CEP. Tente novamente.';
-            hint.className = 'field-hint hint-error';
+            hint.className = 'field-hint hint-err';
             showToast('Erro ao buscar CEP', 'error');
             setTimeout(function () { hint.textContent = ''; hint.className = 'field-hint'; }, 3000);
         });
@@ -295,38 +314,79 @@ function buscarCEPAutomatico(cep) {
 // CONTROLE FORMULÁRIO
 // ========================
 function abrirFormulario() {
-    document.getElementById('formularioLayout').classList.add('active');
-    document.getElementById('botaoCentral').classList.add('hidden');
-    document.getElementById('iconesFlutuantes').classList.add('hidden');
-    document.getElementById('headerRight').classList.add('active');
+    var dash = document.getElementById('dashboard');
+    var form = document.getElementById('formularioLayout');
+    var formGroup = document.getElementById('headerFormGroup');
+    var btnLimpar = document.getElementById('btnLimparHeader');
+    var btnGerar = document.getElementById('btnGerarPDFHeader');
+    var btnFechar = document.getElementById('btnFecharHeader');
+
+    // Mostra o grupo de ferramentas e habilita botões
+    formGroup.style.display = 'flex';
+    btnLimpar.disabled = false;
+    btnGerar.disabled = false;
+    btnFechar.disabled = false;
+
+    // Esconde dashboard com fade
+    dash.style.transition = 'opacity .3s, transform .3s';
+    dash.style.opacity = '0';
+    dash.style.transform = 'translateY(-8px)';
+    setTimeout(function () {
+        dash.style.display = 'none';
+        form.classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 280);
+}
+
+function fecharFormulario() {
+    var dash = document.getElementById('dashboard');
+    var form = document.getElementById('formularioLayout');
+    var formGroup = document.getElementById('headerFormGroup');
+    var btnLimpar = document.getElementById('btnLimparHeader');
+    var btnGerar = document.getElementById('btnGerarPDFHeader');
+    var btnFechar = document.getElementById('btnFecharHeader');
+
+    form.classList.remove('active');
+
+    // Esconde o grupo de ferramentas e desabilita botões
+    formGroup.style.display = 'none';
+    btnLimpar.disabled = true;
+    btnGerar.disabled = true;
+    btnFechar.disabled = true;
+
+    dash.style.display = '';
+    dash.style.opacity = '0';
+    dash.style.transform = 'translateY(-8px)';
+    void dash.offsetWidth;
+    dash.style.transition = 'opacity .35s, transform .35s';
+    requestAnimationFrame(function () {
+        dash.style.opacity = '1';
+        dash.style.transform = 'translateY(0)';
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function tentarFecharFormulario() {
     if (verificarDadosPreenchidos()) {
         acaoConfirmacao = 'fechar';
         mostrarModalConfirmacao('Descartar alterações?', 'Ainda há informações preenchidas. Quer mesmo sair? Todos os dados serão perdidos.');
-    } else { fecharFormulario(); }
+    } else {
+        fecharFormulario();
+    }
 }
 
 function verificarDadosPreenchidos() {
     for (var i = 0; i < camposObrigatorios.length; i++) {
         if (document.getElementById(camposObrigatorios[i]).value.trim()) return true;
     }
-    var camposOpcionais = ['numeroNFe', 'bairro', 'numero', 'cidade', 'estado', 'outraCompra', 'novoPV'];
-    for (var j = 0; j < camposOpcionais.length; j++) {
-        if (document.getElementById(camposOpcionais[j]).value.trim()) return true;
+    var opcionais = ['numeroNFe', 'bairro', 'numero', 'cidade', 'estado', 'outraCompra', 'novoPV'];
+    for (var j = 0; j < opcionais.length; j++) {
+        if (document.getElementById(opcionais[j]).value.trim()) return true;
     }
     for (var k = 0; k < produtos.length; k++) {
         if (produtos[k].codigo || produtos[k].descricao || produtos[k].quantidade || produtos[k].valorUnitario) return true;
     }
     return false;
-}
-
-function fecharFormulario() {
-    document.getElementById('formularioLayout').classList.remove('active');
-    document.getElementById('botaoCentral').classList.remove('hidden');
-    document.getElementById('iconesFlutuantes').classList.remove('hidden');
-    document.getElementById('headerRight').classList.remove('active');
 }
 
 // ========================
@@ -358,11 +418,13 @@ function executarAcaoConfirmada() {
 function verificarEGerarPDF() {
     if (verificarCamposVazios()) {
         acaoConfirmacao = 'gerar-vazio';
-        mostrarModalConfirmacao('Gerar declaração vazia?', 'Você está tentando gerar a declaração sem preencher nenhum campo. Tem certeza?');
+        mostrarModalConfirmacao('Gerar declaração vazia?', 'Nenhum campo foi preenchido. Deseja gerar mesmo assim?');
     } else if (verificarCamposParciais()) {
         acaoConfirmacao = 'gerar-parcial';
-        mostrarModalConfirmacao('Campos obrigatórios incompletos', 'Nem todos os campos obrigatórios foram preenchidos. Deseja continuar mesmo assim?');
-    } else { gerarPDF(false); }
+        mostrarModalConfirmacao('Campos incompletos', 'Nem todos os campos obrigatórios foram preenchidos. Deseja continuar mesmo assim?');
+    } else {
+        gerarPDF(false);
+    }
 }
 
 function verificarCamposVazios() {
@@ -376,33 +438,31 @@ function verificarCamposVazios() {
 }
 
 function verificarCamposParciais() {
-    var temAlgumPreenchido = false;
-    var temAlgumVazio = false;
+    var temAlgum = false, temVazio = false;
     for (var i = 0; i < camposObrigatorios.length; i++) {
-        var valor = document.getElementById(camposObrigatorios[i]).value.trim();
-        if (valor) temAlgumPreenchido = true; else temAlgumVazio = true;
+        var v = document.getElementById(camposObrigatorios[i]).value.trim();
+        if (v) temAlgum = true; else temVazio = true;
     }
-    if (isProdutosObrigatoriosPreenchidos()) temAlgumPreenchido = true; else temAlgumVazio = true;
-    return temAlgumPreenchido && temAlgumVazio;
+    if (isProdutosObrigatoriosPreenchidos()) temAlgum = true; else temVazio = true;
+    return temAlgum && temVazio;
 }
 
 // ========================
 // LIMPAR
 // ========================
 function limparCamposSilenciosamente() {
-    ['numeroNFe', 'nomeCliente', 'cpf', 'filial', 'endereco', 'bairro', 'numero', 'cidade', 'estado',
-        'pv', 'cupomNFe', 'outraCompra', 'novoPV', 'motivoDevolucao'].forEach(function (id) {
-            document.getElementById(id).value = '';
-        });
+    ['numeroNFe','nomeCliente','cpf','filial','endereco','bairro','numero','cidade','estado',
+     'pv','cupomNFe','outraCompra','novoPV','motivoDevolucao'].forEach(function (id) {
+        document.getElementById(id).value = '';
+    });
     document.getElementById('novoPV').disabled = true;
     modoBuscaCEP = false;
     document.getElementById('endereco').placeholder = 'Rua / Logradouro ou CEP';
-    document.getElementById('enderecoHint').textContent = '';
-    document.getElementById('enderecoHint').className = 'field-hint';
+    var hint = document.getElementById('enderecoHint');
+    if (hint) { hint.textContent = ''; hint.className = 'field-hint'; }
     document.getElementById('linkBuscarCEP').style.display = 'none';
     var lc = document.getElementById('linkCancelarCEP');
     if (lc) lc.style.display = 'none';
-
     produtos = [{ codigo: '', descricao: '', quantidade: '', valorUnitario: '', valorTotal: '' }];
     renderizarProdutos();
     atualizarProgresso();
@@ -425,10 +485,10 @@ function renderizarProdutos() {
             '<input type="text" class="produto-codigo" data-index="' + i + '" value="' + escapeAttr(produtos[i].codigo) + '" placeholder="Código *">' +
             '<input type="text" class="produto-descricao" data-index="' + i + '" value="' + escapeAttr(produtos[i].descricao) + '" placeholder="Descrição *">' +
             '<input type="number" min="1" step="1" class="produto-quantidade" data-index="' + i + '" value="' + produtos[i].quantidade + '" placeholder="Qtd *">' +
-            '<input type="number" min="0.01" step="0.01" class="produto-valor-unitario" data-index="' + i + '" value="' + produtos[i].valorUnitario + '" placeholder="VR. Unit. *">' +
-            '<input type="text" class="produto-valor-total" data-index="' + i + '" value="' + (produtos[i].valorTotal ? 'R$ ' + formatarMoeda(produtos[i].valorTotal) : '') + '" placeholder="VR. Total" readonly>' +
+            '<input type="number" min="0.01" step="0.01" class="produto-valor-unitario" data-index="' + i + '" value="' + produtos[i].valorUnitario + '" placeholder="0,00">' +
+            '<input type="text" class="produto-valor-total" data-index="' + i + '" value="' + (produtos[i].valorTotal ? 'R$ ' + formatarMoeda(produtos[i].valorTotal) : '') + '" placeholder="R$ 0,00" readonly>' +
             (temLixeira
-                ? '<button type="button" class="btn-remover-produto" data-index="' + i + '" title="Remover produto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>'
+                ? '<button type="button" class="btn-remover-produto" data-index="' + i + '" title="Remover produto"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>'
                 : '<div class="produto-placeholder-btn"></div>');
         container.appendChild(div);
     }
@@ -473,11 +533,11 @@ function formatarMoeda(valor) {
 
 function recalcularTotal(index) {
     var qtd = parseInt(produtos[index].quantidade) || 0;
-    var valorUnit = parseFloat(String(produtos[index].valorUnitario).replace(',', '.')) || 0;
-    var total = qtd * valorUnit;
+    var vunit = parseFloat(String(produtos[index].valorUnitario).replace(',', '.')) || 0;
+    var total = qtd * vunit;
     produtos[index].valorTotal = total > 0 ? total.toFixed(2) : '';
-    var inputTotal = document.querySelector('.produto-valor-total[data-index="' + index + '"]');
-    if (inputTotal) inputTotal.value = total > 0 ? 'R$ ' + formatarMoeda(total.toFixed(2)) : '';
+    var el = document.querySelector('.produto-valor-total[data-index="' + index + '"]');
+    if (el) el.value = total > 0 ? 'R$ ' + formatarMoeda(total.toFixed(2)) : '';
     atualizarTotalGeral();
     atualizarProgresso();
 }
@@ -487,16 +547,16 @@ function atualizarTotalGeral() {
     for (var i = 0; i < produtos.length; i++) {
         if (produtos[i].valorTotal) { total += parseFloat(produtos[i].valorTotal); count++; }
     }
-    var totalEl = document.getElementById('totalGeralValor');
-    var containerEl = document.getElementById('totalGeralContainer');
-    if (totalEl) totalEl.textContent = 'R$ ' + formatarMoeda(total.toFixed(2));
-    if (containerEl) {
+    var valEl = document.getElementById('totalGeralValor');
+    var cntEl = document.getElementById('totalGeralCount');
+    var contEl = document.getElementById('totalGeralContainer');
+    if (valEl) valEl.textContent = 'R$ ' + formatarMoeda(total.toFixed(2));
+    if (contEl) {
         if (total > 0) {
-            containerEl.classList.add('visible');
-            var countEl = document.getElementById('totalGeralCount');
-            if (countEl) countEl.textContent = count + ' produto' + (count !== 1 ? 's' : '');
+            contEl.classList.add('visible');
+            if (cntEl) cntEl.textContent = count + ' produto' + (count !== 1 ? 's' : '');
         } else {
-            containerEl.classList.remove('visible');
+            contEl.classList.remove('visible');
         }
     }
 }
@@ -504,24 +564,17 @@ function atualizarTotalGeral() {
 function onCodigoBlur(e) {
     var codigo = e.target.value.trim();
     var index = parseInt(e.target.dataset.index);
-    if (codigo && !produtos[index].descricao) {
-        buscarProdutoAPI(codigo, index);
-    }
+    if (codigo && !produtos[index].descricao) buscarProdutoAPI(codigo, index);
 }
-
 function onCodigoInput(e) {
-    var index = parseInt(e.target.dataset.index);
-    produtos[index].codigo = e.target.value;
-    verificarEAdicionarNovoProduto(index);
+    produtos[parseInt(e.target.dataset.index)].codigo = e.target.value;
+    verificarEAdicionarNovoProduto(parseInt(e.target.dataset.index));
 }
-
 function onDescricaoInput(e) {
-    var index = parseInt(e.target.dataset.index);
-    produtos[index].descricao = e.target.value;
+    produtos[parseInt(e.target.dataset.index)].descricao = e.target.value;
     atualizarProgresso();
-    verificarEAdicionarNovoProduto(index);
+    verificarEAdicionarNovoProduto(parseInt(e.target.dataset.index));
 }
-
 function onQuantidadeInput(e) {
     var index = parseInt(e.target.dataset.index);
     var val = e.target.value.replace(/[^0-9]/g, '');
@@ -530,7 +583,6 @@ function onQuantidadeInput(e) {
     recalcularTotal(index);
     verificarEAdicionarNovoProduto(index);
 }
-
 function onValorUnitarioInput(e) {
     var index = parseInt(e.target.dataset.index);
     produtos[index].valorUnitario = e.target.value;
@@ -542,7 +594,7 @@ function verificarEAdicionarNovoProduto(index) {
     if (isProdutoCompleto(index) && index === produtos.length - 1 && produtos.length < 6) {
         produtos.push({ codigo: '', descricao: '', quantidade: '', valorUnitario: '', valorTotal: '' });
         renderizarProdutos();
-        showToast('Novo campo de produto adicionado', 'info', 2000);
+        showToast('Novo produto adicionado', 'info', 2000);
     }
 }
 
@@ -569,134 +621,88 @@ function isProdutosObrigatoriosPreenchidos() {
 
 // ========================
 // BUSCA DE PRODUTOS — ../data/produtos.json
+// Estrutura: { "NomeQualquer": [ { "Código": 123, "Descrição": "...", "Total à vista": 99.9, ... }, ... ], ... }
 // ========================
-
-/**
- * Carrega o JSON de produtos uma única vez e cacheia.
- * O JSON pode ter QUALQUER estrutura de chaves no nível raiz, ex:
- *   { "Gabriel": [...], "Júlia": [...], "NomeQualquer": [...] }
- * Cada item da lista deve conter pelo menos: Código, Descrição, "Total à vista"
- */
 function carregarBaseProdutos() {
-    if (cacheProdutos !== null) {
-        return Promise.resolve(cacheProdutos);
-    }
+    if (cacheProdutos !== null) return Promise.resolve(cacheProdutos);
     if (carregandoProdutos) {
-        // Espera o carregamento atual terminar (polling simples)
         return new Promise(function (resolve, reject) {
-            var tentativas = 0;
-            var intervalo = setInterval(function () {
-                tentativas++;
-                if (cacheProdutos !== null) {
-                    clearInterval(intervalo);
-                    resolve(cacheProdutos);
-                } else if (tentativas > 100) {
-                    clearInterval(intervalo);
-                    reject(new Error('Timeout aguardando produtos'));
-                }
+            var tries = 0;
+            var iv = setInterval(function () {
+                tries++;
+                if (cacheProdutos !== null) { clearInterval(iv); resolve(cacheProdutos); }
+                else if (tries > 100) { clearInterval(iv); reject(new Error('Timeout')); }
             }, 100);
         });
     }
-
     carregandoProdutos = true;
-
     return fetch('../data/produtos.json')
-        .then(function (resp) {
-            if (!resp.ok) throw new Error('HTTP ' + resp.status);
-            return resp.json();
-        })
-        .then(function (data) {
-            cacheProdutos = data;
-            carregandoProdutos = false;
-            return data;
-        })
-        .catch(function (err) {
-            carregandoProdutos = false;
-            cacheProdutos = {}; // evita loop de retry; próxima chamada retorna vazio
-            throw err;
-        });
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function (data) { cacheProdutos = data; carregandoProdutos = false; return data; })
+        .catch(function (err) { carregandoProdutos = false; cacheProdutos = {}; throw err; });
 }
 
-/**
- * Busca um produto pelo código em TODAS as chaves do JSON.
- * Faz comparação de número e string para garantir match independente do tipo.
- */
 function buscarProdutoPorCodigo(codigo) {
     return carregarBaseProdutos().then(function (dados) {
         var codigoNum = Number(codigo);
         var codigoStr = String(codigo).trim();
-
-        // Itera sobre todas as chaves do objeto raiz (ex: "Gabriel", "Júlia", etc.)
         var chaves = Object.keys(dados);
         for (var c = 0; c < chaves.length; c++) {
             var lista = dados[chaves[c]];
             if (!Array.isArray(lista)) continue;
             for (var i = 0; i < lista.length; i++) {
                 var item = lista[i];
+                // Aceita tanto "Código" (com acento) quanto "Codigo"
                 var itemCod = item['Código'] !== undefined ? item['Código'] : item['Codigo'];
                 if (itemCod === undefined) continue;
-                // Compara tanto como número quanto como string
-                if (Number(itemCod) === codigoNum || String(itemCod).trim() === codigoStr) {
-                    return item;
-                }
+                if (Number(itemCod) === codigoNum || String(itemCod).trim() === codigoStr) return item;
             }
         }
-        return null; // não encontrado
+        return null;
     });
 }
 
 function buscarProdutoAPI(codigo, index) {
     if (!codigo) return;
     mostrarOverlay('overlayBuscaProduto');
-
     buscarProdutoPorCodigo(codigo)
         .then(function (produto) {
             esconderOverlay('overlayBuscaProduto');
-
             if (!produto) {
-                // Limpa campos do produto se não encontrado
                 produtos[index].descricao = '';
                 produtos[index].valorUnitario = '';
                 produtos[index].valorTotal = '';
-                ['descricao', 'valor-unitario', 'valor-total'].forEach(function (cls) {
-                    var el = document.querySelector('.produto-' + cls + '[data-index="' + index + '"]');
-                    if (el) el.value = '';
-                });
+                var dc = document.querySelector('.produto-descricao[data-index="' + index + '"]');
+                var vu = document.querySelector('.produto-valor-unitario[data-index="' + index + '"]');
+                var vt = document.querySelector('.produto-valor-total[data-index="' + index + '"]');
+                if (dc) dc.value = '';
+                if (vu) vu.value = '';
+                if (vt) vt.value = '';
                 showToast('Produto não encontrado. Código: ' + codigo, 'error');
                 return;
             }
-
-            // Preenche descrição
             produtos[index].descricao = produto['Descrição'] || produto['Descricao'] || '';
-
-            // Preenche valor unitário (usa "Total à vista" como preço padrão)
             var precoRaw = produto['Total à vista'] || produto['Total a vista'] || 0;
             var preco = parseFloat(String(precoRaw).replace(',', '.')) || 0;
             produtos[index].valorUnitario = preco > 0 ? preco.toFixed(2) : '';
-
-            // Recalcula total se já tem quantidade
             if (produtos[index].quantidade) recalcularTotal(index);
 
-            // Atualiza DOM
-            var descInput = document.querySelector('.produto-descricao[data-index="' + index + '"]');
-            var valUnitInput = document.querySelector('.produto-valor-unitario[data-index="' + index + '"]');
-            var totalInput = document.querySelector('.produto-valor-total[data-index="' + index + '"]');
+            var dEl = document.querySelector('.produto-descricao[data-index="' + index + '"]');
+            var uEl = document.querySelector('.produto-valor-unitario[data-index="' + index + '"]');
+            var tEl = document.querySelector('.produto-valor-total[data-index="' + index + '"]');
+            if (dEl) dEl.value = produtos[index].descricao;
+            if (uEl) uEl.value = produtos[index].valorUnitario;
+            if (tEl) tEl.value = produtos[index].valorTotal ? 'R$ ' + formatarMoeda(produtos[index].valorTotal) : '';
 
-            if (descInput) descInput.value = produtos[index].descricao;
-            if (valUnitInput) valUnitInput.value = produtos[index].valorUnitario;
-            if (totalInput) totalInput.value = produtos[index].valorTotal
-                ? 'R$ ' + formatarMoeda(produtos[index].valorTotal)
-                : '';
-
-            showToast('Produto carregado: ' + (produtos[index].descricao || codigo), 'success');
+            showToast('Produto: ' + (produtos[index].descricao || codigo), 'success');
             verificarEAdicionarNovoProduto(index);
             atualizarTotalGeral();
             atualizarProgresso();
         })
         .catch(function (err) {
-            console.error('Erro ao buscar produto:', err);
+            console.error('Busca produto:', err);
             esconderOverlay('overlayBuscaProduto');
-            showToast('Erro ao acessar a base de produtos. Verifique o arquivo produtos.json.', 'error');
+            showToast('Erro ao acessar produtos.json', 'error');
         });
 }
 
@@ -704,50 +710,45 @@ function buscarProdutoAPI(codigo, index) {
 // MÁSCARAS
 // ========================
 function aplicarMascaraCPF(e) {
-    var valor = e.target.value.replace(/\D/g, '');
-    if (valor.length <= 11) {
-        valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
-        valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
-        valor = valor.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-    }
-    e.target.value = valor;
+    var v = e.target.value.replace(/\D/g, '');
+    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+    v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    e.target.value = v;
 }
 
 function capitalizarNome(e) {
-    var palavras = e.target.value.toLowerCase().split(' ');
-    var resultado = [];
-    for (var i = 0; i < palavras.length; i++) {
-        if (palavras[i].length > 0) resultado.push(palavras[i].charAt(0).toUpperCase() + palavras[i].slice(1));
-    }
-    e.target.value = resultado.join(' ');
+    e.target.value = e.target.value.toLowerCase().split(' ').map(function (p) {
+        return p.length > 0 ? p.charAt(0).toUpperCase() + p.slice(1) : p;
+    }).join(' ');
 }
 
 function handleOutraCompra(e) {
-    var novoPVInput = document.getElementById('novoPV');
-    if (e.target.value === 'Sim') { novoPVInput.disabled = false; novoPVInput.focus(); }
-    else { novoPVInput.disabled = true; novoPVInput.value = ''; }
+    var nv = document.getElementById('novoPV');
+    if (e.target.value === 'Sim') { nv.disabled = false; nv.focus(); }
+    else { nv.disabled = true; nv.value = ''; }
 }
 
 // ========================
 // PROGRESSO
 // ========================
 function atualizarProgresso() {
-    var camposPreenchidos = 0;
-    var totalCampos = camposObrigatorios.length + 1;
+    var preenchidos = 0;
+    var total = camposObrigatorios.length + 1;
     for (var i = 0; i < camposObrigatorios.length; i++) {
-        if (document.getElementById(camposObrigatorios[i]).value.trim()) camposPreenchidos++;
+        if (document.getElementById(camposObrigatorios[i]).value.trim()) preenchidos++;
     }
-    if (isProdutosObrigatoriosPreenchidos()) camposPreenchidos++;
-    var porcentagem = Math.round((camposPreenchidos / totalCampos) * 100);
+    if (isProdutosObrigatoriosPreenchidos()) preenchidos++;
+    var pct = Math.round((preenchidos / total) * 100);
     var fill = document.getElementById('progressBarFill');
-    var pct = document.getElementById('progressPercentage');
+    var pEl  = document.getElementById('progressPercentage');
     if (fill) {
-        fill.style.width = porcentagem + '%';
-        if (porcentagem === 100) fill.style.background = 'linear-gradient(90deg, #10b981, #059669)';
-        else if (porcentagem >= 50) fill.style.background = 'linear-gradient(90deg, #f59e0b, #d97706)';
-        else fill.style.background = 'linear-gradient(90deg, #ef4444, #dc2626)';
+        fill.style.width = pct + '%';
+        if (pct === 100)     fill.style.background = 'linear-gradient(90deg,#10b981,#059669)';
+        else if (pct >= 50)  fill.style.background = 'linear-gradient(90deg,#f59e0b,#d97706)';
+        else                 fill.style.background = 'linear-gradient(90deg,#ef4444,#dc2626)';
     }
-    if (pct) pct.textContent = porcentagem + '%';
+    if (pEl) pEl.textContent = pct + '%';
 }
 
 // ========================
@@ -756,7 +757,7 @@ function atualizarProgresso() {
 function gerarPDF(emBranco) {
     mostrarOverlay('overlayLoading');
 
-    function loadImageCached(url) {
+    function loadTimbre(url) {
         if (timbreCache) return Promise.resolve(timbreCache);
         return new Promise(function (resolve, reject) {
             var img = new Image();
@@ -767,40 +768,39 @@ function gerarPDF(emBranco) {
         });
     }
 
-    function obterCidadePorFilial() {
-        var filialSelecionada = document.getElementById('filial').value.trim();
-        if (filialSelecionada && FILIAIS[filialSelecionada]) {
-            var partes = FILIAIS[filialSelecionada].split('-');
-            return { cidade: partes[0] || 'Fortaleza', uf: partes[1] || 'CE' };
+    function obterLocal() {
+        var fil = document.getElementById('filial').value.trim();
+        if (fil && FILIAIS[fil]) {
+            var p = FILIAIS[fil].split('-');
+            return { cidade: p[0] || 'Fortaleza', uf: p[1] || 'CE' };
         }
-        var cidadeForm = document.getElementById('cidade').value.trim();
-        var ufForm = document.getElementById('estado').value.trim();
-        if (cidadeForm || ufForm) return { cidade: cidadeForm || 'Fortaleza', uf: ufForm || 'CE' };
-        return { cidade: 'Fortaleza', uf: 'CE' };
+        var c = document.getElementById('cidade').value.trim();
+        var u = document.getElementById('estado').value.trim();
+        return { cidade: c || 'Fortaleza', uf: u || 'CE' };
     }
 
-    loadImageCached('../image/declaracaonova.png')
+    loadTimbre('../image/declaracaonova.png')
         .catch(function () { return null; })
         .then(function (timbre) {
-            var localUsuario = obterCidadePorFilial();
+            var local = obterLocal();
             try {
                 var jsPDF = window.jspdf.jsPDF;
                 var doc = new jsPDF();
                 var campos = {
-                    nfe: document.getElementById('numeroNFe').value.trim() || '',
-                    nomeCliente: document.getElementById('nomeCliente').value.trim() || '',
-                    cpf: document.getElementById('cpf').value.trim() || '',
-                    endereco: document.getElementById('endereco').value.trim() || '',
-                    numero: document.getElementById('numero').value.trim() || '',
-                    bairro: document.getElementById('bairro').value.trim() || '',
-                    cidadeForm: document.getElementById('cidade').value.trim() || '',
-                    ufForm: document.getElementById('estado').value.trim() || '',
-                    pv: document.getElementById('pv').value.trim() || '',
-                    cupom: document.getElementById('cupomNFe').value.trim() || '',
-                    filial: document.getElementById('filial').value.trim() || '',
-                    novaCompra: document.getElementById('outraCompra').value.trim() || '',
-                    novoPV: document.getElementById('novoPV').value.trim() || '',
-                    motivo: document.getElementById('motivoDevolucao').value.trim() || ''
+                    nfe:        document.getElementById('numeroNFe').value.trim(),
+                    nomeCliente:document.getElementById('nomeCliente').value.trim(),
+                    cpf:        document.getElementById('cpf').value.trim(),
+                    endereco:   document.getElementById('endereco').value.trim(),
+                    numero:     document.getElementById('numero').value.trim(),
+                    bairro:     document.getElementById('bairro').value.trim(),
+                    cidadeForm: document.getElementById('cidade').value.trim(),
+                    ufForm:     document.getElementById('estado').value.trim(),
+                    pv:         document.getElementById('pv').value.trim(),
+                    cupom:      document.getElementById('cupomNFe').value.trim(),
+                    filial:     document.getElementById('filial').value.trim(),
+                    novaCompra: document.getElementById('outraCompra').value.trim(),
+                    novoPV:     document.getElementById('novoPV').value.trim(),
+                    motivo:     document.getElementById('motivoDevolucao').value.trim()
                 };
 
                 if (timbre) doc.addImage(timbre, 'PNG', 0, 0, 210, 297);
@@ -813,24 +813,22 @@ function gerarPDF(emBranco) {
                 var nfeTexto = emBranco ? '___________' : (campos.nfe || '___________');
                 doc.text('Declaro para fins de comprovação junto à SEFAZ – Secretaria da Fazenda do Estado do Ceará, que através da NF-e de devolução Nº ' + nfeTexto + ', devolvo o(s) produto(s) abaixo relacionado(s):', 15, 55, { maxWidth: 180, align: 'justify' });
 
-                var produtosParaPDF = produtos.slice();
-                while (produtosParaPDF.length < 6) produtosParaPDF.push({ codigo: '', descricao: '', quantidade: '', valorUnitario: '', valorTotal: '' });
+                var prodsPDF = produtos.slice();
+                while (prodsPDF.length < 6) prodsPDF.push({ codigo:'', descricao:'', quantidade:'', valorUnitario:'', valorTotal:'' });
 
-                var produtosBody = emBranco
-                    ? [['','','','',''],['','','','',''],['','','','',''],['','','','',''],['','','','',''],['','','','','']]
-                    : produtosParaPDF.slice(0, 6).map(function (p) {
-                        return [p.codigo || '', p.descricao || '', p.quantidade || '',
-                            p.valorUnitario ? 'R$ ' + formatarMoeda(p.valorUnitario) : '',
-                            p.valorTotal ? 'R$ ' + formatarMoeda(p.valorTotal) : ''];
+                var prodBody = emBranco
+                    ? Array(6).fill(['','','','',''])
+                    : prodsPDF.slice(0, 6).map(function (p) {
+                        return [p.codigo||'', p.descricao||'', p.quantidade||'',
+                            p.valorUnitario ? 'R$ '+formatarMoeda(p.valorUnitario) : '',
+                            p.valorTotal    ? 'R$ '+formatarMoeda(p.valorTotal)    : ''];
                     });
 
                 doc.autoTable({
-                    head: [['Código', 'Descrição', 'QTD', 'VR. Unit.', 'VR. Total']],
-                    body: produtosBody,
-                    startY: 75,
-                    theme: 'grid',
-                    styles: { font: 'times', fontSize: 11, halign: 'center', valign: 'middle' },
-                    headStyles: { fillColor: [200, 200, 200], textColor: 0, fontStyle: 'bold' }
+                    head: [['Código','Descrição','QTD','VR. Unit.','VR. Total']],
+                    body: prodBody, startY: 75, theme: 'grid',
+                    styles: { font:'times', fontSize:11, halign:'center', valign:'middle' },
+                    headStyles: { fillColor:[200,200,200], textColor:0, fontStyle:'bold' }
                 });
 
                 var totalGeral = 0;
@@ -838,99 +836,97 @@ function gerarPDF(emBranco) {
                     if (produtos[t].valorTotal) totalGeral += parseFloat(produtos[t].valorTotal);
                 }
 
-                var afterTableY = doc.lastAutoTable.finalY;
-
+                var afterY = doc.lastAutoTable.finalY;
                 if (!emBranco && totalGeral > 0) {
-                    doc.setFont('times', 'bold');
-                    doc.setFontSize(12);
-                    doc.text('Total Devolvido: R$ ' + formatarMoeda(totalGeral.toFixed(2)), 195, afterTableY + 7, { align: 'right' });
-                    doc.setFont('times', 'normal');
-                    afterTableY += 14;
-                } else {
-                    afterTableY += 10;
-                }
+                    doc.setFont('times','bold'); doc.setFontSize(12);
+                    doc.text('Total Devolvido: R$ '+formatarMoeda(totalGeral.toFixed(2)), 195, afterY+7, { align:'right' });
+                    doc.setFont('times','normal');
+                    afterY += 14;
+                } else { afterY += 10; }
 
-                var finalY = afterTableY;
-                var marginX = 15;
-                var maxWidth = 180;
+                var finalY = afterY, mX = 15, mW = 180;
 
                 if (emBranco) {
-                    doc.text('Cliente: _______________________________________________ CPF: _______________________', marginX, finalY); finalY += 7;
-                    doc.text('Endereço: ____________________________________________ Nº ____ Bairro: _______________', marginX, finalY); finalY += 7;
-                    doc.text('Cidade: ______________ Estado: ____ PV: ___________ Cupom/NF-e: ___________ Filial: ____', marginX, finalY); finalY += 7;
-                    doc.text('Cliente efetuou outra compra? ______ Novo PV: ___________ Motivo da devolução:', marginX, finalY); finalY += 7;
-                    doc.text('_______________________________________________________________________________', marginX, finalY);
+                    doc.text('Cliente: _______________________________________________ CPF: _______________________', mX, finalY); finalY+=7;
+                    doc.text('Endereço: ____________________________________________ Nº ____ Bairro: _______________', mX, finalY); finalY+=7;
+                    doc.text('Cidade: ______________ Estado: ____ PV: ___________ Cupom/NF-e: ___________ Filial: ____', mX, finalY); finalY+=7;
+                    doc.text('Cliente efetuou outra compra? ______ Novo PV: ___________ Motivo da devolução:', mX, finalY); finalY+=7;
+                    doc.text('_______________________________________________________________________________', mX, finalY);
                 } else {
-                    var placeholders = { nomeCliente: '_______________________________________________', cpf: '_______________________', endereco: '______________________________________________', numero: '____', bairro: '_______________', cidadeForm: '______________', ufForm: '____', pv: '___________', cupom: '___________', filial: '____', novaCompra: '______', novoPV: '___________', motivo: '_______________________________________________________________________________' };
+                    var placeholders = {
+                        nomeCliente:'_______________________________________________', cpf:'_______________________',
+                        endereco:'______________________________________________', numero:'____', bairro:'_______________',
+                        cidadeForm:'______________', ufForm:'____', pv:'___________', cupom:'___________',
+                        filial:'____', novaCompra:'______', novoPV:'___________',
+                        motivo:'_______________________________________________________________________________'
+                    };
                     var linha = [
-                        { label: 'Cliente:', key: 'nomeCliente' }, { label: 'CPF:', key: 'cpf' },
-                        { label: 'Endereço:', key: 'endereco' }, { label: 'Nº', key: 'numero' },
-                        { label: 'Bairro:', key: 'bairro' }, { label: 'Cidade:', key: 'cidadeForm' },
-                        { label: 'Estado:', key: 'ufForm' }, { label: 'PV:', key: 'pv' },
-                        { label: 'Cupom/NF-e:', key: 'cupom' }, { label: 'Filial:', key: 'filial' },
-                        { label: 'Cliente efetuou outra compra?', key: 'novaCompra' },
-                        { label: 'Novo PV:', key: 'novoPV' }, { label: 'Motivo da devolução:', key: 'motivo' }
+                        {label:'Cliente:', key:'nomeCliente'}, {label:'CPF:', key:'cpf'},
+                        {label:'Endereço:', key:'endereco'}, {label:'Nº', key:'numero'},
+                        {label:'Bairro:', key:'bairro'}, {label:'Cidade:', key:'cidadeForm'},
+                        {label:'Estado:', key:'ufForm'}, {label:'PV:', key:'pv'},
+                        {label:'Cupom/NF-e:', key:'cupom'}, {label:'Filial:', key:'filial'},
+                        {label:'Cliente efetuou outra compra?', key:'novaCompra'},
+                        {label:'Novo PV:', key:'novoPV'}, {label:'Motivo da devolução:', key:'motivo'}
                     ];
-                    var x = marginX, y = finalY;
+                    var x = mX, y = finalY;
                     for (var i = 0; i < linha.length; i++) {
-                        var label = linha[i].label, key = linha[i].key;
+                        var lbl = linha[i].label, key = linha[i].key;
                         var value = campos[key] ? campos[key].trim() : '';
-                        var displayValue = value;
-                        if (key === 'novoPV') { if (campos.novaCompra !== 'Sim') displayValue = ''; else if (!value) displayValue = placeholders[key]; }
-                        else { if (!value) displayValue = placeholders[key]; }
-                        if (!displayValue) continue;
-                        doc.setFont('times', 'bold');
-                        var labelWidth = doc.getTextWidth(label + ' ');
-                        if (x + labelWidth > marginX + maxWidth) { x = marginX; y += 7; }
-                        doc.text(label + ' ', x, y);
-                        x += labelWidth;
-                        doc.setFont('times', 'normal');
-                        var words = displayValue.split(' ');
+                        var display = value;
+                        if (key === 'novoPV') { if (campos.novaCompra !== 'Sim') display = ''; else if (!value) display = placeholders[key]; }
+                        else { if (!value) display = placeholders[key]; }
+                        if (!display) continue;
+                        doc.setFont('times','bold');
+                        var lw = doc.getTextWidth(lbl+' ');
+                        if (x+lw > mX+mW) { x=mX; y+=7; }
+                        doc.text(lbl+' ', x, y); x+=lw;
+                        doc.setFont('times','normal');
+                        var words = display.split(' ');
                         for (var w = 0; w < words.length; w++) {
-                            var word = words[w] + ' ';
-                            var wordWidth = doc.getTextWidth(word);
-                            if (x + wordWidth > marginX + maxWidth) { x = marginX; y += 7; }
+                            var word = words[w]+' ';
+                            var ww = doc.getTextWidth(word);
+                            if (x+ww > mX+mW) { x=mX; y+=7; }
                             doc.text(word, x, y);
-                            doc.line(x, y + 0.8, x + wordWidth, y + 0.8);
-                            x += wordWidth;
+                            doc.line(x, y+0.8, x+ww, y+0.8);
+                            x+=ww;
                         }
-                        x += 2;
+                        x+=2;
                     }
-                    finalY = y + 10;
+                    finalY = y+10;
                 }
 
                 finalY += 20;
-                doc.text('Assinatura Cliente: ___________________________________________', marginX, finalY); finalY += 15;
-                doc.text('Assinatura Gerente: __________________________________________', marginX, finalY); finalY += 20;
+                doc.text('Assinatura Cliente: ___________________________________________', mX, finalY); finalY+=15;
+                doc.text('Assinatura Gerente: __________________________________________', mX, finalY); finalY+=20;
 
-                var meses = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
-                var dataAtual = new Date();
-                doc.setFontSize(12);
-                doc.text(localUsuario.cidade + '-' + localUsuario.uf + ', ' + dataAtual.getDate() + ' de ' + meses[dataAtual.getMonth()] + ' de ' + dataAtual.getFullYear(), 105, finalY, { align: 'center' });
+                var meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+                var now = new Date();
+                doc.text(local.cidade+'-'+local.uf+', '+now.getDate()+' de '+meses[now.getMonth()]+' de '+now.getFullYear(), 105, finalY, { align:'center' });
 
-                var pdfBlob = doc.output('blob');
-                var pdfUrl = URL.createObjectURL(pdfBlob);
-                var html = '<!DOCTYPE html><html><head><title>Declaração de Devolução</title></head><body style="margin:0"><iframe src="' + pdfUrl + '" style="width:100vw;height:100vh;border:none;"></iframe></body></html>';
-                var win = window.open();
-                if (!win || win.closed || typeof win.closed === 'undefined') {
+                var blob = doc.output('blob');
+                var url  = URL.createObjectURL(blob);
+                var html = '<!DOCTYPE html><html><head><title>Declaração de Devolução</title></head><body style="margin:0"><iframe src="'+url+'" style="width:100vw;height:100vh;border:none;"></iframe></body></html>';
+                var win  = window.open();
+                if (!win || win.closed) {
                     esconderOverlay('overlayLoading');
-                    showToast('Não foi possível abrir o PDF. Verifique o bloqueador de popups.', 'error');
+                    showToast('Bloqueador de popup impediu a abertura. Verifique as configurações.', 'error');
                     return;
                 }
                 win.document.write(html);
                 win.document.close();
                 esconderOverlay('overlayLoading');
                 showToast('PDF gerado com sucesso!', 'success');
-            } catch (error) {
-                console.error('Erro ao gerar PDF:', error);
+            } catch (err) {
+                console.error('gerarPDF:', err);
                 esconderOverlay('overlayLoading');
-                showToast('Erro ao gerar o PDF. Tente novamente.', 'error');
+                showToast('Erro ao gerar PDF. Tente novamente.', 'error');
             }
         })
-        .catch(function (error) {
-            console.error('Erro ao preparar PDF:', error);
+        .catch(function (err) {
+            console.error('loadTimbre:', err);
             esconderOverlay('overlayLoading');
-            showToast('Erro ao gerar o PDF. Tente novamente.', 'error');
+            showToast('Erro ao gerar PDF. Tente novamente.', 'error');
         });
 }
 
@@ -941,27 +937,26 @@ function showToast(message, type, duration) {
     if (!duration) duration = 3000;
     var container = document.getElementById('toastContainer');
     if (!container) return;
+    var icons = {
+        success:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+        error:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+        warning:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+        info:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+    };
+    var titles = { success:'Sucesso', error:'Erro', warning:'Atenção', info:'Informação' };
     var toast = document.createElement('div');
     toast.className = 'toast ' + type;
-    var icons = {
-        success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
-        error:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
-        warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
-        info:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
-    };
-    var titles = { success: 'Sucesso', error: 'Erro', warning: 'Atenção', info: 'Informação' };
     toast.innerHTML =
-        '<div class="toast-icon">' + icons[type] + '</div>' +
-        '<div class="toast-content"><div class="toast-title">' + titles[type] + '</div><div class="toast-message">' + escapeHtml(String(message)) + '</div></div>' +
-        '<div class="toast-progress" style="animation-duration:' + duration + 'ms;"></div>';
+        '<div class="toast-icon">'+icons[type]+'</div>' +
+        '<div class="toast-content"><div class="toast-title">'+titles[type]+'</div><div class="toast-message">'+escapeHtml(String(message))+'</div></div>' +
+        '<div class="toast-progress" style="animation-duration:'+duration+'ms;"></div>';
     container.appendChild(toast);
     setTimeout(function () {
-        toast.style.animation = 'slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) reverse';
+        toast.style.animation = 'slideRight .4s cubic-bezier(0.4,0,0.2,1) reverse';
         setTimeout(function () { if (container.contains(toast)) container.removeChild(toast); }, 400);
     }, duration);
 }
 
 function escapeHtml(str) {
-    if (str === null || typeof str === 'undefined') return '';
-    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }

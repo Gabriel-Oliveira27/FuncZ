@@ -14,69 +14,61 @@
 </head>
 <body>
 
-<!-- ░░ MESH BACKGROUND ░░ -->
+<!--  MESH BACKGROUND  -->
 <div class="mesh-bg" aria-hidden="true">
     <div class="mesh-blob mesh-blob-1"></div>
     <div class="mesh-blob mesh-blob-2"></div>
     <div class="mesh-blob mesh-blob-3"></div>
 </div>
 
-<!-- ░░ TOASTS ░░ -->
+<!--  TOASTS  -->
 <div id="toastContainer" class="toast-container"></div>
 
 <!-- ════════════════════════════════════════
      HEADER
 ════════════════════════════════════════ -->
-<header class="header" id="appHeader">
-    <div class="header-inner">
-
-        <div class="header-brand">
-            <a href="selectsetor.html" class="brand-link" id="btnVoltar" title="Voltar à home">
-                <img src="../image/zenirlogo.png" alt="Zenir" class="brand-img" onerror="this.style.display='none'">
-            </a>
-        </div>
-
-        <div class="header-controls">
-            <button class="hbtn hbtn-ghost" id="btnTema" title="Alternar tema" aria-label="Alternar tema">
-                <svg id="iconeTema" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="5"/>
-                    <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                    <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-                </svg>
-            </button>
-
-            <div class="hsep"></div>
-
-            <div class="header-form-group" id="headerFormGroup">
-                <div class="prog-wrap" id="progressContainer">
-                    <div class="prog-track"><div class="prog-fill" id="progressBarFill"></div></div>
-                    <span class="prog-pct" id="progressPercentage">0%</span>
-                </div>
-                <div class="hsep"></div>
-                <button class="hbtn hbtn-ghost" id="btnLimparHeader" title="Limpar campos">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="3 6 5 6 21 6"/>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                    </svg>
-                    <span class="hbtn-label">Limpar</span>
-                </button>
-                <button class="hbtn hbtn-green" id="btnGerarPDFHeader" title="Gerar PDF">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="7 10 12 15 17 10"/>
-                        <line x1="12" y1="15" x2="12" y2="3"/>
-                    </svg>
-                    <span class="hbtn-label">Gerar PDF</span>
-                </button>
-                <button class="hbtn hbtn-red" id="btnFecharHeader" title="Fechar formulário">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                    <span class="hbtn-label">Fechar</span>
-                </button>
+<header class="header">
+    <div class="logo-container">
+        <img src="../image/zenirlogo.png" alt="Zenir" class="logo-img" onerror="this.style.display='none'">
+    </div>
+    <div class="header-actions">
+        <button class="header-btn header-btn-ghost" id="btnHome" title="Voltar para Home" aria-label="Home">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+            <span>Home</span>
+        </button>
+        <button class="header-btn header-btn-ghost" id="btnTema" title="Alternar tema" aria-label="Alternar tema">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+            <span id="themeText">Tema Escuro</span>
+        </button>
+        <div class="header-sep"></div>
+        <div class="header-form-group" id="headerFormGroup" style="display: none;">
+            <div class="prog-wrap" id="progressContainer">
+                <div class="prog-track"><div class="prog-fill" id="progressBarFill"></div></div>
+                <span class="prog-pct" id="progressPercentage">0%</span>
             </div>
+            <div class="header-sep"></div>
+            <button class="header-btn header-btn-ghost" id="btnLimparHeader" title="Limpar campos" disabled>
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+                <span>Limpar</span>
+            </button>
+            <button class="header-btn header-btn-success" id="btnGerarPDFHeader" title="Gerar PDF" disabled>
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span>Gerar PDF</span>
+            </button>
+            <button class="header-btn header-btn-danger" id="btnFecharHeader" title="Fechar" disabled>
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+                <span>Fechar</span>
+            </button>
         </div>
     </div>
 </header>
@@ -92,7 +84,7 @@
         <div class="hero" id="heroText">
             <p class="hero-eyebrow">Faturamento · Zenir</p>
             <h1 class="hero-title">Olá, <span class="hero-name" id="userName">Usuário</span>!</h1>
-            <p class="hero-sub">O que vamos fazer hoje?</p>
+            <p class="hero-sub">Selecione uma opção abaixo:</p>
         </div>
 
         <div class="action-cards" id="actionCards">
@@ -139,20 +131,21 @@
 
         </div>
 
-        <!-- Chips informativos -->
-        <div class="info-chips">
-            <div class="chip">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                Dados processados localmente
-            </div>
-            <div class="chip">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                PDF gerado no navegador
-            </div>
-            <div class="chip">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                Busca de produtos por código
-            </div>
+
+        
+
+        <!-- Ícones flutuantes -->
+        <div class="floating-icons-container">
+            <img src="../image/zenirlogo.png" alt="" class="floating-icon" width="80" height="80">
+            <svg xmlns="http://www.w3.org/2000/svg" class="floating-icon" width="60" height="60" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M0 3h24v15h-4.046l2.698 2.063l-1.215 1.589L16.66 18H7.336l-4.771 3.652l-1.216-1.588L4.044 18H0z"/>
+          </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" class="floating-icon" width="65" height="65" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/>
+            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" class="floating-icon" width="65" height="65" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="12 3 20 7.5 20 16.5 12 21 4 16.5 4 7.5 12 3"/><polyline points="12 12 20 7.5"/><polyline points="12 12 12 21"/><polyline points="12 12 4 7.5"/>
+            </svg>
         </div>
 
     </section>
@@ -421,5 +414,7 @@
 
 <script src="../js/declaracoes.js"></script>
 <script src="../js/session-guard.js"></script>
+<script src="../js/motivos.js"></script>
+
 </body>
 </html>
