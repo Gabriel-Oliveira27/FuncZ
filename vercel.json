@@ -1,0 +1,27 @@
+{
+  "routes": [
+    {
+      "src": "/(.*)\\.html",
+      "status": 301,
+      "headers": {
+        "Location": "/$1"
+      }
+    },
+    {
+      "src": "/pages/(.*)",
+      "dest": "/pages/$1.html"
+    },
+    {
+      "src": "/suporte/(.*)",
+      "dest": "/suporte/$1.html"
+    },
+    {
+      "src": "/celular/(.*)",
+      "dest": "/celular/$1.html"
+    },
+    {
+        "src": "/feedbacks/(.*)",
+        "dest": "/feedbacks/$1.html"
+    }
+  ]
+}
