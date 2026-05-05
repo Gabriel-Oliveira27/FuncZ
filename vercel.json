@@ -1,27 +1,27 @@
 {
-  "routes": [
+  "redirects": [
     {
-      "src": "/(.*)\\.html",
-      "status": 301,
-      "headers": {
-        "Location": "/$1"
-      }
+      "source": "/:path*.html",
+      "destination": "/:path*",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/pages/:path*",
+      "destination": "/pages/:path*.html"
     },
     {
-      "src": "/pages/(.*)",
-      "dest": "/pages/$1.html"
+      "source": "/suporte/:path*",
+      "destination": "/suporte/:path*.html"
     },
     {
-      "src": "/suporte/(.*)",
-      "dest": "/suporte/$1.html"
+      "source": "/celular/:path*",
+      "destination": "/celular/:path*.html"
     },
     {
-      "src": "/celular/(.*)",
-      "dest": "/celular/$1.html"
-    },
-    {
-        "src": "/feedbacks/(.*)",
-        "dest": "/feedbacks/$1.html"
+      "source": "/feedbacks/:path*",
+      "destination": "/feedbacks/:path*.html"
     }
   ]
 }
