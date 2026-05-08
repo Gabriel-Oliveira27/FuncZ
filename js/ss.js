@@ -386,7 +386,7 @@ const LockPanelRotator = {
   items: [],
   lastProductCountResult: null,
   // ping URL (small static file on same origin to avoid CORS). Change if you prefer.
-  pingUrl: (window.location.origin ? window.location.origin : '') + '/favicon.ico',
+  pingUrl: window.location.href.split('?')[0],
 
   async buildItems() {
     // returns array of { render: async ()=>HTMLElement|string, durationMs }
@@ -493,16 +493,19 @@ const LockPanelRotator = {
     ];
   },
 
-  // ping helper: quick GET to measure time (avoids CORS by using same-origin asset)
+  // ping helper: usa navigator.onLine + performance para não gerar requests externos
   async pingShort(timeoutMs = 5000) {
+    if (!navigator.onLine) return { ok: false, reason: 'offline', ms: null };
+    // Mede latência via fetch da própria página sem gerar erros 404
     const url = this.pingUrl;
     const start = performance.now();
     try {
-      const r = await fetchWithTimeout(url, { method: 'GET', cache: 'no-store' }, timeoutMs);
-      const end = performance.now();
-      return { ok: r.ok, status: r.status, ms: Math.round(end - start) };
-    } catch (err) {
-      return { ok: false, reason: err && err.message ? String(err.message) : 'erro', ms: null };
+      // cache:'only-if-cached' + mode:'same-origin' — usa cache local, sem rede
+      const r = await fetch(url, { method: 'GET', cache: 'only-if-cached', mode: 'same-origin' });
+      return { ok: true, ms: Math.round(performance.now() - start) };
+    } catch {
+      // fallback: confia no navigator.onLine e retorna latência estimada
+      return { ok: navigator.onLine, ms: navigator.onLine ? null : null, reason: navigator.onLine ? null : 'offline' };
     }
   },
 
@@ -600,12 +603,12 @@ function showWeatherErrorSVG(reason) {
 async function determineCityToUse() {
   const auth = readAuthSession();
   if (auth && (String(auth.perm || '').toLowerCase() === 'admin' || String(auth.perm || '').toLowerCase() === 'suporte')) {
-    if (auth.cidade) return auth.cidade;
+    if (auth.local) return auth.local;
   }
   if (auth && auth.lastCoords && auth.lastCoords.lat && auth.lastCoords.lon) {
     return `${auth.lastCoords.lat},${auth.lastCoords.lon}`;
   }
-  if (auth && auth.cidade) return auth.cidade;
+  if (auth && auth.local) return auth.local;
   // check our stored coords key too (non-auth)
   const stored = getStoredCoords();
   if (stored) return `${stored.lat},${stored.lon}`;
@@ -646,114 +649,23 @@ async function ensureCoordsForLockscreen(timeoutMs = 10000) {
 
 /* updateLockScreen - the main function that prepares lock screen panel content */
 async function updateLockScreen(options = { newsMode: 'geral' }) {
-  // quote
+  // Quote motivacional
   const quote = fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
   const quoteEl = document.getElementById('lockQuote');
   if (quoteEl) {
     quoteEl.textContent = `"${quote}"`;
-    // fixed color
-    quoteEl.style.color = '#111';
+    quoteEl.style.color = '#fff';
   }
 
-  // start rotator (this handles product count, ping, curiosities, api-info)
+  // Rotador (curiosidades, ping, dicas)
   try { LockPanelRotator.start(); } catch (e) { console.warn(e); }
 
-  // render news (may show loader)
+  // Notícias
   try {
     if (options.newsMode === 'futebol') await renderFootballSummary();
     else await renderNews('geral');
   } catch (e) { console.warn('updateLockScreen news fail', e); }
-
-  // weather: use stored city/coords only; if none, attempt to prompt (since lockscreen opening is user-initiated)
-  let city = await determineCityToUse();
-  const wTempEl = document.getElementById('weatherTemp');
-  const wCondEl = document.getElementById('weatherCondition');
-
-  // ensure weather card texts keep fixed color
-  const wCard = document.querySelector('.lock-info-grid .lock-info-card:first-child') || document.querySelector('#weatherTemp')?.closest('.lock-info-card');
-  if (wCard) wCard.style.color = '#111';
-
-  if (!OPENWEATHER_KEY) {
-    if (wTempEl) { wTempEl.textContent = '--'; wTempEl.style.color = '#111'; }
-    if (wCondEl) { wCondEl.textContent = 'Chave OpenWeather não configurada'; wCondEl.style.color = '#111'; }
-    showWeatherErrorSVG('Chave OpenWeather não configurada');
-    return;
-  }
-
-  // if no city yet, attempt to get coords (this will prompt geolocation permission)
-  if (!city) {
-    if (wCard) {
-      // show a small cloud + spinner while requesting location
-      wCard.style.color = '#111';
-      wCard.innerHTML = `
-        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px;color:inherit">
-          <svg width="68" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 16.5A4.5 4.5 0 0 0 15.5 12h-1.1A5 5 0 0 0 6.5 13.8 3.5 3.5 0 0 0 7 20h9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-            <g transform="translate(4,2)">
-              <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.2" fill="none">
-                <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0 10 10" to="360 10 10" dur="1s" repeatCount="indefinite"/>
-              </circle>
-            </g>
-          </svg>
-          <div style="font-weight:700">Buscando localização...</div>
-          <div style="font-size:0.9rem;opacity:0.85;text-align:center">Permitindo que o navegador obtenha sua localização para exibir o clima.</div>
-        </div>
-      `;
-    }
-
-    // try to get coords (timeout ~9s)
-    const auto = await ensureCoordsForLockscreen(9000);
-    if (auto) city = auto;
-  }
-
-  if (!city) {
-    // still no city: show message and let user manually update
-    if (wTempEl) { wTempEl.textContent = '--'; wTempEl.style.color = '#111'; }
-    if (wCondEl) { wCondEl.textContent = 'Local não definido'; wCondEl.style.color = '#111'; }
-    showWeatherErrorSVG('Local não definido. Atualize a localização manualmente.');
-    return;
-  }
-
-  try {
-    let weather = null;
-    if (/^[0-9.+\-]+\s*,\s*[0-9.+\-]+$/.test(String(city))) {
-      const parts = String(city).split(',').map(s => s.trim());
-      weather = await fetchWeatherByCoords(parts[0], parts[1]).catch(err => { throw err; });
-    } else {
-      weather = await fetchWeatherByCityName(city).catch(err => { throw err; });
-    }
-
-    if (weather) {
-      if (wCard) {
-        // restore a compact weather view inside the card but keep color fixed
-        wCard.style.color = '#111';
-        wCard.innerHTML = `
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="weatherIcon" style="width:28px;height:28px;margin-bottom:8px;color:inherit">
-            <circle cx="12" cy="12" r="5"></circle>
-          </svg>
-          <div style="text-align:center;color:inherit">
-            <div class="lock-weather-temp" id="weatherTempDisplay">${weather.temp != null ? weather.temp + '°C' : '--'}</div>
-            <div class="lock-weather-condition" id="weatherConditionDisplay" style="opacity:0.85">${escapeHtml(weather.condition || '')}</div>
-          </div>
-        `;
-      } else {
-        if (wTempEl) { wTempEl.textContent = (weather.temp != null) ? `${weather.temp}°C` : '--'; wTempEl.style.color = '#111'; }
-        if (wCondEl) { wCondEl.textContent = weather.condition || ''; wCondEl.style.color = '#111'; }
-      }
-    } else {
-      showWeatherErrorSVG('Resposta vazia da API');
-      if (wTempEl) { wTempEl.textContent = '--'; wTempEl.style.color = '#111'; }
-      if (wCondEl) { wCondEl.textContent = 'Dados do clima indisponíveis'; wCondEl.style.color = '#111'; }
-    }
-  } catch (err) {
-    console.warn('updateLockScreen weather error', err);
-    const reason = (err && err.message) ? err.message : 'erro desconhecido';
-    showWeatherErrorSVG(reason);
-    if (wTempEl) { wTempEl.textContent = '--'; wTempEl.style.color = '#111'; }
-    if (wCondEl) { wCondEl.textContent = 'Erro ao buscar clima'; wCondEl.style.color = '#111'; }
-  }
 }
-
 /* request geolocation from user gesture and update weather - saves coords to authSession */
 function requestGeolocationAndUpdateWeather() {
   if (!navigator.geolocation) {
@@ -1248,20 +1160,53 @@ document.addEventListener('DOMContentLoaded', async () => {
   // If lockScreen is already active on load, start clock and update
   if (document.querySelector('#lockScreen.active')) { startClock(); await updateLockScreen(); }
 
-  // Footer: populate year and user info
-  const currentYear = new Date().getFullYear();
-  const footerYear = document.getElementById('footer-year');
-  const footerCopyrightYear = document.getElementById('footer-copyright-year');
-  const footerUser = document.getElementById('footer-user');
-  
-  if (footerYear) footerYear.textContent = currentYear;
-  if (footerCopyrightYear) footerCopyrightYear.textContent = currentYear;
-  
-  const auth = readAuthSession();
-  if (footerUser && auth) {
-    const userName = firstName(auth.fullName || auth.user || 'Usuário');
-    footerUser.textContent = userName;
-  }
+  // Footer: year + dados da sessão (nome, filial, cidade)
+const currentYear = new Date().getFullYear();
+const footerCopyrightYear = document.getElementById('footer-copyright-year');
+if (footerCopyrightYear) footerCopyrightYear.textContent = currentYear;
+
+const auth = readAuthSession();
+const footerUser   = document.getElementById('footer-user');
+const footerFilial = document.getElementById('footer-filial');
+const footerCity   = document.getElementById('footer-city');
+
+if (auth) {
+    if (footerUser) {
+        footerUser.textContent = firstName(auth.fullName || auth.user || 'Usuário');
+    }
+
+    const permRaw = String(auth.perm || '').toLowerCase();
+    const isGlobalAccess = (permRaw === 'admin' || permRaw === 'suporte') && !auth.filial;
+
+    const PERM_LABELS = {
+        admin:    'Administração do Sistema',
+        suporte:  'Suporte Técnico',
+        ger:      'Gerência',
+        fat:      'Faturamento',
+        cred:     'Crediário',
+        vendedor: 'Vendas',
+    };
+
+    if (isGlobalAccess) {
+        // Admin/suporte sem filial associada — exibe papel e acesso global
+        if (footerFilial) footerFilial.textContent = PERM_LABELS[permRaw] || '—';
+        if (footerCity)   footerCity.textContent   = 'Acesso irrestrito';
+    } else if (auth.filial) {
+        // filial = "02", local = "iguatu"
+        const num  = String(parseInt(auth.filial, 10) || 0).padStart(2, '0');
+        const city = auth.local
+            ? auth.local.charAt(0).toUpperCase() + auth.local.slice(1).toLowerCase()
+            : '—';
+        if (footerFilial) footerFilial.textContent = `Filial ${num}`;
+        if (footerCity)   footerCity.textContent   = city;
+    } else {
+        // Sem filial associada
+        if (footerFilial) footerFilial.textContent = PERM_LABELS[permRaw] || '—';
+        if (footerCity)   footerCity.textContent   = auth.local
+            ? auth.local.charAt(0).toUpperCase() + auth.local.slice(1).toLowerCase()
+            : '—';
+    }
+}
 
   // expose helpers for debug/testing
   window.ss_utils = {
