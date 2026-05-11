@@ -98,7 +98,7 @@
   const CODES = {
     'adm-gabriel': {
       type: 'auth',
-      secrets: ['gabriel*27', 'loja02', 'funcz2026', 'tests2026'],
+      secrets: ['gabriel*27', 'funcz2026', 'tests2026'],
       baseSession: {
         user: 'gabrieloliveira',
         fullName: 'Gabriel de Oliveira Bezerra',
