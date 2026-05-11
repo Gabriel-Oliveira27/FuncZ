@@ -56,9 +56,9 @@
 
     // 4. Filial/cidade da sessão contém 'iguatu'
     if (auth) {
-      const filial = normalize(auth.filial || '');  // ex: "iguatu=02"
+      const filial = normalize(auth.filial || ''); 
       const cidade = normalize(auth.cidade || '');
-      if (filial.includes('iguatu') || cidade.includes('iguatu')) return true;
+      if (filial.includes('iguatu') || cidade.includes('iguatu') || filial.includes('icó') || cidade.includes('icó')) return true ;
     }
 
     return false;
