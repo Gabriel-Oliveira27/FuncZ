@@ -838,6 +838,15 @@ async function _gerarPDF(lista, subEl) {
   }
 
   const pdf = new window.jspdf.jsPDF('p','mm','a4');
+  
+  // Função auxiliar para converter mm para px (considerando DPI padrão de 96)
+  const mmToPx = (mm) => Math.round((mm / 25.4) * 96);
+  
+  // Dimensões sempre em A4 (210mm x 297mm) - o CSS dos wrappers cuida do scaling
+  const a4WidthMm = 210;
+  const a4HeightMm = 297;
+  const a4WidthPx = mmToPx(a4WidthMm);
+  const a4HeightPx = mmToPx(a4HeightMm);
 
   for (let i = 0; i < lista.length; i++) {
     const prod = lista[i];
@@ -846,33 +855,60 @@ async function _gerarPDF(lista, subEl) {
     const clone = document.createElement('div');
     clone.innerHTML = generatePosterHTML(prod, false);
 
-    const ehA5Novo = prod.layoutPersonalizado === 'a5-loja53-novo';
-    const ehA5Conf = prod.layoutPersonalizado === 'a5-loja53';
-    const ehJuazeiro2A6 = prod.layoutPersonalizado === 'juazeiro2-a6';
-
-    if (ehA5Novo || ehA5Conf || ehJuazeiro2A6) {
-      clone.style.cssText = 'position:absolute;left:-99999px;top:0;width:210mm;height:297mm;background:#fff;margin:0;padding:0;box-sizing:border-box;overflow:hidden;';
-    } else {
-      clone.style.cssText = 'position:absolute;left:-99999px;top:0;width:182.6mm;height:258.3mm;background:#fff;margin:0;padding:0;box-sizing:border-box;overflow:hidden;';
-      const pEl = clone.querySelector('.poster');
-      if (pEl) { pEl.style.width='182.6mm'; pEl.style.height='258.3mm'; }
-      const ftEl = clone.querySelector('.poster-footer-table');
-      if (ftEl) {
-        const sf = 258.3/297;
-        const dr = clone.querySelector('[data-digits]');
-        const dg = dr?.getAttribute('data-digits');
-        const top = dg==='4'?19:dg==='3'?20:dg==='2'?21.75:dg==='1'?22.5:20.5;
-        ftEl.style.top = (top*sf).toFixed(3)+'cm';
-      }
-    }
+    // CORREÇÃO CRÍTICA: O clone SEMPRE deve ter tamanho A4 (210mm x 297mm)
+    // Os wrappers CSS (como poster-wrapper-a5loja53) cuidam do scaling via transform
+    // Usar visibility:hidden ao invés de left:-99999px garante que CSS e fontes sejam aplicadas
+    clone.style.cssText = `
+      visibility: hidden;
+      position: static;
+      width: ${a4WidthPx}px;
+      height: ${a4HeightPx}px;
+      background: #fff;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      overflow: hidden;
+      font-size: 16px;
+    `;
 
     document.body.appendChild(clone);
+    
+    // CORREÇÃO CRÍTICA: aguardar um pequeno delay para fontes CDN carregarem
+    // Especialmente importante para Google Fonts e CDN Fonts
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Aguardar document.fonts.ready para garantir que as fontes foram carregadas
+    if (document.fonts && document.fonts.ready) {
+      try {
+        await document.fonts.ready;
+      } catch (e) {
+        console.warn('Fontes não carregaram completamente:', e);
+      }
+    }
+    
+    // CORREÇÃO CRÍTICA: html2canvas precisa de dimensões reais em pixels
+    // windowWidth e windowHeight devem corresponder ao tamanho A4 em pixels
     const canvas = await html2canvas(clone, {
-      scale: 2, backgroundColor: '#fff', useCORS: true,
-      allowTaint: true, logging: false,
-      windowWidth: clone.scrollWidth, windowHeight: clone.scrollHeight,
+      scale: 2,
+      backgroundColor: '#fff',
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      windowWidth: a4WidthPx,
+      windowHeight: a4HeightPx,
+      proxy: null,
+      removeContainer: false,
+      ignoreElements: (el) => {
+        // Ignorar elementos de overlay que possam interferir
+        const classList = el.className;
+        if (typeof classList === 'string') {
+          return classList.includes('overlay') || classList.includes('modal') || classList.includes('dialog');
+        }
+        return false;
+      }
     });
-    const img = canvas.toDataURL('image/jpeg', 1.0);
+    
+    const img = canvas.toDataURL('image/jpeg', 0.95);
     if (i > 0) pdf.addPage();
     pdf.addImage(img,'JPEG',0,0,210,297);
     document.body.removeChild(clone);

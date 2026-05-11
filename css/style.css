@@ -1383,6 +1383,7 @@ input:checked + .slider:before {
 .product-card {
   display: grid;
   grid-template-columns: 1fr 200px;
+  grid-template-rows: auto auto auto;
   gap: 24px;
   background: white;
   border-radius: 12px;
@@ -1468,6 +1469,8 @@ input:checked + .slider:before {
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
+  grid-column: 2;
+  grid-row: 1;
 }
 
 .product-preview:hover {
@@ -1484,7 +1487,8 @@ input:checked + .slider:before {
   cursor: pointer;
   font-size: 13px;
   transition: all 0.2s;
-  margin-top: 12px;
+  margin: 0;
+  grid-column: 1 / -1;
 }
 
 .btn-delete:hover {
@@ -1817,44 +1821,16 @@ input:checked + .slider:before {
 
 /* --------------------------------------------------
    CHECKBOX "MOVER VALIDADE" NO CARD DA PREVIEW
+   (MANTIDO POR COMPATIBILIDADE - NÃO USADO)
    -------------------------------------------------- */
 .chk-mover-validade-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 6px;
-  padding: 4px 8px;
-  background: #f0f4ff;
-  border: 1px solid #c7d4f8;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
-  color: #374151;
-  user-select: none;
-  transition:
-    background 0.15s,
-    border-color 0.15s;
-}
-.chk-mover-validade-label:hover {
-  background: #e0e9ff;
-  border-color: #93aef5;
-}
-.chk-mover-validade-label input[type="checkbox"] {
-  width: 14px;
-  height: 14px;
-  accent-color: #275efe;
-  cursor: pointer;
-  flex-shrink: 0;
+  display: none;
 }
 
 /* --------------------------------------------------
    SELECT "LAYOUTS PERSONALIZADOS" NO CARD DA PREVIEW
    -------------------------------------------------- */
 .select-layout-personalizado {
-  display: block;
-  width: 100%;
-  margin-top: 8px;
   padding: 6px 28px 6px 10px;
   font-size: 12px;
   font-weight: 500;
@@ -1887,6 +1863,157 @@ input:checked + .slider:before {
   background: #eff4ff;
   color: var(--primary-dark);
   font-weight: 600;
+}
+
+/* Nova linha de controles — reorganização do card */
+.product-controls-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 0;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  padding-top: 8px;
+  border-top: 1px solid var(--gray-200);
+}
+
+/* Checkbox compacto */
+.chk-compact {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  color: #475569;
+  user-select: none;
+  transition: all 0.12s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.chk-compact:hover {
+  background: #eff6ff;
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.chk-compact input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: #2563eb;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.chk-compact input[type="checkbox"]:checked + span {
+  font-weight: 600;
+}
+
+/* Select de layout na mesma linha */
+.product-controls-row .select-layout-personalizado {
+  margin-top: 0;
+  flex-shrink: 0;
+  width: auto;
+  min-width: 140px;
+  padding: 6px 28px 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  height: 32px;
+}
+
+/* Container dos botões de ação (Centavos + Editar) */
+.product-actions-buttons {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Botão Centavos na linha de controles */
+.product-controls-row .df-centavos-btn {
+  margin: 0;
+  flex-shrink: 0;
+  height: 32px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+/* Botão Editar na linha de controles */
+.product-controls-row .ec-edit-btn {
+  margin: 0;
+  flex-shrink: 0;
+  height: 32px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--primary);
+  border: none;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.12s ease;
+}
+
+.product-controls-row .ec-edit-btn:hover {
+  background: var(--primary-dark);
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.2);
+}
+
+.product-controls-row .ec-edit-btn:active {
+  transform: scale(.98);
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .chk-compact {
+  background: #1e293b;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .chk-compact:hover {
+  background: #0f172a;
+  border-color: #3b82f6;
+  color: #93c5fd;
+}
+
+[data-theme="dark"] .product-controls-row .select-layout-personalizado {
+  background: #1e293b;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .product-controls-row .select-layout-personalizado:hover {
+  background: #0f172a;
+  border-color: #3b82f6;
+}
+
+[data-theme="dark"] .product-actions-buttons .df-centavos-btn {
+  background: #1e293b;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .product-actions-buttons .df-centavos-btn:hover {
+  background: #0f172a;
+  border-color: #3b82f6;
+  color: #93c5fd;
+}
+
+[data-theme="dark"] .product-actions-buttons .ec-edit-btn {
+  background: #2563eb;
+}
+
+[data-theme="dark"] .product-actions-buttons .ec-edit-btn:hover {
+  background: #1d4ed8;
 }
 
 /* --------------------------------------------------
@@ -4952,12 +5079,11 @@ body.mobile-detected {
 .ge-sel-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 6px;
-  padding: 5px 8px;
-  background: #f0fdf4;
-  border: 1px solid #6ee7b7;
-  border-radius: 20px;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--gray-200);
+  grid-column: 1 / -1;
 }
 
 .ge-sel-icon  { color: #059669; font-size: 13px; flex-shrink: 0; }

@@ -1530,25 +1530,26 @@ function renderProducts() {
                         </div>
                     </div>
                 </div>
-                <div>
-                    <div class="product-preview" data-preview-id="${product.id}" onclick="showPreview(${product.id})">
-                        ${generatePosterHTML(product, true)}
-                    </div>
+                <div class="product-preview" data-preview-id="${product.id}" onclick="showPreview(${product.id})" style="align-self:start;">
+                    ${generatePosterHTML(product, true)}
+                </div>
+                <div class="product-controls-row">
                     ${product.validade ? `
-                    <label class="chk-mover-validade-label" onclick="event.stopPropagation()">
+                    <label class="chk-compact" onclick="event.stopPropagation()">
                         <input type="checkbox"
                             onchange="toggleMoverValidade(${product.id}, this.checked)"
                             ${product.moverValidade ? 'checked' : ''}>
                         <span>Mover validade</span>
                     </label>` : ''}
                     ${product.subdescricao ? `
-                    <label class="chk-mover-validade-label" style="margin-top:4px;" onclick="event.stopPropagation()">
+                    <label class="chk-compact" onclick="event.stopPropagation()">
                         <input type="checkbox"
                             onchange="toggleNegritoSubdesc(${product.id}, this.checked)"
                             ${product.negritoSubdesc ? 'checked' : ''}>
-                        <span>Sub descrição em negrito</span>
+                        <span>Sub em negrito</span>
                     </label>` : ''}
-                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 12px;">
+                    <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;" onclick="event.stopPropagation()">
+                        <span style="font-size:9px;font-weight:800;color:#9ca3af;text-transform:uppercase;letter-spacing:.6px;line-height:1;">Estilos</span>
                         <select class="select-layout-personalizado${product.layoutPersonalizado ? ' layout-ativo' : ''}"
                             onchange="alterarLayoutPersonalizado(${product.id}, this.value)"
                             onclick="event.stopPropagation()">
@@ -1558,30 +1559,33 @@ function renderProducts() {
                             <option value="juazeiro2-a6" ${product.layoutPersonalizado === 'juazeiro2-a6' ? 'selected' : ''}>Juazeiro II - A6</option>
                             <option value="a6-paisagem" ${product.layoutPersonalizado === 'a6-paisagem' ? 'selected' : ''}>A6 - Paisagem</option>
                         </select>
-                        <button class="btn-delete" style="margin-top: 0;" onclick="deleteProduct(${product.id})">
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0;">
+                        <div class="product-actions-buttons" style="margin-left:0;"></div>
+                        <button class="btn-delete" style="margin:0;flex-shrink:0;" onclick="deleteProduct(${product.id})">
                             <i class="fa-solid fa-trash"></i> Remover
                         </button>
                     </div>
-                    ${(product.garantia12 > 0 || product.garantia24 > 0 || product.garantia36 > 0) ? `
-                    <div id="ge-sel-row-${product.id}" class="ge-sel-row" onclick="event.stopPropagation()">
-                        <i class="fa-solid fa-shield-halved ge-sel-icon"></i>
-                        <span class="ge-sel-label">Posição GE:</span>
-                        <select class="select-posicao-garantia${product.posicaoGarantia && product.posicaoGarantia !== 'hp' ? ' posicao-ativa' : ''}"
-                            onchange="alterarPosicaoGarantia(${product.id}, this.value)"
-                            onclick="event.stopPropagation()">
-                            <option value="hp"      ${!product.posicaoGarantia || product.posicaoGarantia === 'hp'      ? 'selected' : ''}>HP (padrão)</option>
-                            <option value="brother" ${product.posicaoGarantia === 'brother' ? 'selected' : ''}>Brother</option>
-                            <option value="hp-a5"   ${product.posicaoGarantia === 'hp-a5'   ? 'selected' : ''}>HP - A5</option>
-                            <option value="hp-a6"   ${product.posicaoGarantia === 'hp-a6'   ? 'selected' : ''}>HP - A6</option>
-                            <option value="custom"  ${product.posicaoGarantia === 'custom'  ? 'selected' : ''}>Custom</option>
-                        </select>
-                        ${product.posicaoGarantia === 'custom' ? `
-                        <button class="ge-calib-btn" title="Editar posição Custom"
-                            onclick="abrirDialogCustomGE(${product.id})">
-                            <i class="fa-solid fa-ruler"></i>
-                        </button>` : ''}
-                    </div>` : ''}
                 </div>
+                ${(product.garantia12 > 0 || product.garantia24 > 0 || product.garantia36 > 0) ? `
+                <div id="ge-sel-row-${product.id}" class="ge-sel-row" onclick="event.stopPropagation()">
+                    <i class="fa-solid fa-shield-halved ge-sel-icon"></i>
+                    <span class="ge-sel-label">Posição GE:</span>
+                    <select class="select-posicao-garantia${product.posicaoGarantia && product.posicaoGarantia !== 'hp' ? ' posicao-ativa' : ''}"
+                        onchange="alterarPosicaoGarantia(${product.id}, this.value)"
+                        onclick="event.stopPropagation()">
+                        <option value="hp"      ${!product.posicaoGarantia || product.posicaoGarantia === 'hp'      ? 'selected' : ''}>HP (padrão)</option>
+                        <option value="brother" ${product.posicaoGarantia === 'brother' ? 'selected' : ''}>Brother</option>
+                        <option value="hp-a5"   ${product.posicaoGarantia === 'hp-a5'   ? 'selected' : ''}>HP - A5</option>
+                        <option value="hp-a6"   ${product.posicaoGarantia === 'hp-a6'   ? 'selected' : ''}>HP - A6</option>
+                        <option value="custom"  ${product.posicaoGarantia === 'custom'  ? 'selected' : ''}>Custom</option>
+                    </select>
+                    ${product.posicaoGarantia === 'custom' ? `
+                    <button class="ge-calib-btn" title="Editar posição Custom"
+                        onclick="abrirDialogCustomGE(${product.id})">
+                        <i class="fa-solid fa-ruler"></i>
+                    </button>` : ''}
+                </div>` : ''}
             </div>
         `;
     })

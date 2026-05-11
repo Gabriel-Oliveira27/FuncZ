@@ -445,11 +445,10 @@
         _warn(id);
       });
 
-      // Inserir ao final da segunda coluna do card
-      var secondCol = card.children[1];
-      if (secondCol) {
-        var wrapper = document.createElement('div');
-        secondCol.appendChild(wrapper).appendChild(btn);
+      // Inserir no container de ações
+      var actionsContainer = card.querySelector('.product-actions-buttons');
+      if (actionsContainer) {
+        actionsContainer.appendChild(btn);
       }
     });
   }
