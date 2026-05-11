@@ -668,4 +668,3 @@ function _db_patchAdicionarProdutoDaBusca() {
   }, 200);
 }
 
-console.log('✅ dict-box.js v2 carregado — Box, Help, Capitalização e Feedback visual ativos.');

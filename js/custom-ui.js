@@ -1241,4 +1241,3 @@ document.addEventListener('DOMContentLoaded', function() {
   _cuiAtualizarBtnTema();
 });
 
-console.log('✅ custom-ui.js carregado — ' + BOTOES_CONFIG.length + ' botão(ões) configurado(s).');

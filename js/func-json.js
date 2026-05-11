@@ -1,4 +1,3 @@
-console.log('📦 func-json.js carregando...');
 
 // ==================================================
 // SEÇÃO 1: VARIÁVEIS GLOBAIS
@@ -1252,11 +1251,10 @@ async function buscarJSONNaCloud(user, filial) {
 
     try {
         const url = `${CLOUD_WORKER_ENDPOINT}?user=${encodeURIComponent(user)}&filial=${encodeURIComponent(filial)}`;
-        console.log('Procurando', url);
-
+       
         const response = await fetch(url);
         // debug rápido
-        console.log('[Cloud] resposta HTTP:', response.status, response.statusText);
+       
 
         if (!response.ok) {
             // tenta extrair mensagem de erro retornada pela GAS
@@ -1272,8 +1270,7 @@ async function buscarJSONNaCloud(user, filial) {
         }
 
         const dataRaw = await response.json();
-        console.log('[Cloud] body recebido:', dataRaw);
-
+      
         // === Normalizar formatos possíveis ===
         // Possível formatos:
         // 1) { cartazes: [...] }                <-- front antigo esperava isso
@@ -1429,7 +1426,7 @@ document.getElementById('btn-retry-cloud')?.addEventListener('click', () => {
 
 // Função para conectar eventos no HTML estático (sem recriar)
 function conectarEventosImportacaoEstatica() {
-    console.log('🔌 Conectando eventos de importação...');
+  
     
     // Navegação entre abas principais (Colar JSON / Upload de Arquivo)
     const importTabs = document.querySelectorAll('.import-tab');
@@ -1510,8 +1507,7 @@ function conectarEventosImportacaoEstatica() {
         });
     }
     
-    console.log('✅ Eventos de importação conectados');
-}
+    }
 
 // Controlar sub-abas dentro de "Upload de Arquivo"
 const subImportTabs = document.querySelectorAll('.sub-import-tab');

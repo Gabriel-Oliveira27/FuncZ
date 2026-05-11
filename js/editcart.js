@@ -12,17 +12,53 @@
     s.id   = 'ec-styles';
     s.textContent = [
 
-      /* ── Botão Editar no card ── */
+      /* ── Botão flutuante Editar (ícone circular top-left) ── */
       '.ec-edit-btn{',
-        'display:inline-flex;align-items:center;justify-content:center;gap:6px;',
-        'width:100%;padding:8px 0;margin-top:6px;',
-        'background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:8px;',
-        'font-size:12px;font-weight:600;color:#1d4ed8;',
-        'cursor:pointer;transition:all .18s ease;white-space:nowrap;',
+        'position:absolute;top:10px;left:10px;',
+        'width:30px;height:30px;border-radius:50%;',
+        'border:1.5px solid rgba(37,99,235,.2);',
+        'background:rgba(239,246,255,.88);',
+        'color:#2563eb;cursor:pointer;padding:0;margin:0;',
+        'display:flex;align-items:center;justify-content:center;',
+        'transition:all .2s ease;z-index:3;opacity:0;',
+        'backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);',
       '}',
-      '.ec-edit-btn:hover{background:#dbeafe;border-color:#3b82f6;',
-        'box-shadow:0 2px 8px rgba(59,130,246,.2);transform:translateY(-1px);}',
-      '.ec-edit-btn i{font-size:11px;}',
+      '.product-card:hover .ec-edit-btn{opacity:.7;}',
+      '.ec-edit-btn:hover{',
+        'opacity:1!important;transform:scale(1.12);',
+        'background:#2563eb!important;color:white!important;',
+        'border-color:#2563eb!important;',
+        'box-shadow:0 3px 14px rgba(37,99,235,.4);',
+      '}',
+      '.ec-edit-btn i{font-size:11px;pointer-events:none;}',
+
+      /* ── Botão flutuante Remover (ícone circular top-right) ── */
+      '.card-btn-delete{',
+        'position:absolute;top:10px;right:10px;',
+        'width:30px;height:30px;border-radius:50%;',
+        'border:1.5px solid rgba(239,68,68,.2);',
+        'background:rgba(254,242,242,.88);',
+        'color:#ef4444;cursor:pointer;padding:0;margin:0;',
+        'display:flex;align-items:center;justify-content:center;',
+        'transition:all .2s ease;z-index:3;opacity:0;',
+        'backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);',
+      '}',
+      '.product-card:hover .card-btn-delete{opacity:.7;}',
+      '.card-btn-delete:hover{',
+        'opacity:1!important;transform:scale(1.12);',
+        'background:#ef4444!important;color:white!important;',
+        'border-color:#ef4444!important;',
+        'box-shadow:0 3px 14px rgba(239,68,68,.4);',
+      '}',
+      '.card-btn-delete i{font-size:11px;pointer-events:none;}',
+
+      /* ── Dark mode ── */
+      '[data-theme="dark"] .ec-edit-btn{',
+        'background:rgba(30,58,95,.88);border-color:rgba(59,130,246,.3);color:#60a5fa;}',
+      '[data-theme="dark"] .ec-edit-btn:hover{background:#2563eb!important;color:white!important;}',
+      '[data-theme="dark"] .card-btn-delete{',
+        'background:rgba(76,21,21,.88);border-color:rgba(239,68,68,.3);color:#f87171;}',
+      '[data-theme="dark"] .card-btn-delete:hover{background:#ef4444!important;color:white!important;}',
 
       /* ── Backdrop ── */
       '#ec-bd{display:none;position:fixed;inset:0;',
@@ -132,13 +168,12 @@
       '.ec-desc-count.warn{color:#d97706;}',
       '.ec-desc-count.over{color:#ef4444;font-weight:700;}',
 
-      /* Toast acima do painel */
+      /* ── Toast acima do painel ── */
       '#toast-container{z-index:11000!important;}',
       '#ec-bd{z-index:10998;}',
 
-      /* ── Dark mode ── */
-      '[data-theme="dark"] #ec-pnl{background:#1e293b;',
-        'box-shadow:-6px 0 36px rgba(0,0,0,.5);}',
+      /* ── Dark mode painel ── */
+      '[data-theme="dark"] #ec-pnl{background:#1e293b;box-shadow:-6px 0 36px rgba(0,0,0,.5);}',
       '[data-theme="dark"] #ec-hdr{background:#162032;border-bottom-color:#334155;}',
       '[data-theme="dark"] #ec-title{color:#f1f5f9;}',
       '[data-theme="dark"] #ec-x{background:#273449;color:#94a3b8;}',
@@ -163,10 +198,6 @@
       '[data-theme="dark"] .ec-desc-count{color:#475569;}',
       '[data-theme="dark"] .ec-desc-count.warn{color:#fcd34d;}',
       '[data-theme="dark"] .ec-desc-count.over{color:#f87171;}',
-      '[data-theme="dark"] .ec-edit-btn{',
-        'background:#1e3a5f;border-color:#3b82f6;color:#93c5fd;}',
-      '[data-theme="dark"] .ec-edit-btn:hover{',
-        'background:#1d4ed8;border-color:#60a5fa;color:white;}',
 
     ].join('');
     document.head.appendChild(s);
@@ -439,17 +470,15 @@
       var btn = document.createElement('button');
       btn.type      = 'button';
       btn.className = 'ec-edit-btn';
-      btn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Editar cartaz';
+      btn.title     = 'Editar cartaz';
+      btn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i>';
       btn.addEventListener('click', function(e) {
         e.stopPropagation();
         _warn(id);
       });
 
-      // Inserir no container de ações
-      var actionsContainer = card.querySelector('.product-actions-buttons');
-      if (actionsContainer) {
-        actionsContainer.appendChild(btn);
-      }
+      // Inserir diretamente no card (posição absoluta top-left via CSS)
+      card.appendChild(btn);
     });
   }
 

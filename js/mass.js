@@ -1158,4 +1158,3 @@ window.massOpen  = massOpen;
 window.massClose = massClose;
 window._confirmarFecharMass = _confirmarFecharMass;
 
-console.log('✅ mass.js v2.2 carregado — HTML estático, Gerador em Massa com DICT_BOX ativo.');

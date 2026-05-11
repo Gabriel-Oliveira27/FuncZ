@@ -84,7 +84,6 @@ async function inicializarProdutos() {
           });
         });
       }
-      console.log('[Produtos] ' + todosProdutos.length + ' produto(s) carregado(s).');
     } catch (err) {
       console.warn('[Produtos] Falha ao carregar produtos.json:', err.message);
     }
@@ -1493,7 +1492,10 @@ function renderProducts() {
           : "";
 
       return `
-            <div class="product-card">
+            <div class="product-card" style="position:relative;">
+                <button class="card-btn-delete" type="button" onclick="deleteProduct(${product.id})" title="Remover cartaz">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
                 <div class="product-info">
                     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
                         <h3 style="margin: 0;">${product.descricao}</h3>
@@ -1560,12 +1562,7 @@ function renderProducts() {
                             <option value="a6-paisagem" ${product.layoutPersonalizado === 'a6-paisagem' ? 'selected' : ''}>A6 - Paisagem</option>
                         </select>
                     </div>
-                    <div style="display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0;">
-                        <div class="product-actions-buttons" style="margin-left:0;"></div>
-                        <button class="btn-delete" style="margin:0;flex-shrink:0;" onclick="deleteProduct(${product.id})">
-                            <i class="fa-solid fa-trash"></i> Remover
-                        </button>
-                    </div>
+                    <div class="product-actions-buttons"></div>
                 </div>
                 ${(product.garantia12 > 0 || product.garantia24 > 0 || product.garantia36 > 0) ? `
                 <div id="ge-sel-row-${product.id}" class="ge-sel-row" onclick="event.stopPropagation()">

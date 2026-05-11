@@ -373,7 +373,7 @@ async function _buscarProdutoNaAPI(codigo) {
         }
 
         _apiProdutosCache = lista;
-        console.log('[API-GAS] ' + lista.length + ' produto(s) carregado(s) da API remota.');
+       
       } catch(e) {
         console.warn('[API-GAS] Falha ao carregar da API:', e.message);
         _apiProdutosCache = [];
@@ -971,10 +971,8 @@ async function carregarDicionarioRemoto(urlOverride) {
 
     if (novos > 0) {
       _atualizarBadgeDicionario('ok', 'Dict. +' + novos + ' termos');
-      console.log('[Dict] Remoto mesclado: ' + novos + ' novo(s) termo(s).');
     } else {
       _atualizarBadgeDicionario('ok', 'Dict. em dia');
-      console.log('[Dict] Remoto: nenhum termo novo (dicionário já atualizado).');
     }
 
   } catch(err) {

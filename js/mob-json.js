@@ -269,7 +269,6 @@
 
   function _boot() {
     _injectCSS(); _buildOverlay(); _injectButton();
-    console.log('✅ mob-json.js v2 — lê localStorage["cartazes_salvos"].');
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _boot);

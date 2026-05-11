@@ -636,7 +636,7 @@
       }
     });
 
-    console.log('✅ primeiros-passos.js v2 — tour de 6 etapas, tooltip compacta, scroll bloqueado.');
+  
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _boot);

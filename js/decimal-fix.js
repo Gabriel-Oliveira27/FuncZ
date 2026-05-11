@@ -533,6 +533,4 @@
 
   /* ── API pública ── */
   window.DecimalFix = { fix: fix, fixPreviews: fixPreviews, getOffset: getOffset, saveOffset: saveOffset };
-  console.log('✅ decimal-fix.js v2.2 — bugs corrigidos: fallback inicial + storage próprio.');
-
 }());
