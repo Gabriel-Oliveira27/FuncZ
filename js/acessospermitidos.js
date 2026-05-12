@@ -10,12 +10,21 @@
     } catch (_) { return null; }
   }
 
+  /** Remove acentos, espaços extras e coloca em minúsculas */
   function normalize(str) {
     return String(str || '')
       .trim()
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '');
+  }
+
+  /** Retorna true se a string normalizada é de uma cidade autorizada */
+  function isCidadeAutorizada(str) {
+    const n = normalize(str);
+    return n.includes('iguatu') || n.includes('ico');
+    // "icó" → normalize → "ico"  ✓
+    // "iguatu" → normalize → "iguatu" ✓
   }
 
   function isAllowed() {
@@ -29,22 +38,17 @@
       // 2. Usuário whitelisted
       if (normalize(auth.user) === 'jenifermoura') return true;
 
-      // 3. auth.local (campo dentro do authSession) contém 'iguatu'
-      //    Ex: {"local":"iguatu", ...}
-      const localField = normalize(auth.local);
-      if (localField.includes('iguatu')) return true;
+      // 3. auth.local (campo dentro do authSession)
+      //    Ex: {"local":"iguatu"} ou {"local":"icó"}
+      if (isCidadeAutorizada(auth.local)) return true;
 
-      // 4. auth.filial ou auth.cidade contém 'iguatu' / 'ico'
-      const filial = normalize(auth.filial);
-      const cidade = normalize(auth.cidade);
-      if (
-        filial.includes('iguatu') || cidade.includes('iguatu') ||
-        filial.includes('ico')    || cidade.includes('ico')
-      ) return true;
+      // 4. auth.filial ou auth.cidade (campos alternativos)
+      if (isCidadeAutorizada(auth.filial)) return true;
+      if (isCidadeAutorizada(auth.cidade)) return true;
     }
 
-    // 5. Chave 'local' independente no localStorage (fallback)
-    if (normalize(localStorage.getItem('local')).includes('iguatu')) return true;
+    // 5. Chave 'local' avulsa no localStorage (fallback)
+    if (isCidadeAutorizada(localStorage.getItem('local'))) return true;
 
     return false;
   }
