@@ -2145,7 +2145,7 @@ input:checked + .slider:before {
   top: 0;
   width: 210mm;
   height: 297mm;
-  transform: translate(167mm, 5mm) rotate(90deg) scale(0.419);
+  transform: translate(179.7mm, 2mm) rotate(90deg) scale(0.503);
   transform-origin: top left;
 }
 
@@ -2161,7 +2161,7 @@ input:checked + .slider:before {
 .product-preview .poster-wrapper-a6paisagem > .poster,
 .product-preview .poster-wrapper-a6paisagem > .poster.poster-carne {
   /* !important sobrescreve a regra global .product-preview .poster { scale(0.28) } */
-  transform: translate(167mm, 20mm) rotate(90deg) scale(0.419) !important;
+  transform: translate(179.7mm, 2mm) rotate(90deg) scale(0.503) !important;
   transform-origin: top left;
 }
 
@@ -2435,7 +2435,7 @@ input:checked + .slider:before {
 .product-preview
   .poster-wrapper-a6paisagem
   > .poster-carne.poster-zoom-3 {
-  transform: translate(167mm, 20mm) rotate(90deg) scale(0.419) !important;
+  transform: translate(179.7mm, 15mm) rotate(90deg) scale(0.503) !important;
   transform-origin: top left;
 }
 
